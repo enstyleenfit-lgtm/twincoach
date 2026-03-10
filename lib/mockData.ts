@@ -1,0 +1,334 @@
+import { Member, Visit, Intervention, Task } from "@/types";
+
+export const members: Member[] = [
+  {
+    id: "1",
+    name: "田中太郎",
+    plan: "Premium",
+    joinDate: "2023-06-15",
+    lastVisitDate: "2024-01-15",
+    visitInterval: "3 days",
+    riskScore: 85,
+    interventionStatus: "High Priority",
+    recommendedIntervention: "Immediate follow-up consultation required",
+    notes: "Member has been showing decreased engagement. Risk score has increased significantly over the past month.",
+  },
+  {
+    id: "2",
+    name: "佐藤花子",
+    plan: "Standard",
+    joinDate: "2023-08-20",
+    lastVisitDate: "2024-01-20",
+    visitInterval: "5 days",
+    riskScore: 65,
+    interventionStatus: "Monitor",
+    recommendedIntervention: "Nutrition plan review",
+    notes: "Regular check-ins are going well. Monitor progress closely.",
+  },
+  {
+    id: "3",
+    name: "鈴木一郎",
+    plan: "Basic",
+    joinDate: "2023-11-10",
+    lastVisitDate: "2024-01-22",
+    visitInterval: "2 days",
+    riskScore: 35,
+    interventionStatus: "Normal",
+    recommendedIntervention: "Continue current program",
+    notes: "Excellent progress. Member is highly engaged and following the program consistently.",
+  },
+  {
+    id: "4",
+    name: "山田次郎",
+    plan: "Premium",
+    joinDate: "2023-05-05",
+    lastVisitDate: "2024-01-10",
+    visitInterval: "10 days",
+    riskScore: 92,
+    interventionStatus: "Urgent",
+    recommendedIntervention: "Urgent intervention - schedule emergency consultation",
+    notes: "Critical situation. Member has not visited in 10 days. Risk score is extremely high.",
+  },
+  {
+    id: "5",
+    name: "伊藤美咲",
+    plan: "Standard",
+    joinDate: "2023-09-12",
+    lastVisitDate: "2024-01-21",
+    visitInterval: "4 days",
+    riskScore: 45,
+    interventionStatus: "Normal",
+    recommendedIntervention: "Workout plan adjustment",
+    notes: "Good progress overall. Minor adjustments needed to optimize results.",
+  },
+  {
+    id: "6",
+    name: "高橋健太",
+    plan: "Premium",
+    joinDate: "2023-07-01",
+    lastVisitDate: "2024-01-23",
+    visitInterval: "1 day",
+    riskScore: 25,
+    interventionStatus: "Normal",
+    recommendedIntervention: "Continue excellent progress",
+    notes: "Highly motivated member with consistent attendance. Risk score is very low.",
+  },
+];
+
+export const visits: Visit[] = [
+  {
+    id: "v1",
+    memberId: "1",
+    visitDate: "2024-01-15",
+  },
+  {
+    id: "v2",
+    memberId: "1",
+    visitDate: "2024-01-12",
+  },
+  {
+    id: "v3",
+    memberId: "1",
+    visitDate: "2024-01-08",
+  },
+  {
+    id: "v4",
+    memberId: "2",
+    visitDate: "2024-01-20",
+  },
+  {
+    id: "v5",
+    memberId: "2",
+    visitDate: "2024-01-15",
+  },
+  {
+    id: "v6",
+    memberId: "2",
+    visitDate: "2024-01-10",
+  },
+  {
+    id: "v7",
+    memberId: "3",
+    visitDate: "2024-01-22",
+  },
+  {
+    id: "v8",
+    memberId: "3",
+    visitDate: "2024-01-20",
+  },
+  {
+    id: "v9",
+    memberId: "3",
+    visitDate: "2024-01-18",
+  },
+  {
+    id: "v10",
+    memberId: "4",
+    visitDate: "2024-01-10",
+  },
+  {
+    id: "v11",
+    memberId: "4",
+    visitDate: "2024-01-05",
+  },
+  {
+    id: "v12",
+    memberId: "4",
+    visitDate: "2023-12-28",
+  },
+  {
+    id: "v13",
+    memberId: "5",
+    visitDate: "2024-01-21",
+  },
+  {
+    id: "v14",
+    memberId: "5",
+    visitDate: "2024-01-17",
+  },
+  {
+    id: "v15",
+    memberId: "5",
+    visitDate: "2024-01-14",
+  },
+  {
+    id: "v16",
+    memberId: "6",
+    visitDate: "2024-01-23",
+  },
+  {
+    id: "v17",
+    memberId: "6",
+    visitDate: "2024-01-22",
+  },
+];
+
+export const interventions: Intervention[] = [
+  {
+    id: "i1",
+    memberId: "1",
+    type: "Follow-up Consultation",
+    status: "Completed",
+    createdAt: "2024-01-15",
+  },
+  {
+    id: "i2",
+    memberId: "1",
+    type: "Nutrition Review",
+    status: "Completed",
+    createdAt: "2024-01-08",
+  },
+  {
+    id: "i3",
+    memberId: "1",
+    type: "Program Adjustment",
+    status: "Completed",
+    createdAt: "2023-12-20",
+  },
+  {
+    id: "i4",
+    memberId: "2",
+    type: "Progress Review",
+    status: "Completed",
+    createdAt: "2024-01-20",
+  },
+  {
+    id: "i5",
+    memberId: "2",
+    type: "Nutrition Plan Update",
+    status: "Completed",
+    createdAt: "2024-01-05",
+  },
+  {
+    id: "i6",
+    memberId: "3",
+    type: "Monthly Check-in",
+    status: "Completed",
+    createdAt: "2024-01-18",
+  },
+  {
+    id: "i7",
+    memberId: "4",
+    type: "Emergency Consultation",
+    status: "Completed",
+    createdAt: "2024-01-10",
+  },
+  {
+    id: "i8",
+    memberId: "4",
+    type: "Risk Assessment",
+    status: "Completed",
+    createdAt: "2023-12-28",
+  },
+  {
+    id: "i9",
+    memberId: "4",
+    type: "Program Review",
+    status: "Completed",
+    createdAt: "2023-12-15",
+  },
+  {
+    id: "i10",
+    memberId: "5",
+    type: "Plan Adjustment",
+    status: "Completed",
+    createdAt: "2024-01-14",
+  },
+  {
+    id: "i11",
+    memberId: "5",
+    type: "Progress Review",
+    status: "Completed",
+    createdAt: "2024-01-01",
+  },
+  {
+    id: "i12",
+    memberId: "6",
+    type: "Initial Assessment",
+    status: "Completed",
+    createdAt: "2024-01-22",
+  },
+];
+
+export const tasks: Task[] = [
+  {
+    id: "t1",
+    memberId: "1",
+    memberName: "田中太郎",
+    action: "Follow-up consultation",
+    status: "pending",
+    assignedTrainer: "山本トレーナー",
+    dueDate: "2024-01-25",
+  },
+  {
+    id: "t2",
+    memberId: "2",
+    memberName: "佐藤花子",
+    action: "Nutrition plan review",
+    status: "in progress",
+    assignedTrainer: "佐々木トレーナー",
+    dueDate: "2024-01-24",
+  },
+  {
+    id: "t3",
+    memberId: "3",
+    memberName: "鈴木一郎",
+    action: "Progress check",
+    status: "done",
+    assignedTrainer: "山本トレーナー",
+    dueDate: "2024-01-23",
+  },
+  {
+    id: "t4",
+    memberId: "4",
+    memberName: "山田次郎",
+    action: "Emergency intervention",
+    status: "pending",
+    assignedTrainer: "佐々木トレーナー",
+    dueDate: "2024-01-26",
+  },
+  {
+    id: "t5",
+    memberId: "5",
+    memberName: "伊藤美咲",
+    action: "Workout plan adjustment",
+    status: "in progress",
+    assignedTrainer: "山本トレーナー",
+    dueDate: "2024-01-25",
+  },
+  {
+    id: "t6",
+    memberId: "6",
+    memberName: "高橋健太",
+    action: "Initial assessment",
+    status: "done",
+    assignedTrainer: "佐々木トレーナー",
+    dueDate: "2024-01-22",
+  },
+  {
+    id: "t7",
+    memberId: "1",
+    memberName: "田中太郎",
+    action: "Risk assessment review",
+    status: "pending",
+    assignedTrainer: "山本トレーナー",
+    dueDate: "2024-01-27",
+  },
+];
+
+// Helper functions to get data by member ID
+export function getMemberById(id: string): Member | undefined {
+  return members.find((member) => member.id === id);
+}
+
+export function getVisitsByMemberId(memberId: string): Visit[] {
+  return visits.filter((visit) => visit.memberId === memberId);
+}
+
+export function getInterventionsByMemberId(memberId: string): Intervention[] {
+  return interventions.filter((intervention) => intervention.memberId === memberId);
+}
+
+export function getTasksByMemberId(memberId: string): Task[] {
+  return tasks.filter((task) => task.memberId === memberId);
+}
