@@ -1,20 +1,141 @@
 /**
+ * ユーザーロール定義
+ * 権限別ダッシュボードで使用
+ */
+export type Role = "admin" | "owner" | "manager" | "trainer";
+
+/**
+ * Supabaseデータベースの型定義（スネークケース）
+ * これらの型はSupabaseから取得した生データに対応
+ */
+
+/**
+ * Supabase members テーブルの型
+ */
+export interface SupabaseMember {
+  id: string;
+  name: string;
+  plan: string;
+  join_date: string;
+  last_visit_date: string;
+  visit_interval: string;
+  has_cancellation_history?: boolean;
+  monthly_revenue?: number;
+  store_name: string;
+  assigned_trainer?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Supabase visits テーブルの型
+ */
+export interface SupabaseVisit {
+  id: string;
+  member_id: string;
+  visit_date: string;
+  created_at?: string;
+}
+
+/**
+ * Supabase interventions テーブルの型
+ */
+export interface SupabaseIntervention {
+  id: string;
+  member_id: string;
+  type: string;
+  title: string;
+  action?: string;
+  priority: "low" | "medium" | "high";
+  status: "pending" | "in progress" | "completed";
+  trainer?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Supabase tasks テーブルの型
+ */
+export interface SupabaseTask {
+  id: string;
+  member_id: string;
+  member_name: string;
+  action: string;
+  status: "pending" | "in progress" | "done";
+  assigned_trainer: string;
+  due_date: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * アプリケーション層の型定義（キャメルケース）
+ * これらの型はアプリケーション全体で使用
+ */
+
+/**
  * 会員情報
  * Supabase接続時は members テーブルに対応
+ * 計算フィールド（riskScore, interventionStatus等）はアプリケーション側で計算
  */
 export interface Member {
   id: string;
   name: string;
   plan: string;
+  storeName: string;
   joinDate: string;
   lastVisitDate: string;
   visitInterval: string;
-  riskScore: number;
-  interventionStatus: string;
-  recommendedIntervention: string;
-  notes: string;
+  // 計算フィールド（DBには保存しない）
+  riskScore?: number;
+  interventionStatus?: string;
+  recommendedIntervention?: string;
+  // DBフィールド
+  monthlyRevenue?: number;
   hasCancellationHistory?: boolean;
+  assignedTrainer?: string;
+  notes?: string;
+  // 拡張フィールド（現在はモックデータのみ、将来別テーブルまたはJSONBで管理）
+  // 予約分析用データ
+  preferredTimeSlot?: string; // 例: "19:00-20:00"
+  bookedTimeSlot?: string; // 実際に予約できた時間帯
+  reservationDifficultyLevel?: "easy" | "medium" | "difficult"; // 予約の取りづらさ
+  preferredWeekday?: string; // 例: "月", "火", "水", "木", "金", "土", "日"
+  preferredHour?: number; // 0-23
+  // デュアル移行最適化用データ
+  currentPlan?: string; // 現在のプラン（planと同じ値または別途設定）
+  recommendedNextPlan?: "トレーニング月8" | "ピラティス月8"; // 推奨移行先
+  trainingFitScore?: number; // トレーニング適性スコア（0-100）
+  pilatesFitScore?: number; // ピラティス適性スコア（0-100）
+  // 価格改定影響モニター用データ
+  isPriceRevisionTarget?: boolean; // 価格改定対象かどうか
+  priceRevisionBeforeRevenue?: number; // 改定前月額売上
+  priceRevisionAfterRevenue?: number; // 改定後月額売上
 }
+
+/**
+ * 会員作成用入力（アプリケーション層）
+ * Supabase接続後もこの形を維持するとCRUDが差し替えやすい
+ */
+export interface MemberCreateInput {
+  name: string;
+  plan: string;
+  joinDate: string; // YYYY-MM-DD
+  storeName: string;
+  assignedTrainer?: string;
+  notes?: string;
+}
+
+/**
+ * 会員更新用入力（部分更新）
+ */
+export type MemberUpdateInput = Partial<MemberCreateInput> & {
+  lastVisitDate?: string; // YYYY-MM-DD
+  visitInterval?: string;
+  hasCancellationHistory?: boolean;
+  monthlyRevenue?: number;
+};
 
 /**
  * 訪問履歴
@@ -34,8 +155,10 @@ export interface Intervention {
   id: string;
   memberId: string;
   type: string;
+  title?: string; // Supabaseでは必須だが、既存モックデータとの互換性のためオプショナル
   action?: string;
-  status: string;
+  priority?: "low" | "medium" | "high"; // 既存モックデータとの互換性のためオプショナル
+  status: string; // "pending" | "in progress" | "completed" | "Completed" | "Pending" など
   trainer?: string;
   createdAt: string;
 }

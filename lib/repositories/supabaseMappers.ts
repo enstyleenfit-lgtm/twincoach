@@ -1,0 +1,162 @@
+/**
+ * Supabaseデータベースの型とアプリケーション層の型を変換するマッパー関数
+ * スネークケース（DB） ↔ キャメルケース（アプリ）
+ */
+
+import {
+  SupabaseMember,
+  SupabaseVisit,
+  SupabaseIntervention,
+  SupabaseTask,
+  Member,
+  Visit,
+  Intervention,
+  Task,
+} from "@/types";
+
+/**
+ * Supabase Member → アプリケーション Member
+ */
+export function mapSupabaseMemberToMember(
+  supabaseMember: SupabaseMember
+): Member {
+  return {
+    id: supabaseMember.id,
+    name: supabaseMember.name,
+    plan: supabaseMember.plan,
+    storeName: supabaseMember.store_name,
+    joinDate: supabaseMember.join_date,
+    lastVisitDate: supabaseMember.last_visit_date,
+    visitInterval: supabaseMember.visit_interval,
+    monthlyRevenue: supabaseMember.monthly_revenue,
+    hasCancellationHistory: supabaseMember.has_cancellation_history ?? false,
+    assignedTrainer: supabaseMember.assigned_trainer,
+    notes: supabaseMember.notes,
+    // 計算フィールドは後で追加される
+  };
+}
+
+/**
+ * アプリケーション Member → Supabase Member
+ */
+export function mapMemberToSupabaseMember(member: Member): SupabaseMember {
+  return {
+    id: member.id,
+    name: member.name,
+    plan: member.plan,
+    join_date: member.joinDate,
+    last_visit_date: member.lastVisitDate,
+    visit_interval: member.visitInterval,
+    monthly_revenue: member.monthlyRevenue,
+    has_cancellation_history: member.hasCancellationHistory ?? false,
+    store_name: member.storeName,
+    assigned_trainer: member.assignedTrainer,
+    notes: member.notes,
+  };
+}
+
+/**
+ * Supabase Visit → アプリケーション Visit
+ */
+export function mapSupabaseVisitToVisit(
+  supabaseVisit: SupabaseVisit
+): Visit {
+  return {
+    id: supabaseVisit.id,
+    memberId: supabaseVisit.member_id,
+    visitDate: supabaseVisit.visit_date,
+  };
+}
+
+/**
+ * アプリケーション Visit → Supabase Visit
+ */
+export function mapVisitToSupabaseVisit(visit: Visit): SupabaseVisit {
+  return {
+    id: visit.id,
+    member_id: visit.memberId,
+    visit_date: visit.visitDate,
+  };
+}
+
+/**
+ * Supabase Intervention → アプリケーション Intervention
+ */
+export function mapSupabaseInterventionToIntervention(
+  supabaseIntervention: SupabaseIntervention
+): Intervention {
+  return {
+    id: supabaseIntervention.id,
+    memberId: supabaseIntervention.member_id,
+    type: supabaseIntervention.type,
+    title: supabaseIntervention.title,
+    action: supabaseIntervention.action,
+    priority: supabaseIntervention.priority,
+    status: supabaseIntervention.status,
+    trainer: supabaseIntervention.trainer,
+    createdAt: supabaseIntervention.created_at || new Date().toISOString(),
+  };
+}
+
+/**
+ * アプリケーション Intervention → Supabase Intervention
+ */
+export function mapInterventionToSupabaseIntervention(
+  intervention: Intervention
+): SupabaseIntervention {
+  // titleが未設定の場合はtypeをtitleとして使用（既存データとの互換性）
+  const title = intervention.title || intervention.type;
+  // priorityが未設定の場合は"medium"をデフォルト値として使用
+  const priority = intervention.priority || "medium";
+  // statusを正規化（"Completed" → "completed"など）
+  const normalizedStatus =
+    intervention.status.toLowerCase() === "completed"
+      ? "completed"
+      : intervention.status.toLowerCase() === "pending"
+      ? "pending"
+      : intervention.status.toLowerCase() === "in progress"
+      ? "in progress"
+      : "pending";
+
+  return {
+    id: intervention.id,
+    member_id: intervention.memberId,
+    type: intervention.type,
+    title: title,
+    action: intervention.action,
+    priority: priority as "low" | "medium" | "high",
+    status: normalizedStatus as "pending" | "in progress" | "completed",
+    trainer: intervention.trainer,
+  };
+}
+
+/**
+ * Supabase Task → アプリケーション Task
+ */
+export function mapSupabaseTaskToTask(supabaseTask: SupabaseTask): Task {
+  return {
+    id: supabaseTask.id,
+    memberId: supabaseTask.member_id,
+    memberName: supabaseTask.member_name,
+    action: supabaseTask.action,
+    status: supabaseTask.status,
+    assignedTrainer: supabaseTask.assigned_trainer,
+    dueDate: supabaseTask.due_date,
+  };
+}
+
+/**
+ * アプリケーション Task → Supabase Task
+ */
+export function mapTaskToSupabaseTask(task: Task): SupabaseTask {
+  return {
+    id: task.id,
+    member_id: task.memberId,
+    member_name: task.memberName,
+    action: task.action,
+    status: task.status,
+    assigned_trainer: task.assignedTrainer,
+    due_date: task.dueDate,
+  };
+}
+

@@ -3,6 +3,7 @@ import { memberRepository, visitRepository, interventionRepository } from "@/lib
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
+import { getDualMembers, getRecommendedNextPlan } from "@/lib/planTransition";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -34,6 +35,14 @@ export default async function MemberDetailPage({
   const member = await memberRepository.getById(id);
   const visitHistory = await visitRepository.getByMemberId(id);
   const interventionHistory = await interventionRepository.getByMemberId(id);
+
+  // デュアル移行最適化（デュアル会員の場合のみ）
+  const isDualMember =
+    member &&
+    (member.plan === "デュアル月8" || member.currentPlan === "デュアル月8");
+  const planTransitionRecommendation = isDualMember
+    ? getRecommendedNextPlan(member)
+    : null;
 
   if (!member) {
     return (
@@ -178,6 +187,101 @@ export default async function MemberDetailPage({
           </div>
         </div>
       </div>
+
+      {/* デュアル移行最適化 */}
+      {isDualMember && planTransitionRecommendation && (
+        <div className="mb-8">
+          <div className="bg-zinc-900 border-2 border-blue-500/40 rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">デュアル移行最適化</h2>
+            <div className="space-y-6">
+              <div>
+                <label className="text-zinc-400 text-sm mb-2 block">
+                  推奨移行先
+                </label>
+                <span
+                  className={`inline-flex items-center px-4 py-2 rounded-full text-base font-medium border ${
+                    planTransitionRecommendation.recommendedNextPlan === "トレーニング月8"
+                      ? "text-blue-400 bg-blue-400/10 border-blue-400/20"
+                      : "text-purple-400 bg-purple-400/10 border-purple-400/20"
+                  }`}
+                >
+                  {planTransitionRecommendation.recommendedNextPlan}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="text-zinc-400 text-sm mb-2 block">
+                    トレーニング適性
+                  </label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 bg-zinc-800 rounded-full h-3">
+                        <div
+                          className={`h-3 rounded-full ${
+                            planTransitionRecommendation.trainingFitScore >= 70
+                              ? "bg-blue-400"
+                              : planTransitionRecommendation.trainingFitScore >= 50
+                              ? "bg-blue-500/60"
+                              : "bg-zinc-600"
+                          }`}
+                          style={{
+                            width: `${planTransitionRecommendation.trainingFitScore}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-lg font-bold text-zinc-300 w-16 text-right">
+                        {planTransitionRecommendation.trainingFitScore}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-zinc-400 text-sm mb-2 block">
+                    ピラティス適性
+                  </label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 bg-zinc-800 rounded-full h-3">
+                        <div
+                          className={`h-3 rounded-full ${
+                            planTransitionRecommendation.pilatesFitScore >= 70
+                              ? "bg-purple-400"
+                              : planTransitionRecommendation.pilatesFitScore >= 50
+                              ? "bg-purple-500/60"
+                              : "bg-zinc-600"
+                          }`}
+                          style={{
+                            width: `${planTransitionRecommendation.pilatesFitScore}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-lg font-bold text-zinc-300 w-16 text-right">
+                        {planTransitionRecommendation.pilatesFitScore}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-zinc-400 text-sm mb-2 block">
+                  推奨理由
+                </label>
+                <ul className="space-y-2 text-zinc-300 text-sm">
+                  {planTransitionRecommendation.reason.map((reason, idx) => (
+                    <li key={idx} className="flex gap-2">
+                      <span className="text-zinc-500">・</span>
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">

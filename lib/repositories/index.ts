@@ -1,17 +1,26 @@
 /**
  * リポジトリの統一エクスポート
- * 将来的にSupabase接続時に、ここでクライアントを初期化
+ * Supabase接続時は、ここでクライアントを初期化して各リポジトリに渡す
  */
+
+import { supabase, isSupabaseEnabled } from "@/lib/supabase";
 
 export { memberRepository, MemberRepository } from "./memberRepository";
 export { visitRepository, VisitRepository } from "./visitRepository";
 export { interventionRepository, InterventionRepository } from "./interventionRepository";
 export { taskRepository, TaskRepository } from "./taskRepository";
 
-// TODO: Supabase接続時に以下を追加
-// import { createClient } from '@supabase/supabase-js';
-// export const supabase = createClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-// );
+// Supabaseクライアントをエクスポート（環境変数が設定されていない場合はnull）
+export { supabase, isSupabaseEnabled };
+
+/**
+ * 現在のデータソース状態を確認
+ * 開発時にモックデータとDB接続を切り替えやすくするためのヘルパー
+ */
+export function getDataSourceStatus() {
+  return {
+    isUsingSupabase: isSupabaseEnabled(),
+    dataSource: isSupabaseEnabled() ? "Supabase" : "Mock Data",
+  };
+}
 

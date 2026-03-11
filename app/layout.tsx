@@ -60,6 +60,22 @@ export default function RootLayout({
                     介入タスク
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/import"
+                    className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
+                  >
+                    CSVインポート
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/login"
+                    className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
+                  >
+                    ログイン
+                  </Link>
+                </li>
               </ul>
             </nav>
           </aside>
