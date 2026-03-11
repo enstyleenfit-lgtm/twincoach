@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { members } from "@/lib/mockData";
-import { Member } from "@/types";
+import { memberRepository } from "@/lib/repositories";
+import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
+import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -12,7 +13,9 @@ function getRiskScoreColor(score: number): string {
   }
 }
 
-export default function MembersPage() {
+export default async function MembersPage() {
+  const members = await memberRepository.getAll();
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
@@ -20,10 +23,10 @@ export default function MembersPage() {
           href="/"
           className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
         >
-          ← Back to Dashboard
+          ← ダッシュボードに戻る
         </Link>
       </div>
-      <h1 className="text-4xl font-bold mb-8">Members</h1>
+      <h1 className="text-4xl font-bold mb-8">会員一覧</h1>
       
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
@@ -31,7 +34,7 @@ export default function MembersPage() {
             <thead className="bg-zinc-800 border-b border-zinc-700">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                  Name
+                  名前
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
                   Plan
@@ -43,15 +46,26 @@ export default function MembersPage() {
                   Visit Interval
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                  Risk Score
+                  リスクスコア
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
                   Intervention Status
                 </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  会員タイプ
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  リスク理由
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800">
-              {members.map((member) => (
+              {members.map((member) => {
+                const riskResult = calculateRiskScore(member);
+                const riskReasons = getRiskReasons(member);
+                const segment = getMemberSegment(member);
+                const segmentInfo = getSegmentInfo(segment);
+                return (
                   <tr
                     key={member.id}
                     className="hover:bg-zinc-800/50 transition-colors"
@@ -74,21 +88,35 @@ export default function MembersPage() {
                     <td className="px-6 py-4">
                       <span
                         className={`font-semibold ${getRiskScoreColor(
-                          member.riskScore
+                          riskResult.score
                         )}`}
                       >
-                        {member.riskScore}
+                        {riskResult.score}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-zinc-300">
                       {member.interventionStatus}
                     </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getSegmentColor(
+                          segment
+                        )}`}
+                        title={segmentInfo.description}
+                      >
+                        {segmentInfo.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-zinc-400 text-sm">
+                      {riskReasons[0] || "-"}
+                    </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { getMemberById, getVisitsByMemberId, getInterventionsByMemberId } from "@/lib/mockData";
-import { Visit, Intervention } from "@/types";
+import { memberRepository, visitRepository, interventionRepository } from "@/lib/repositories";
+import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
+import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
+import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -12,15 +14,26 @@ function getRiskScoreColor(score: number): string {
   }
 }
 
+function getRiskLevelColor(level: "low" | "medium" | "high"): string {
+  switch (level) {
+    case "low":
+      return "text-green-400";
+    case "medium":
+      return "text-yellow-400";
+    case "high":
+      return "text-red-400";
+  }
+}
+
 export default async function MemberDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const member = getMemberById(id);
-  const visitHistory = getVisitsByMemberId(id);
-  const interventionHistory = getInterventionsByMemberId(id);
+  const member = await memberRepository.getById(id);
+  const visitHistory = await visitRepository.getByMemberId(id);
+  const interventionHistory = await interventionRepository.getByMemberId(id);
 
   if (!member) {
     return (
@@ -29,7 +42,7 @@ export default async function MemberDetailPage({
           href="/members"
           className="text-blue-400 hover:text-blue-300 hover:underline mb-4 inline-block"
         >
-          ← Back to Members
+          ← 会員一覧に戻る
         </Link>
         <h1 className="text-4xl font-bold mb-8">Member Not Found</h1>
         <p className="text-zinc-400">The member with ID "{id}" could not be found.</p>
@@ -50,10 +63,10 @@ export default async function MemberDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Member Information</h2>
+          <h2 className="text-xl font-semibold mb-4">会員情報</h2>
           <div className="space-y-4">
             <div>
-              <label className="text-zinc-400 text-sm">Name</label>
+              <label className="text-zinc-400 text-sm">名前</label>
               <p className="text-white font-medium">{member.name}</p>
             </div>
             <div>
@@ -69,23 +82,97 @@ export default async function MemberDetailPage({
               <p className="text-white">{member.lastVisitDate}</p>
             </div>
             <div>
-              <label className="text-zinc-400 text-sm">Risk Score</label>
-              <p className={`text-2xl font-bold ${getRiskScoreColor(member.riskScore)}`}>
-                {member.riskScore}
-              </p>
+              <label className="text-zinc-400 text-sm">リスクスコア</label>
+              {(() => {
+                const riskResult = calculateRiskScore(member);
+                return (
+                  <div>
+                    <p className={`text-2xl font-bold ${getRiskScoreColor(riskResult.score)}`}>
+                      {riskResult.score}
+                    </p>
+                    <p className={`text-sm mt-1 ${getRiskLevelColor(riskResult.level)}`}>
+                      Level: {riskResult.level.toUpperCase()}
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+            <div>
+              <label className="text-zinc-400 text-sm">会員タイプ</label>
+              {(() => {
+                const segment = getMemberSegment(member);
+                const segmentInfo = getSegmentInfo(segment);
+                return (
+                  <div className="mt-2">
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getSegmentColor(
+                        segment
+                      )}`}
+                    >
+                      {segmentInfo.label}
+                    </span>
+                    <p className="text-zinc-400 text-xs mt-2">{segmentInfo.description}</p>
+                  </div>
+                );
+              })()}
+            </div>
+            <div>
+              <label className="text-zinc-400 text-sm">退会リスクの要因</label>
+              {(() => {
+                const reasons = getRiskReasons(member);
+                return reasons.length > 0 ? (
+                  <ul className="mt-2 space-y-1 text-zinc-400 text-sm">
+                    {reasons.map((reason) => (
+                      <li key={reason} className="flex gap-2">
+                        <span>・</span>
+                        <span>{reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-zinc-500 text-sm">-</p>
+                );
+              })()}
             </div>
           </div>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Intervention & Notes</h2>
+          <h2 className="text-xl font-semibold mb-4">介入提案とメモ</h2>
           <div className="space-y-4">
+            {(() => {
+              const suggestion = getInterventionSuggestion(member);
+              return (
+                <div>
+                  <label className="text-zinc-400 text-sm">推奨介入</label>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-white font-medium">{suggestion.title}</p>
+                    <p className="text-white text-sm">{suggestion.action}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-zinc-400 text-xs">タイプ:</span>
+                      <span className="text-blue-400 text-xs font-medium capitalize">
+                        {suggestion.type}
+                      </span>
+                      <span className="text-zinc-400 text-xs">•</span>
+                      <span className="text-zinc-400 text-xs">優先度:</span>
+                      <span
+                        className={`text-xs font-medium capitalize ${
+                          suggestion.priority === "high"
+                            ? "text-red-400"
+                            : suggestion.priority === "medium"
+                            ? "text-yellow-400"
+                            : "text-green-400"
+                        }`}
+                      >
+                        {suggestion.priority}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
             <div>
-              <label className="text-zinc-400 text-sm">Recommended Intervention</label>
-              <p className="text-white">{member.recommendedIntervention}</p>
-            </div>
-            <div>
-              <label className="text-zinc-400 text-sm">Notes</label>
+              <label className="text-zinc-400 text-sm">メモ</label>
               <p className="text-white text-sm leading-relaxed">{member.notes}</p>
             </div>
           </div>
@@ -94,7 +181,7 @@ export default async function MemberDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Visit History</h2>
+          <h2 className="text-xl font-semibold mb-4">来店履歴</h2>
           <div className="space-y-4">
             {visitHistory.length > 0 ? (
               visitHistory.map((visit) => (
@@ -103,41 +190,72 @@ export default async function MemberDetailPage({
                   className="border-b border-zinc-800 pb-4 last:border-0 last:pb-0"
                 >
                   <div className="flex justify-between items-start">
-                    <span className="text-white font-medium">Visit</span>
+                    <span className="text-white font-medium">来店</span>
                     <span className="text-zinc-400 text-sm">{visit.visitDate}</span>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-zinc-400 text-sm">No visit history available</p>
+              <p className="text-zinc-400 text-sm">来店履歴がありません</p>
             )}
           </div>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">Intervention History</h2>
-          <div className="space-y-4">
-            {interventionHistory.length > 0 ? (
-              interventionHistory.map((intervention) => (
-                <div
-                  key={intervention.id}
-                  className="border-b border-zinc-800 pb-4 last:border-0 last:pb-0"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="text-white font-medium">{intervention.type}</span>
-                    <span className="text-zinc-400 text-sm">{intervention.createdAt}</span>
-                  </div>
-                  <div className="flex justify-end">
-                    <span className="text-green-400 text-xs font-medium">
-                      {intervention.status}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-zinc-400 text-sm">No intervention history available</p>
-            )}
-          </div>
+          <h2 className="text-xl font-semibold mb-4">介入ログ</h2>
+          {interventionHistory.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-zinc-800 border-b border-zinc-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      日付
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      タイプ
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      アクション
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      ステータス
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      トレーナー
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800">
+                  {interventionHistory.map((intervention) => (
+                    <tr
+                      key={intervention.id}
+                      className="hover:bg-zinc-800/50 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-zinc-300 text-sm">
+                        {intervention.createdAt}
+                      </td>
+                      <td className="px-4 py-3 text-white text-sm font-medium">
+                        {intervention.type}
+                      </td>
+                      <td className="px-4 py-3 text-zinc-400 text-sm">
+                        {intervention.action || "-"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="text-green-400 text-xs font-medium">
+                          {intervention.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-zinc-300 text-sm">
+                        {intervention.trainer || "-"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-zinc-400 text-sm">介入履歴がありません</p>
+          )}
         </div>
       </div>
     </div>

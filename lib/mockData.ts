@@ -75,6 +75,7 @@ export const members: Member[] = [
   },
 ];
 
+// 訪問履歴データ
 export const visits: Visit[] = [
   {
     id: "v1",
@@ -163,93 +164,119 @@ export const visits: Visit[] = [
   },
 ];
 
+// 介入履歴データ
 export const interventions: Intervention[] = [
   {
     id: "i1",
     memberId: "1",
     type: "Follow-up Consultation",
+    action: "Conducted phone consultation to discuss progress",
     status: "Completed",
+    trainer: "山本トレーナー",
     createdAt: "2024-01-15",
   },
   {
     id: "i2",
     memberId: "1",
     type: "Nutrition Review",
+    action: "Reviewed and updated nutrition plan",
     status: "Completed",
+    trainer: "山本トレーナー",
     createdAt: "2024-01-08",
   },
   {
     id: "i3",
     memberId: "1",
     type: "Program Adjustment",
+    action: "Modified workout program based on feedback",
     status: "Completed",
+    trainer: "佐々木トレーナー",
     createdAt: "2023-12-20",
   },
   {
     id: "i4",
     memberId: "2",
     type: "Progress Review",
+    action: "Monthly progress check and goal setting",
     status: "Completed",
+    trainer: "佐々木トレーナー",
     createdAt: "2024-01-20",
   },
   {
     id: "i5",
     memberId: "2",
     type: "Nutrition Plan Update",
+    action: "Updated meal plan for better results",
     status: "Completed",
+    trainer: "山本トレーナー",
     createdAt: "2024-01-05",
   },
   {
     id: "i6",
     memberId: "3",
     type: "Monthly Check-in",
+    action: "Regular monthly consultation",
     status: "Completed",
+    trainer: "山本トレーナー",
     createdAt: "2024-01-18",
   },
   {
     id: "i7",
     memberId: "4",
     type: "Emergency Consultation",
+    action: "Urgent consultation due to high risk score",
     status: "Completed",
+    trainer: "佐々木トレーナー",
     createdAt: "2024-01-10",
   },
   {
     id: "i8",
     memberId: "4",
     type: "Risk Assessment",
+    action: "Comprehensive risk assessment and intervention plan",
     status: "Completed",
+    trainer: "山本トレーナー",
     createdAt: "2023-12-28",
   },
   {
     id: "i9",
     memberId: "4",
     type: "Program Review",
+    action: "Full program review and adjustment",
     status: "Completed",
+    trainer: "佐々木トレーナー",
     createdAt: "2023-12-15",
   },
   {
     id: "i10",
     memberId: "5",
     type: "Plan Adjustment",
+    action: "Adjusted workout plan for better engagement",
     status: "Completed",
+    trainer: "山本トレーナー",
     createdAt: "2024-01-14",
   },
   {
     id: "i11",
     memberId: "5",
     type: "Progress Review",
+    action: "Quarterly progress review session",
     status: "Completed",
+    trainer: "佐々木トレーナー",
     createdAt: "2024-01-01",
   },
   {
     id: "i12",
     memberId: "6",
     type: "Initial Assessment",
+    action: "Initial consultation and goal setting",
     status: "Completed",
+    trainer: "佐々木トレーナー",
     createdAt: "2024-01-22",
   },
 ];
 
+// タスクデータ
 export const tasks: Task[] = [
   {
     id: "t1",
@@ -317,6 +344,8 @@ export const tasks: Task[] = [
 ];
 
 // Helper functions to get data by member ID
+// 注意: これらの関数は後方互換性のために残していますが、
+// 新しいコードでは lib/repositories 経由でアクセスすることを推奨します
 export function getMemberById(id: string): Member | undefined {
   return members.find((member) => member.id === id);
 }

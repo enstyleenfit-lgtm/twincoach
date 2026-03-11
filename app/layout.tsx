@@ -41,7 +41,7 @@ export default function RootLayout({
                     href="/"
                     className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
                   >
-                    Dashboard
+                    ダッシュボード
                   </Link>
                 </li>
                 <li>
@@ -49,7 +49,7 @@ export default function RootLayout({
                     href="/members"
                     className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
                   >
-                    Members
+                    会員一覧
                   </Link>
                 </li>
                 <li>
@@ -57,7 +57,7 @@ export default function RootLayout({
                     href="/tasks"
                     className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
                   >
-                    Tasks
+                    介入タスク
                   </Link>
                 </li>
               </ul>
