@@ -4,7 +4,7 @@ import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getRevenueAtRisk } from "@/lib/revenueRisk";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { getChurnPrediction } from "@/lib/churnPrediction";
-import { getPriorityQueue } from "@/lib/priorityQueue";
+import { getPriorityQueue, type PriorityQueueItem } from "@/lib/priorityQueue";
 import { getReservationAnalysis } from "@/lib/reservationAnalysis";
 import { getReservationHeatmapData } from "@/lib/reservationHeatmap";
 import { ReservationHeatmap } from "@/components/ReservationHeatmap";
@@ -60,18 +60,18 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
 
   // 店舗ごとの会員をフィルタリング
   const storeMembers = allMembers.filter(
-    (member) => member.storeName === decodedStoreName
+    (member: Member) => member.storeName === decodedStoreName
   );
 
   // 店舗ごとのタスクをフィルタリング
-  const storeTasks = allTasks.filter((task) => {
-    const member = allMembers.find((m) => m.id === task.memberId);
+  const storeTasks = allTasks.filter((task: Task) => {
+    const member = allMembers.find((m: Member) => m.id === task.memberId);
     return member?.storeName === decodedStoreName;
   });
 
   // 基本統計
   const totalMembers = storeMembers.length;
-  const highRiskMembers = storeMembers.filter((member) => {
+  const highRiskMembers = storeMembers.filter((member: Member) => {
     const riskResult = calculateRiskScore(member);
     return riskResult.level === "high";
   }).length;
@@ -83,7 +83,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   let expectedLoss30Days = 0;
   let expectedLoss60Days = 0;
 
-  storeMembers.forEach((member) => {
+  storeMembers.forEach((member: Member) => {
     const revenue = getRevenueAtRisk(member);
     monthlyRevenue += revenue.monthlyRevenue;
 
@@ -99,12 +99,12 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   });
 
   // 推定継続率
-  const lowRiskMembers = storeMembers.filter((member) => {
+  const lowRiskMembers = storeMembers.filter((member: Member) => {
     const riskResult = calculateRiskScore(member);
     return riskResult.level === "low";
   }).length;
 
-  const mediumRiskMembers = storeMembers.filter((member) => {
+  const mediumRiskMembers = storeMembers.filter((member: Member) => {
     const riskResult = calculateRiskScore(member);
     return riskResult.level === "medium";
   }).length;
@@ -115,7 +115,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
 
   // 危険会員ランキング（リスクスコア順）
   const highRiskMembersList = storeMembers
-    .map((member) => {
+    .map((member: Member) => {
       const riskResult = calculateRiskScore(member);
       const revenue = getRevenueAtRisk(member);
       return {
@@ -127,13 +127,13 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
         intervention: getInterventionSuggestion(member),
       };
     })
-    .filter((item) => item.riskLevel === "high")
-    .sort((a, b) => b.riskScore - a.riskScore)
+    .filter((item: { member: Member; riskScore: number; riskLevel: "low" | "medium" | "high"; riskReasons: string[]; monthlyRevenue: number; intervention: ReturnType<typeof getInterventionSuggestion> }) => item.riskLevel === "high")
+    .sort((a: { member: Member; riskScore: number; riskLevel: "low" | "medium" | "high"; riskReasons: string[]; monthlyRevenue: number; intervention: ReturnType<typeof getInterventionSuggestion> }, b: { member: Member; riskScore: number; riskLevel: "low" | "medium" | "high"; riskReasons: string[]; monthlyRevenue: number; intervention: ReturnType<typeof getInterventionSuggestion> }) => b.riskScore - a.riskScore)
     .slice(0, 10); // トップ10
 
   // 店舗内の退会予測ランキング（30日予測順、上位5名）
   const churnRanking = storeMembers
-    .map((member) => {
+    .map((member: Member) => {
       const prediction = getChurnPrediction(member);
       const riskResult = calculateRiskScore(member);
       const intervention = getInterventionSuggestion(member);
@@ -144,7 +144,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
         intervention,
       };
     })
-    .sort((a, b) => b.prediction.probability30Days - a.prediction.probability30Days)
+    .sort((a: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; riskResult: ReturnType<typeof calculateRiskScore>; intervention: ReturnType<typeof getInterventionSuggestion> }, b: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; riskResult: ReturnType<typeof calculateRiskScore>; intervention: ReturnType<typeof getInterventionSuggestion> }) => b.prediction.probability30Days - a.prediction.probability30Days)
     .slice(0, 5);
 
   // 今日の優先対応（店舗内の会員から優先キューを取得）
@@ -168,13 +168,16 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   // 店舗別アクションプラン
   const storeActionPlan = getStoreActionPlan(allMembers, decodedStoreName);
 
+  // 予約詰まり時間帯ヒートマップ（店舗専用）
+  const storeReservationHeatmap = getReservationHeatmapData(storeMembers);
+
   // 介入優先キュー（タスクを優先度順にソート）
   const interventionQueue = storeTasks
     .filter(
-      (task) => task.status === "pending" || task.status === "in progress"
+      (task: Task) => task.status === "pending" || task.status === "in progress"
     )
-    .map((task) => {
-      const member = storeMembers.find((m) => m.id === task.memberId);
+    .map((task: Task) => {
+      const member = storeMembers.find((m: Member) => m.id === task.memberId);
       const intervention = member
         ? getInterventionSuggestion(member)
         : { priority: "medium" as const };
@@ -184,7 +187,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
         priority: intervention.priority,
       };
     })
-    .sort((a, b) => {
+    .sort((a: { task: Task; member: Member | undefined; priority: "low" | "medium" | "high" }, b: { task: Task; member: Member | undefined; priority: "low" | "medium" | "high" }) => {
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       return priorityOrder[b.priority] - priorityOrder[a.priority];
     });
@@ -297,7 +300,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             <p className="text-zinc-400 text-sm">退会予測データがありません</p>
           ) : (
             <div className="space-y-3">
-              {churnRanking.map((item, index) => (
+              {churnRanking.map((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; riskResult: ReturnType<typeof calculateRiskScore>; intervention: ReturnType<typeof getInterventionSuggestion> }, index: number) => (
                 <Link
                   key={item.member.id}
                   href={`/members/${item.member.id}`}
@@ -360,7 +363,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             <p className="text-zinc-400 text-sm">優先対応が必要な会員はありません</p>
           ) : (
             <div className="space-y-3">
-              {priorityQueue.map((item, index) => {
+              {priorityQueue.map((item: PriorityQueueItem, index: number) => {
                 const isHighRisk = item.riskScore >= 70 || item.probability30Days >= 70;
                 return (
                   <Link
@@ -578,7 +581,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
               今やること
             </h4>
             <ul className="space-y-2">
-              {storeActionPlan.actionItems.map((item, index) => (
+              {storeActionPlan.actionItems.map((item: string, index: number) => (
                 <li
                   key={index}
                   className="flex items-start gap-3 text-sm text-zinc-300"

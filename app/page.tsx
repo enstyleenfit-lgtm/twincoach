@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
+import { calculateRiskScore, getRiskReasons, type RiskScoreResult } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { calculateRetentionMetrics } from "@/lib/retentionMetrics";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
@@ -19,7 +19,7 @@ import { getPriorityQueue } from "@/lib/priorityQueue";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
 import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
-import { Role } from "@/types";
+import { Role, Member, Task } from "@/types";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -81,34 +81,34 @@ export default async function Home() {
   const tasks = tasksResponse.ok ? await tasksResponse.json() : [];
 
   // High Risk Members (risk score >= 70)
-  const highRiskMembers = members.filter((member) => {
+  const highRiskMembers = members.filter((member: Member) => {
     const riskResult = calculateRiskScore(member);
     return riskResult.level === "high";
   }).length;
 
   // Need Intervention (risk score >= 40)
-  const needIntervention = members.filter((member) => {
+  const needIntervention = members.filter((member: Member) => {
     const riskResult = calculateRiskScore(member);
     return riskResult.level === "medium" || riskResult.level === "high";
   }).length;
 
   // Today's Tasks (pending + in progress)
   const todaysTasks = tasks.filter(
-    (task) => task.status === "pending" || task.status === "in progress"
+    (task: Task) => task.status === "pending" || task.status === "in progress"
   ).length;
 
   // Intervention type counts
-  const reservationRiskMembers = members.filter((member) => {
+  const reservationRiskMembers = members.filter((member: Member) => {
     const suggestion = getInterventionSuggestion(member);
     return suggestion.type === "reservation";
   }).length;
 
-  const motivationRiskMembers = members.filter((member) => {
+  const motivationRiskMembers = members.filter((member: Member) => {
     const suggestion = getInterventionSuggestion(member);
     return suggestion.type === "motivation";
   }).length;
 
-  const lifestyleRiskMembers = members.filter((member) => {
+  const lifestyleRiskMembers = members.filter((member: Member) => {
     const suggestion = getInterventionSuggestion(member);
     return suggestion.type === "lifestyle";
   }).length;
@@ -118,26 +118,26 @@ export default async function Home() {
 
   // High Risk Members List (sorted by risk score, max 5)
   const highRiskMembersList = members
-    .map((member) => ({
+    .map((member: Member) => ({
       member,
       riskResult: calculateRiskScore(member),
       suggestion: getInterventionSuggestion(member),
     }))
-    .filter(({ riskResult }) => riskResult.level === "high")
-    .sort((a, b) => b.riskResult.score - a.riskResult.score)
+    .filter(({ riskResult }: { riskResult: RiskScoreResult }) => riskResult.level === "high")
+    .sort((a: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }, b: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }) => b.riskResult.score - a.riskResult.score)
     .slice(0, 5);
 
   // Need Intervention Members (medium or high, max 5)
   const needInterventionMembers = members
-    .map((member) => ({
+    .map((member: Member) => ({
       member,
       riskResult: calculateRiskScore(member),
       suggestion: getInterventionSuggestion(member),
     }))
     .filter(
-      ({ riskResult }) => riskResult.level === "medium" || riskResult.level === "high"
+      ({ riskResult }: { riskResult: RiskScoreResult }) => riskResult.level === "medium" || riskResult.level === "high"
     )
-    .sort((a, b) => {
+    .sort((a: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }, b: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }) => {
       // Sort by priority first (high > medium > low), then by risk score
       const priorityOrder = { high: 3, medium: 2, low: 1 };
       const priorityDiff =
@@ -149,13 +149,13 @@ export default async function Home() {
 
   // 退会予測ランキング（リスクスコア順、上位5名）
   const dropoutRanking = members
-    .map((member) => ({
+    .map((member: Member) => ({
       member,
       riskResult: calculateRiskScore(member),
       suggestion: getInterventionSuggestion(member),
       segment: getMemberSegment(member),
     }))
-    .sort((a, b) => b.riskResult.score - a.riskResult.score)
+    .sort((a: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion>; segment: ReturnType<typeof getMemberSegment> }, b: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion>; segment: ReturnType<typeof getMemberSegment> }) => b.riskResult.score - a.riskResult.score)
     .slice(0, 5);
 
   // 今日の優先対応キュー（新しい優先順位ロジックを使用）
@@ -163,7 +163,7 @@ export default async function Home() {
 
   // 退会リスク分布（低/中/高）
   const riskDistribution = members.reduce(
-    (acc, member) => {
+    (acc: { low: number; medium: number; high: number }, member: Member) => {
       const { level } = calculateRiskScore(member);
       acc[level] += 1;
       return acc;
@@ -179,30 +179,30 @@ export default async function Home() {
 
   // 高リスク会員の売上リスク（退会リスク売上）
   const highRiskMembersWithRevenue = members
-    .map((member) => {
+    .map((member: Member) => {
       const riskResult = calculateRiskScore(member);
       const revenue = getRevenueAtRisk(member);
       return { member, riskResult, revenue };
     })
-    .filter(({ riskResult }) => riskResult.level === "high");
+    .filter(({ riskResult }: { riskResult: RiskScoreResult }) => riskResult.level === "high");
 
   const totalMonthlyRevenueAtRisk = highRiskMembersWithRevenue.reduce(
-    (sum, { revenue }) => sum + revenue.monthlyRevenue,
+    (sum: number, { revenue }: { member: Member; riskResult: RiskScoreResult; revenue: ReturnType<typeof getRevenueAtRisk> }) => sum + revenue.monthlyRevenue,
     0
   );
 
   const totalAnnualRevenueAtRisk = highRiskMembersWithRevenue.reduce(
-    (sum, { revenue }) => sum + revenue.annualRevenueAtRisk,
+    (sum: number, { revenue }: { member: Member; riskResult: RiskScoreResult; revenue: ReturnType<typeof getRevenueAtRisk> }) => sum + revenue.annualRevenueAtRisk,
     0
   );
 
   const dangerousRevenueRanking = highRiskMembersWithRevenue
     .slice()
-    .sort((a, b) => b.revenue.annualRevenueAtRisk - a.revenue.annualRevenueAtRisk)
+    .sort((a: { member: Member; riskResult: RiskScoreResult; revenue: ReturnType<typeof getRevenueAtRisk> }, b: { member: Member; riskResult: RiskScoreResult; revenue: ReturnType<typeof getRevenueAtRisk> }) => b.revenue.annualRevenueAtRisk - a.revenue.annualRevenueAtRisk)
     .slice(0, 5);
 
   // 収益リスクAI: 来月失う可能性のある売上を計算
-  const revenueRiskForecasts = members.map((member) => ({
+  const revenueRiskForecasts = members.map((member: Member) => ({
     member,
     forecast: getRevenueRiskForecast(member),
     intervention: getInterventionSuggestion(member),
@@ -210,28 +210,28 @@ export default async function Home() {
 
   // 来月失う可能性のある売上合計（30日期待損失額の合計）
   const totalExpectedLoss30Days = revenueRiskForecasts.reduce(
-    (sum, { forecast }) => sum + forecast.expectedLoss30Days,
+    (sum: number, { forecast }: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }) => sum + forecast.expectedLoss30Days,
     0
   );
 
   // 60日以内に失う可能性のある売上合計
   const totalExpectedLoss60Days = revenueRiskForecasts.reduce(
-    (sum, { forecast }) => sum + forecast.expectedLoss60Days,
+    (sum: number, { forecast }: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }) => sum + forecast.expectedLoss60Days,
     0
   );
 
   // 高リスク会員による年間危険売上（高リスク会員の年間売上の合計）
   const highRiskAnnualRevenue = revenueRiskForecasts
-    .filter(({ member }) => {
+    .filter(({ member }: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }) => {
       const riskResult = calculateRiskScore(member);
       return riskResult.level === "high";
     })
-    .reduce((sum, { forecast }) => sum + forecast.annualRevenue, 0);
+    .reduce((sum: number, { forecast }: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }) => sum + forecast.annualRevenue, 0);
 
   // 収益リスクランキング（30日期待損失額順、上位5名）
   const revenueRiskRanking = revenueRiskForecasts
     .slice()
-    .sort((a, b) => b.forecast.expectedLoss30Days - a.forecast.expectedLoss30Days)
+    .sort((a: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }, b: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }) => b.forecast.expectedLoss30Days - a.forecast.expectedLoss30Days)
     .slice(0, 5);
 
   // 収益防衛シミュレーション（全体版）
@@ -270,12 +270,12 @@ export default async function Home() {
       (item) =>
         item.riskResult.level === "medium" || item.riskResult.level === "high"
     )
-    .sort((a, b) => b.riskResult.score - a.riskResult.score)
+    .sort((a: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }, b: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }) => b.riskResult.score - a.riskResult.score)
     .slice(0, 5);
 
   // デュアル移行最適化
   const dualMembers = getDualMembers(members);
-  const dualMembersWithRecommendation = dualMembers.map((member) => ({
+  const dualMembersWithRecommendation = dualMembers.map((member: Member) => ({
     member,
     recommendation: getRecommendedNextPlan(member),
     riskResult: calculateRiskScore(member),
@@ -288,7 +288,7 @@ export default async function Home() {
     (item) => item.recommendation.recommendedNextPlan === "ピラティス月8"
   ).length;
   const urgentDualMembers = dualMembersWithRecommendation
-    .sort((a, b) => b.riskResult.score - a.riskResult.score)
+    .sort((a: { member: Member; recommendation: ReturnType<typeof getRecommendedNextPlan>; riskResult: RiskScoreResult; segment: ReturnType<typeof getMemberSegment> }, b: { member: Member; recommendation: ReturnType<typeof getRecommendedNextPlan>; riskResult: RiskScoreResult; segment: ReturnType<typeof getMemberSegment> }) => b.riskResult.score - a.riskResult.score)
     .slice(0, 5);
 
   // トレーナー別継続率
@@ -338,7 +338,7 @@ export default async function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {priorityQueue.map((item, index) => {
               const rank = index + 1;
-              const segmentInfo = getSegmentInfo(item.segment);
+              const segmentInfo = getSegmentInfo(item.segment as "short_term_result" | "habit_builder" | "at_risk_dropout");
               const isHighRisk = item.riskScore >= 70 || item.probability30Days >= 70;
               return (
                 <div
@@ -609,7 +609,7 @@ export default async function Home() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800">
-                {revenueRiskRanking.map((item, index) => (
+                {revenueRiskRanking.map((item: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }, index: number) => (
                   <tr
                     key={item.member.id}
                     className="hover:bg-zinc-800/50 transition-colors"
@@ -1582,52 +1582,52 @@ export default async function Home() {
             </table>
           </div>
         </div>
-      </div>
 
-      {/* 予約詰まり時間帯ヒートマップ */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 mb-6">
-        <h3 className="text-2xl font-semibold mb-4">
-          予約詰まり時間帯ヒートマップ
-        </h3>
-        <p className="text-zinc-400 text-sm mb-6">
-          予約が集中している曜日・時間帯を可視化しています
-        </p>
+        {/* 予約詰まり時間帯ヒートマップ */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 mb-6">
+          <h3 className="text-2xl font-semibold mb-4">
+            予約詰まり時間帯ヒートマップ
+          </h3>
+          <p className="text-zinc-400 text-sm mb-6">
+            予約が集中している曜日・時間帯を可視化しています
+          </p>
 
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-            <div className="text-zinc-400 text-sm mb-1">予約問題リスク会員数</div>
-            <div className="text-2xl font-bold text-orange-400">
-              {reservationHeatmap.reservationRiskMembersCount}
-            </div>
-            <div className="text-zinc-500 text-xs mt-1">人</div>
-          </div>
-
-          <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
-            <div className="text-zinc-400 text-sm mb-1">最も詰まっている時間帯</div>
-            <div className="text-lg font-bold text-red-400">
-              {reservationHeatmap.busiestTimeSlot || "なし"}
-            </div>
-          </div>
-
-          <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-4">
-            <div className="text-zinc-400 text-sm mb-1">分散提案が必要な時間帯</div>
-            <div className="text-lg font-bold text-yellow-400">
-              {reservationHeatmap.needsDiversionTimeSlots.length}箇所
-            </div>
-            {reservationHeatmap.needsDiversionTimeSlots.length > 0 && (
-              <div className="text-zinc-500 text-xs mt-1">
-                {reservationHeatmap.needsDiversionTimeSlots.slice(0, 2).join(", ")}
-                {reservationHeatmap.needsDiversionTimeSlots.length > 2 && "..."}
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+              <div className="text-zinc-400 text-sm mb-1">予約問題リスク会員数</div>
+              <div className="text-2xl font-bold text-orange-400">
+                {reservationHeatmap.reservationRiskMembersCount}
               </div>
-            )}
-          </div>
-        </div>
+              <div className="text-zinc-500 text-xs mt-1">人</div>
+            </div>
 
-        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
-          <ReservationHeatmap
-            cells={reservationHeatmap.cells}
-            maxPressure={reservationHeatmap.maxPressure}
-          />
+            <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+              <div className="text-zinc-400 text-sm mb-1">最も詰まっている時間帯</div>
+              <div className="text-lg font-bold text-red-400">
+                {reservationHeatmap.busiestTimeSlot || "なし"}
+              </div>
+            </div>
+
+            <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-4">
+              <div className="text-zinc-400 text-sm mb-1">分散提案が必要な時間帯</div>
+              <div className="text-lg font-bold text-yellow-400">
+                {reservationHeatmap.needsDiversionTimeSlots.length}箇所
+              </div>
+              {reservationHeatmap.needsDiversionTimeSlots.length > 0 && (
+                <div className="text-zinc-500 text-xs mt-1">
+                  {reservationHeatmap.needsDiversionTimeSlots.slice(0, 2).join(", ")}
+                  {reservationHeatmap.needsDiversionTimeSlots.length > 2 && "..."}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+            <ReservationHeatmap
+              cells={reservationHeatmap.cells}
+              maxPressure={reservationHeatmap.maxPressure}
+            />
+          </div>
         </div>
       </div>
       )}
@@ -1722,7 +1722,7 @@ export default async function Home() {
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
                   {urgentFirst90DaysMembers.map((item) => {
-                    const segmentInfo = getSegmentInfo(item.segment);
+                    const segmentInfo = getSegmentInfo(item.segment as "short_term_result" | "habit_builder" | "at_risk_dropout");
                     return (
                       <tr
                         key={item.member.id}
