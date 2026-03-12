@@ -1,6 +1,6 @@
 import { Task, SupabaseTask } from "@/types";
 import { tasks } from "@/lib/mockData";
-import { supabase, isSupabaseEnabled } from "@/lib/supabase";
+import { createServerSupabase, isSupabaseEnabled } from "@/lib/supabase/server";
 import { mapSupabaseTaskToTask } from "./supabaseMappers";
 
 /**
@@ -12,19 +12,26 @@ export class TaskRepository {
    * 全タスクを取得
    */
   async getAll(): Promise<Task[]> {
-    if (isSupabaseEnabled() && supabase) {
-      // Supabase接続時
-      const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .order("due_date", { ascending: true });
-      if (error) {
-        console.error("Supabase error:", error);
+    if (isSupabaseEnabled()) {
+      try {
+        // Supabase接続時
+        const supabase = await createServerSupabase();
+        const { data, error } = await supabase
+          .from("tasks")
+          .select("*")
+          .order("due_date", { ascending: true });
+        if (error) {
+          console.error("Supabase error:", error);
+          // エラー時はモックデータにフォールバック
+          return tasks;
+        }
+        // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
+        return (data as SupabaseTask[]).map(mapSupabaseTaskToTask);
+      } catch (error) {
+        console.error("Failed to create Supabase client:", error);
         // エラー時はモックデータにフォールバック
         return tasks;
       }
-      // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
-      return (data as SupabaseTask[]).map(mapSupabaseTaskToTask);
     }
     // モックデータを使用
     return tasks;
@@ -34,20 +41,27 @@ export class TaskRepository {
    * 会員IDでタスクを取得
    */
   async getByMemberId(memberId: string): Promise<Task[]> {
-    if (isSupabaseEnabled() && supabase) {
-      // Supabase接続時
-      const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("member_id", memberId)
-        .order("due_date", { ascending: true });
-      if (error) {
-        console.error("Supabase error:", error);
+    if (isSupabaseEnabled()) {
+      try {
+        // Supabase接続時
+        const supabase = await createServerSupabase();
+        const { data, error } = await supabase
+          .from("tasks")
+          .select("*")
+          .eq("member_id", memberId)
+          .order("due_date", { ascending: true });
+        if (error) {
+          console.error("Supabase error:", error);
+          // エラー時はモックデータにフォールバック
+          return tasks.filter((task) => task.memberId === memberId);
+        }
+        // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
+        return (data as SupabaseTask[]).map(mapSupabaseTaskToTask);
+      } catch (error) {
+        console.error("Failed to create Supabase client:", error);
         // エラー時はモックデータにフォールバック
         return tasks.filter((task) => task.memberId === memberId);
       }
-      // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
-      return (data as SupabaseTask[]).map(mapSupabaseTaskToTask);
     }
     // モックデータを使用
     return tasks.filter((task) => task.memberId === memberId);

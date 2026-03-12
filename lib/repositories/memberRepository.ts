@@ -1,6 +1,6 @@
 import { Member, MemberCreateInput, MemberUpdateInput, SupabaseMember } from "@/types";
 import { members } from "@/lib/mockData";
-import { supabase, isSupabaseEnabled } from "@/lib/supabase";
+import { createServerSupabase, isSupabaseEnabled } from "@/lib/supabase/server";
 import { mapMemberToSupabaseMember, mapSupabaseMemberToMember } from "./supabaseMappers";
 
 // モック用のインメモリストア（開発/プレビュー用）
@@ -44,19 +44,26 @@ export class MemberRepository {
    * 全会員を取得（CRUD向けの明示メソッド）
    */
   async getAllMembers(): Promise<Member[]> {
-    if (isSupabaseEnabled() && supabase) {
-      // Supabase接続時
-      const { data, error } = await supabase
-        .from("members")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) {
-        console.error("Supabase error:", error);
+    if (isSupabaseEnabled()) {
+      try {
+        // Supabase接続時
+        const supabase = await createServerSupabase();
+        const { data, error } = await supabase
+          .from("members")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Supabase error:", error);
+          // エラー時はモックデータにフォールバック
+          return mockMembersStore;
+        }
+        // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
+        return (data as SupabaseMember[]).map(mapSupabaseMemberToMember);
+      } catch (error) {
+        console.error("Failed to create Supabase client:", error);
         // エラー時はモックデータにフォールバック
         return mockMembersStore;
       }
-      // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
-      return (data as SupabaseMember[]).map(mapSupabaseMemberToMember);
     }
     // モックデータを使用
     return mockMembersStore;
@@ -66,20 +73,27 @@ export class MemberRepository {
    * IDで会員を取得（CRUD向けの明示メソッド）
    */
   async getMemberById(id: string): Promise<Member | undefined> {
-    if (isSupabaseEnabled() && supabase) {
-      // Supabase接続時
-      const { data, error } = await supabase
-        .from("members")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (error) {
-        console.error("Supabase error:", error);
+    if (isSupabaseEnabled()) {
+      try {
+        // Supabase接続時
+        const supabase = await createServerSupabase();
+        const { data, error } = await supabase
+          .from("members")
+          .select("*")
+          .eq("id", id)
+          .single();
+        if (error) {
+          console.error("Supabase error:", error);
+          // エラー時はモックデータにフォールバック
+          return mockMembersStore.find((member) => member.id === id);
+        }
+        // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
+        return data ? mapSupabaseMemberToMember(data as SupabaseMember) : undefined;
+      } catch (error) {
+        console.error("Failed to create Supabase client:", error);
         // エラー時はモックデータにフォールバック
         return mockMembersStore.find((member) => member.id === id);
       }
-      // Supabaseのスネークケースをアプリケーションのキャメルケースに変換
-      return data ? mapSupabaseMemberToMember(data as SupabaseMember) : undefined;
     }
     // モックデータを使用
     return mockMembersStore.find((member) => member.id === id);
@@ -106,20 +120,28 @@ export class MemberRepository {
       hasCancellationHistory: false,
     };
 
-    if (isSupabaseEnabled() && supabase) {
-      const payload = mapMemberToSupabaseMember(newMember);
-      const { data: inserted, error } = await supabase
-        .from("members")
-        .insert(payload)
-        .select("*")
-        .single();
-      if (error) {
-        console.error("Supabase error:", error);
-        // Supabaseエラー時も“仮作成”として返す（UI導線を壊さない）
+    if (isSupabaseEnabled()) {
+      try {
+        const supabase = await createServerSupabase();
+        const payload = mapMemberToSupabaseMember(newMember);
+        const { data: inserted, error } = await supabase
+          .from("members")
+          .insert(payload)
+          .select("*")
+          .single();
+        if (error) {
+          console.error("Supabase error:", error);
+          // Supabaseエラー時も"仮作成"として返す（UI導線を壊さない）
+          mockMembersStore = [newMember, ...mockMembersStore];
+          return newMember;
+        }
+        return mapSupabaseMemberToMember(inserted as SupabaseMember);
+      } catch (error) {
+        console.error("Failed to create Supabase client:", error);
+        // エラー時はモック側に追加して返す
         mockMembersStore = [newMember, ...mockMembersStore];
         return newMember;
       }
-      return mapSupabaseMemberToMember(inserted as SupabaseMember);
     }
 
     // モック時（インメモリに追加）
@@ -149,25 +171,96 @@ export class MemberRepository {
       monthlyRevenue: data.monthlyRevenue ?? current.monthlyRevenue,
     };
 
-    if (isSupabaseEnabled() && supabase) {
-      const payload = mapMemberToSupabaseMember(updated);
-      const { data: saved, error } = await supabase
-        .from("members")
-        .update(payload)
-        .eq("id", id)
-        .select("*")
-        .single();
-      if (error) {
-        console.error("Supabase error:", error);
-        // エラー時はモック側を更新して返す
-        mockMembersStore = mockMembersStore.map((m) => (m.id === id ? updated : m));
-        return updated;
-      }
-      return mapSupabaseMemberToMember(saved as SupabaseMember);
-    }
-
     mockMembersStore = mockMembersStore.map((m) => (m.id === id ? updated : m));
     return updated;
+  }
+
+  /**
+   * 会員を一括作成（CSVインポート用）
+   * @param membersData 会員データの配列
+   * @returns 作成結果（成功数、失敗数、エラー詳細）
+   */
+  async createMembersBulk(
+    membersData: MemberCreateInput[]
+  ): Promise<{
+    successCount: number;
+    errorCount: number;
+    errors: Array<{ index: number; data: MemberCreateInput; error: string }>;
+    createdMembers: Member[];
+  }> {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const errors: Array<{ index: number; data: MemberCreateInput; error: string }> = [];
+    const createdMembers: Member[] = [];
+
+    // バリデーション: 必須フィールドチェック
+    membersData.forEach((data, index) => {
+      if (!data.name || !data.name.trim()) {
+        errors.push({
+          index,
+          data,
+          error: "名前が必須です",
+        });
+      }
+      if (!data.plan || !data.plan.trim()) {
+        errors.push({
+          index,
+          data,
+          error: "プランが必須です",
+        });
+      }
+      if (!data.joinDate || !data.joinDate.trim()) {
+        errors.push({
+          index,
+          data,
+          error: "入会日が必須です",
+        });
+      }
+      if (!data.storeName || !data.storeName.trim()) {
+        errors.push({
+          index,
+          data,
+          error: "店舗名が必須です",
+        });
+      }
+    });
+
+    // バリデーションエラーがある場合は、エラーを返す
+    const validData = membersData.filter(
+      (_, index) => !errors.some((e) => e.index === index)
+    );
+
+    if (validData.length === 0) {
+      return {
+        successCount: 0,
+        errorCount: errors.length,
+        errors,
+        createdMembers: [],
+      };
+    }
+
+    // 会員データを準備
+    const newMembers: Member[] = validData.map((data) => ({
+      id: generateId(),
+      name: data.name,
+      plan: data.plan,
+      storeName: data.storeName,
+      joinDate: data.joinDate,
+      lastVisitDate: data.joinDate || today,
+      visitInterval: "0 days",
+      assignedTrainer: data.assignedTrainer,
+      notes: data.notes,
+      hasCancellationHistory: false,
+    }));
+
+    // モック時（インメモリに追加）
+    mockMembersStore = [...newMembers, ...mockMembersStore];
+    return {
+      successCount: newMembers.length,
+      errorCount: errors.length,
+      errors,
+      createdMembers: newMembers,
+    };
   }
 }
 

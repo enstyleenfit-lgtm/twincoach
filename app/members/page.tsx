@@ -1,7 +1,10 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { memberRepository } from "@/lib/repositories";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
+import { Member } from "@/types";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -13,8 +16,26 @@ function getRiskScoreColor(score: number): string {
   }
 }
 
-export default async function MembersPage() {
-  const members = await memberRepository.getAll();
+export default function MembersPage() {
+  const [members, setMembers] = useState<Member[]>([]);
+
+  useEffect(() => {
+    const loadMembers = async () => {
+      try {
+        const response = await fetch("/api/members");
+        if (!response.ok) {
+          console.error("Failed to fetch members");
+          return;
+        }
+        const data = await response.json();
+        setMembers(data);
+      } catch (error) {
+        console.error("Error loading members:", error);
+      }
+    };
+
+    loadMembers();
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -28,7 +49,12 @@ export default async function MembersPage() {
       </div>
       <h1 className="text-4xl font-bold mb-8">会員一覧</h1>
       
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+      {members.length === 0 ? (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
+          <p className="text-zinc-400">会員データを読み込み中...</p>
+        </div>
+      ) : (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-zinc-800 border-b border-zinc-700">
@@ -117,6 +143,7 @@ export default async function MembersPage() {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 }

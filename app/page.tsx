@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { memberRepository, taskRepository } from "@/lib/repositories";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { calculateRetentionMetrics } from "@/lib/retentionMetrics";
@@ -9,10 +8,16 @@ import { getRevenueAtRisk } from "@/lib/revenueRisk";
 import { getStoreSummaries } from "@/lib/storeSummary";
 import { getKpiGap, getStoreKpiTargets } from "@/lib/kpiGap";
 import { getReservationAnalysis } from "@/lib/reservationAnalysis";
+import { getReservationHeatmapData } from "@/lib/reservationHeatmap";
+import { ReservationHeatmap } from "@/components/ReservationHeatmap";
 import { getFirst90DaysRiskSummary } from "@/lib/first90Days";
 import { getDualMembers, getRecommendedNextPlan } from "@/lib/planTransition";
 import { getTrainerMetrics } from "@/lib/trainerMetrics";
 import { getPriceRevisionImpact } from "@/lib/priceRevisionImpact";
+import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPrediction";
+import { getPriorityQueue } from "@/lib/priorityQueue";
+import { getRevenueRiskForecast } from "@/lib/revenueForecast";
+import { getRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
 import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
 import { Role } from "@/types";
 
@@ -60,9 +65,20 @@ function getPriorityBadgeColor(priority: "low" | "medium" | "high"): string {
 }
 
 export default async function Home() {
-  // データ取得（将来的にSupabaseから取得可能）
-  const members = await memberRepository.getAll();
-  const tasks = await taskRepository.getAll();
+  // データ取得（API Route 経由）
+  // Server Component からは相対パスで fetch 可能
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const [membersResponse, tasksResponse] = await Promise.all([
+    fetch(`${baseUrl}/api/members`, {
+      cache: "no-store",
+    }),
+    fetch(`${baseUrl}/api/tasks`, {
+      cache: "no-store",
+    }),
+  ]);
+
+  const members = membersResponse.ok ? await membersResponse.json() : [];
+  const tasks = tasksResponse.ok ? await tasksResponse.json() : [];
 
   // High Risk Members (risk score >= 70)
   const highRiskMembers = members.filter((member) => {
@@ -142,31 +158,8 @@ export default async function Home() {
     .sort((a, b) => b.riskResult.score - a.riskResult.score)
     .slice(0, 5);
 
-  // 今日の優先対応キュー（riskScore → priority → lastVisitDate でソート）
-  const interventionQueue = members
-    .map((member) => ({
-      member,
-      riskResult: calculateRiskScore(member),
-      suggestion: getInterventionSuggestion(member),
-      segment: getMemberSegment(member),
-    }))
-    .sort((a, b) => {
-      // ① riskScore（高い順）
-      const scoreDiff = b.riskResult.score - a.riskResult.score;
-      if (scoreDiff !== 0) return scoreDiff;
-
-      // ② priority（high > medium > low）
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
-      const priorityDiff =
-        priorityOrder[b.suggestion.priority] - priorityOrder[a.suggestion.priority];
-      if (priorityDiff !== 0) return priorityDiff;
-
-      // ③ lastVisitDate（古い順）
-      const dateA = new Date(a.member.lastVisitDate).getTime();
-      const dateB = new Date(b.member.lastVisitDate).getTime();
-      return dateA - dateB;
-    })
-    .slice(0, 5);
+  // 今日の優先対応キュー（新しい優先順位ロジックを使用）
+  const priorityQueue = getPriorityQueue(members);
 
   // 退会リスク分布（低/中/高）
   const riskDistribution = members.reduce(
@@ -208,6 +201,42 @@ export default async function Home() {
     .sort((a, b) => b.revenue.annualRevenueAtRisk - a.revenue.annualRevenueAtRisk)
     .slice(0, 5);
 
+  // 収益リスクAI: 来月失う可能性のある売上を計算
+  const revenueRiskForecasts = members.map((member) => ({
+    member,
+    forecast: getRevenueRiskForecast(member),
+    intervention: getInterventionSuggestion(member),
+  }));
+
+  // 来月失う可能性のある売上合計（30日期待損失額の合計）
+  const totalExpectedLoss30Days = revenueRiskForecasts.reduce(
+    (sum, { forecast }) => sum + forecast.expectedLoss30Days,
+    0
+  );
+
+  // 60日以内に失う可能性のある売上合計
+  const totalExpectedLoss60Days = revenueRiskForecasts.reduce(
+    (sum, { forecast }) => sum + forecast.expectedLoss60Days,
+    0
+  );
+
+  // 高リスク会員による年間危険売上（高リスク会員の年間売上の合計）
+  const highRiskAnnualRevenue = revenueRiskForecasts
+    .filter(({ member }) => {
+      const riskResult = calculateRiskScore(member);
+      return riskResult.level === "high";
+    })
+    .reduce((sum, { forecast }) => sum + forecast.annualRevenue, 0);
+
+  // 収益リスクランキング（30日期待損失額順、上位5名）
+  const revenueRiskRanking = revenueRiskForecasts
+    .slice()
+    .sort((a, b) => b.forecast.expectedLoss30Days - a.forecast.expectedLoss30Days)
+    .slice(0, 5);
+
+  // 収益防衛シミュレーション（全体版）
+  const revenueDefenseSimulation = getRevenueDefenseSimulation(members);
+
   // 店舗別サマリー
   const storeSummaries = getStoreSummaries(members).sort(
     (a, b) => b.annualRevenueAtRisk - a.annualRevenueAtRisk
@@ -230,6 +259,7 @@ export default async function Home() {
 
   // 予約詰まり分析
   const reservationAnalysis = getReservationAnalysis(members);
+  const reservationHeatmap = getReservationHeatmapData(members);
 
   // 入会後90日モニター
   const first90DaysSummary = getFirst90DaysRiskSummary(members);
@@ -304,58 +334,58 @@ export default async function Home() {
             本日対応すべき会員をAIが優先順位で表示します
           </p>
         </div>
-        {interventionQueue.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {interventionQueue.map(({ member, riskResult, suggestion, segment }, index) => {
+        {priorityQueue.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {priorityQueue.map((item, index) => {
               const rank = index + 1;
-              const segmentInfo = getSegmentInfo(segment);
+              const segmentInfo = getSegmentInfo(item.segment);
+              const isHighRisk = item.riskScore >= 70 || item.probability30Days >= 70;
               return (
                 <div
-                  key={member.id}
-                  className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors"
+                  key={item.id}
+                  className={`bg-zinc-900 border rounded-lg p-6 hover:border-zinc-700 transition-colors ${
+                    isHighRisk
+                      ? "border-red-500/40 shadow-lg shadow-red-500/10"
+                      : "border-zinc-800"
+                  }`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold text-zinc-400">#{rank}</span>
+                      <span className={`text-2xl font-bold ${isHighRisk ? "text-red-400" : "text-zinc-400"}`}>
+                        #{rank}
+                      </span>
                       <Link
-                        href={`/members/${member.id}`}
-                        className="text-blue-400 hover:text-blue-300 hover:underline font-semibold text-lg"
+                        href={`/members/${item.id}`}
+                        className={`hover:underline font-semibold text-lg ${
+                          isHighRisk ? "text-red-300" : "text-blue-400 hover:text-blue-300"
+                        }`}
                       >
-                        {member.name}
+                        {item.name}
                       </Link>
                     </div>
                     <span
                       className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getPriorityBadgeColor(
-                        suggestion.priority
+                        item.priority
                       )}`}
                     >
-                      {suggestion.priority === "high" ? "高" : suggestion.priority === "medium" ? "中" : "低"}
+                      {item.priority === "high" ? "高" : item.priority === "medium" ? "中" : "低"}
                     </span>
                   </div>
                   
                   <div className="space-y-3">
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-zinc-400 text-xs">リスクスコア</span>
+                        <span className="text-zinc-400 text-xs">30日退会確率</span>
                         <span
-                          className={`text-xl font-bold ${getRiskScoreColor(
-                            riskResult.score
-                          )}`}
+                          className={`text-xl font-bold ${
+                            item.probability30Days >= 70
+                              ? "text-red-400"
+                              : item.probability30Days >= 50
+                              ? "text-orange-400"
+                              : "text-zinc-400"
+                          }`}
                         >
-                          {riskResult.score}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <span className="text-zinc-400 text-xs">会員タイプ</span>
-                      <div className="mt-1">
-                        <span
-                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getSegmentColor(
-                            segment
-                          )}`}
-                        >
-                          {segmentInfo.label}
+                          {item.probability30Days}%
                         </span>
                       </div>
                     </div>
@@ -363,13 +393,13 @@ export default async function Home() {
                     <div>
                       <span className="text-zinc-400 text-xs">推奨アクション</span>
                       <p className="text-white text-sm font-medium mt-1">
-                        {suggestion.title}
-          </p>
-        </div>
+                        {item.suggestedAction}
+                      </p>
+                    </div>
                     
                     <div className="pt-2 border-t border-zinc-800">
                       <Link
-                        href={`/members/${member.id}`}
+                        href={`/members/${item.id}`}
                         className="w-full px-4 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block text-center"
                       >
                         詳細を見る
@@ -387,7 +417,247 @@ export default async function Home() {
         )}
       </div>
       )}
-      
+
+      {/* 収益防衛シミュレーション */}
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">収益防衛シミュレーション</h2>
+          <p className="text-zinc-400 text-sm">
+            優先度の高い会員から守った場合に防衛できる売上を試算しています
+          </p>
+        </div>
+
+        {/* KPIカード */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">来月失う可能性のある売上</div>
+            <div className="text-4xl font-bold text-red-400">
+              ¥{revenueDefenseSimulation.monthlyLossForecast30Days.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">30日期待損失額</div>
+          </div>
+
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">60日以内に失う可能性のある売上</div>
+            <div className="text-4xl font-bold text-red-400">
+              ¥{revenueDefenseSimulation.monthlyLossForecast60Days.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">60日期待損失額</div>
+          </div>
+
+          <div className="bg-zinc-900 border border-yellow-500/40 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">あと何円守ればよいか</div>
+            <div className="text-4xl font-bold text-yellow-400">
+              ¥{revenueDefenseSimulation.revenueGap.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">目標防衛額のギャップ</div>
+          </div>
+
+          <div className="bg-zinc-900 border border-yellow-500/40 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">あと何人守ればよいか</div>
+            <div className="text-4xl font-bold text-yellow-400">
+              {revenueDefenseSimulation.membersToSaveForGoal}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">人</div>
+          </div>
+        </div>
+
+        {/* 防衛シナリオ比較 */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4">防衛シナリオ比較</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-6">
+              <div className="text-zinc-400 text-sm mb-2">上位3人を守った場合</div>
+              <div className="text-3xl font-bold text-green-400">
+                ¥{revenueDefenseSimulation.protectedRevenueIfTop3Saved.toLocaleString()}
+              </div>
+              <div className="text-zinc-500 text-xs mt-2">
+                防衛率:{" "}
+                {revenueDefenseSimulation.monthlyLossForecast30Days > 0
+                  ? (
+                      (revenueDefenseSimulation.protectedRevenueIfTop3Saved /
+                        revenueDefenseSimulation.monthlyLossForecast30Days) *
+                      100
+                    ).toFixed(1)
+                  : "0.0"}
+                %
+              </div>
+            </div>
+
+            <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-6">
+              <div className="text-zinc-400 text-sm mb-2">上位5人を守った場合</div>
+              <div className="text-3xl font-bold text-green-400">
+                ¥{revenueDefenseSimulation.protectedRevenueIfTop5Saved.toLocaleString()}
+              </div>
+              <div className="text-zinc-500 text-xs mt-2">
+                防衛率:{" "}
+                {revenueDefenseSimulation.monthlyLossForecast30Days > 0
+                  ? (
+                      (revenueDefenseSimulation.protectedRevenueIfTop5Saved /
+                        revenueDefenseSimulation.monthlyLossForecast30Days) *
+                      100
+                    ).toFixed(1)
+                  : "0.0"}
+                %
+              </div>
+            </div>
+
+            <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-6">
+              <div className="text-zinc-400 text-sm mb-2">高リスク全体を守った場合</div>
+              <div className="text-3xl font-bold text-green-400">
+                ¥{revenueDefenseSimulation.protectedRevenueIfHighRiskSaved.toLocaleString()}
+              </div>
+              <div className="text-zinc-500 text-xs mt-2">
+                防衛率:{" "}
+                {revenueDefenseSimulation.monthlyLossForecast30Days > 0
+                  ? (
+                      (revenueDefenseSimulation.protectedRevenueIfHighRiskSaved /
+                        revenueDefenseSimulation.monthlyLossForecast30Days) *
+                      100
+                    ).toFixed(1)
+                  : "0.0"}
+                %
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 収益リスクAI */}
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">収益リスクAI</h2>
+          <p className="text-zinc-400 text-sm">
+            退会確率をもとに、失う可能性のある売上を試算しています
+          </p>
+        </div>
+
+        {/* KPIカード */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">来月失う可能性のある売上</div>
+            <div className="text-4xl font-bold text-red-400">
+              ¥{totalExpectedLoss30Days.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">30日期待損失額</div>
+          </div>
+
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">60日以内に失う可能性のある売上</div>
+            <div className="text-4xl font-bold text-red-400">
+              ¥{totalExpectedLoss60Days.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">60日期待損失額</div>
+          </div>
+
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">高リスク会員による年間危険売上</div>
+            <div className="text-4xl font-bold text-red-400">
+              ¥{highRiskAnnualRevenue.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">/年</div>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+            <div className="text-zinc-400 text-sm mb-1">収益リスク対象会員数</div>
+            <div className="text-4xl font-bold text-white">
+              {revenueRiskRanking.length}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">上位5名</div>
+          </div>
+        </div>
+
+        {/* 収益リスクランキング */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-zinc-800">
+            <h3 className="text-xl font-semibold">収益リスクランキング（上位5名）</h3>
+            <p className="text-zinc-400 text-xs mt-1">
+              30日期待損失額が高い順に表示しています
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-zinc-800 border-b border-zinc-700">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    順位
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    名前
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    プラン
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    月額売上
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    30日退会確率
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    30日期待損失額
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    60日期待損失額
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    推奨アクション
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    詳細を見る
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800">
+                {revenueRiskRanking.map((item, index) => (
+                  <tr
+                    key={item.member.id}
+                    className="hover:bg-zinc-800/50 transition-colors"
+                  >
+                    <td className="px-6 py-4 text-zinc-300 font-semibold">
+                      #{index + 1}
+                    </td>
+                    <td className="px-6 py-4 text-white font-medium">
+                      {item.member.name}
+                    </td>
+                    <td className="px-6 py-4 text-zinc-300">{item.member.plan}</td>
+                    <td className="px-6 py-4 text-white">
+                      ¥{item.forecast.monthlyRevenue.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-red-400 font-semibold">
+                        {item.forecast.probability30Days}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-red-400 font-bold">
+                        ¥{item.forecast.expectedLoss30Days.toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-red-400 font-bold">
+                        ¥{item.forecast.expectedLoss60Days.toLocaleString()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-zinc-300 text-sm">
+                      {item.intervention.title}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link
+                        href={`/members/${item.member.id}`}
+                        className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                      >
+                        詳細 →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       {/* 退会予測ランキング */}
       {shouldShow("dropoutRanking") && (
       <div className="mb-12">
@@ -716,7 +986,12 @@ export default async function Home() {
                 {storeSummaries.map((store) => (
                   <tr key={store.storeName} className="hover:bg-zinc-800/50 transition-colors">
                     <td className="px-4 py-3 text-sm text-zinc-100">
-                      {store.storeName}
+                      <Link
+                        href={`/stores/${encodeURIComponent(store.storeName)}`}
+                        className="text-blue-400 hover:text-blue-300 hover:underline"
+                      >
+                        {store.storeName}
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-zinc-100">
                       {store.totalMembers}
@@ -1308,6 +1583,53 @@ export default async function Home() {
           </div>
         </div>
       </div>
+
+      {/* 予約詰まり時間帯ヒートマップ */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 mb-6">
+        <h3 className="text-2xl font-semibold mb-4">
+          予約詰まり時間帯ヒートマップ
+        </h3>
+        <p className="text-zinc-400 text-sm mb-6">
+          予約が集中している曜日・時間帯を可視化しています
+        </p>
+
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">予約問題リスク会員数</div>
+            <div className="text-2xl font-bold text-orange-400">
+              {reservationHeatmap.reservationRiskMembersCount}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">人</div>
+          </div>
+
+          <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">最も詰まっている時間帯</div>
+            <div className="text-lg font-bold text-red-400">
+              {reservationHeatmap.busiestTimeSlot || "なし"}
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">分散提案が必要な時間帯</div>
+            <div className="text-lg font-bold text-yellow-400">
+              {reservationHeatmap.needsDiversionTimeSlots.length}箇所
+            </div>
+            {reservationHeatmap.needsDiversionTimeSlots.length > 0 && (
+              <div className="text-zinc-500 text-xs mt-1">
+                {reservationHeatmap.needsDiversionTimeSlots.slice(0, 2).join(", ")}
+                {reservationHeatmap.needsDiversionTimeSlots.length > 2 && "..."}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+          <ReservationHeatmap
+            cells={reservationHeatmap.cells}
+            maxPressure={reservationHeatmap.maxPressure}
+          />
+        </div>
+      </div>
       )}
 
       {/* 入会後90日モニター */}
@@ -1728,7 +2050,12 @@ export default async function Home() {
                       className="hover:bg-zinc-800/40 transition-colors"
                     >
                       <td className="px-6 py-4 text-white font-medium">
-                        {trainer.trainerName}
+                        <Link
+                          href={`/trainers/${encodeURIComponent(trainer.trainerName)}`}
+                          className="text-blue-400 hover:underline"
+                        >
+                          {trainer.trainerName}
+                        </Link>
                       </td>
                       <td className="px-6 py-4 text-zinc-300">
                         {trainer.totalMembers}人
@@ -1812,6 +2139,422 @@ export default async function Home() {
             </p>
             <p className="text-zinc-500 text-xs mt-2">継続見込みの売上</p>
           </div>
+        </div>
+      </div>
+      )}
+
+      {/* 未来退会予測 */}
+      {shouldShow("churnPrediction") && (
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">未来退会予測</h2>
+          <p className="text-zinc-400 text-sm">
+            今後30日以内・60日以内に退会する可能性を予測
+          </p>
+        </div>
+
+        {/* サマリーカード */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-400">
+              {highRisk30Days}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">人</p>
+          </div>
+
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-400">
+              {highRisk60Days}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">人</p>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日予測平均確率</h3>
+            <p className="text-3xl font-bold text-white">
+              {churnPredictions.length > 0
+                ? Math.round(
+                    churnPredictions.reduce(
+                      (sum, p) => sum + p.prediction.probability30Days,
+                      0
+                    ) / churnPredictions.length
+                  )
+                : 0}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">%</p>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日予測平均確率</h3>
+            <p className="text-3xl font-bold text-white">
+              {churnPredictions.length > 0
+                ? Math.round(
+                    churnPredictions.reduce(
+                      (sum, p) => sum + p.prediction.probability60Days,
+                      0
+                    ) / churnPredictions.length
+                  )
+                : 0}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">%</p>
+          </div>
+        </div>
+
+        {/* 予測上位5名 */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4">予測上位5名</h3>
+          {topChurnPredictions.length === 0 ? (
+            <p className="text-zinc-400 text-sm">予測データがありません</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-zinc-800 border-b border-zinc-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      名前
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      30日退会確率
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      60日退会確率
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      会員タイプ
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      推奨アクション
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      詳細
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800">
+                  {topChurnPredictions.map((item) => {
+                    const segment = getMemberSegment(item.member);
+                    const segmentInfo = getSegmentInfo(segment);
+                    const reasons = getChurnPredictionReasons(item.member);
+                    const displayReasons = reasons.slice(0, 2); // 最大2つ
+                    return (
+                      <tr
+                        key={item.member.id}
+                        className="hover:bg-zinc-800/60 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-white font-medium">
+                          {item.member.name}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-lg font-bold ${
+                                item.prediction.label30Days === "high"
+                                  ? "text-red-400"
+                                  : item.prediction.label30Days === "medium"
+                                  ? "text-orange-400"
+                                  : "text-zinc-400"
+                              }`}
+                            >
+                              {item.prediction.probability30Days}%
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                item.prediction.label30Days === "high"
+                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  : item.prediction.label30Days === "medium"
+                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                              }`}
+                            >
+                              {item.prediction.label30Days === "high"
+                                ? "高"
+                                : item.prediction.label30Days === "medium"
+                                ? "中"
+                                : "低"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-lg font-bold ${
+                                item.prediction.label60Days === "high"
+                                  ? "text-red-400"
+                                  : item.prediction.label60Days === "medium"
+                                  ? "text-orange-400"
+                                  : "text-zinc-400"
+                              }`}
+                            >
+                              {item.prediction.probability60Days}%
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                item.prediction.label60Days === "high"
+                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  : item.prediction.label60Days === "medium"
+                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                              }`}
+                            >
+                              {item.prediction.label60Days === "high"
+                                ? "高"
+                                : item.prediction.label60Days === "medium"
+                                ? "中"
+                                : "低"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getSegmentColor(
+                              segment
+                            )}`}
+                          >
+                            {segmentInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-zinc-300 text-sm">
+                          {item.suggestion.title}
+                        </td>
+                        <td className="px-4 py-3">
+                          {displayReasons.length > 0 ? (
+                            <ul className="space-y-1">
+                              {displayReasons.map((reason, idx) => (
+                                <li key={idx} className="text-zinc-400 text-xs">
+                                  {reason}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-zinc-500 text-xs">-</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/members/${item.member.id}`}
+                            className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                          >
+                            詳細を見る
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+      )}
+
+      {/* 未来退会予測 */}
+      {shouldShow("churnPrediction") && (
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">未来退会予測</h2>
+          <p className="text-zinc-400 text-sm">
+            今後30日以内・60日以内に退会する可能性を予測
+          </p>
+        </div>
+
+        {/* サマリーカード */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-400">
+              {highRisk30Days}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">人</p>
+          </div>
+
+          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-400">
+              {highRisk60Days}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">人</p>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日予測平均確率</h3>
+            <p className="text-3xl font-bold text-white">
+              {churnPredictions.length > 0
+                ? Math.round(
+                    churnPredictions.reduce(
+                      (sum, p) => sum + p.prediction.probability30Days,
+                      0
+                    ) / churnPredictions.length
+                  )
+                : 0}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">%</p>
+          </div>
+
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
+            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日予測平均確率</h3>
+            <p className="text-3xl font-bold text-white">
+              {churnPredictions.length > 0
+                ? Math.round(
+                    churnPredictions.reduce(
+                      (sum, p) => sum + p.prediction.probability60Days,
+                      0
+                    ) / churnPredictions.length
+                  )
+                : 0}
+            </p>
+            <p className="text-zinc-500 text-xs mt-2">%</p>
+          </div>
+        </div>
+
+        {/* 予測上位5名 */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <h3 className="text-xl font-semibold mb-4">予測上位5名</h3>
+          {topChurnPredictions.length === 0 ? (
+            <p className="text-zinc-400 text-sm">予測データがありません</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-zinc-800 border-b border-zinc-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      名前
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      30日退会確率
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      60日退会確率
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      会員タイプ
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      推奨アクション
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      詳細
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-800">
+                  {topChurnPredictions.map((item) => {
+                    const segment = getMemberSegment(item.member);
+                    const segmentInfo = getSegmentInfo(segment);
+                    return (
+                      <tr
+                        key={item.member.id}
+                        className="hover:bg-zinc-800/60 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-white font-medium">
+                          {item.member.name}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-lg font-bold ${
+                                item.prediction.label30Days === "high"
+                                  ? "text-red-400"
+                                  : item.prediction.label30Days === "medium"
+                                  ? "text-orange-400"
+                                  : "text-zinc-400"
+                              }`}
+                            >
+                              {item.prediction.probability30Days}%
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                item.prediction.label30Days === "high"
+                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  : item.prediction.label30Days === "medium"
+                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                              }`}
+                            >
+                              {item.prediction.label30Days === "high"
+                                ? "高"
+                                : item.prediction.label30Days === "medium"
+                                ? "中"
+                                : "低"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`text-lg font-bold ${
+                                item.prediction.label60Days === "high"
+                                  ? "text-red-400"
+                                  : item.prediction.label60Days === "medium"
+                                  ? "text-orange-400"
+                                  : "text-zinc-400"
+                              }`}
+                            >
+                              {item.prediction.probability60Days}%
+                            </span>
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                item.prediction.label60Days === "high"
+                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  : item.prediction.label60Days === "medium"
+                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                              }`}
+                            >
+                              {item.prediction.label60Days === "high"
+                                ? "高"
+                                : item.prediction.label60Days === "medium"
+                                ? "中"
+                                : "低"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getSegmentColor(
+                              segment
+                            )}`}
+                          >
+                            {segmentInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-zinc-300 text-sm">
+                          {item.suggestion.title}
+                        </td>
+                        <td className="px-4 py-3">
+                          {(() => {
+                            const reasons = getChurnPredictionReasons(item.member);
+                            const displayReasons = reasons.slice(0, 2); // 最大2つ
+                            return displayReasons.length > 0 ? (
+                              <ul className="space-y-1">
+                                {displayReasons.map((reason, idx) => (
+                                  <li key={idx} className="text-zinc-400 text-xs">
+                                    {reason}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <span className="text-zinc-500 text-xs">-</span>
+                            );
+                          })()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Link
+                            href={`/members/${item.member.id}`}
+                            className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                          >
+                            詳細を見る
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
       )}

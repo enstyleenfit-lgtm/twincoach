@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { parseCsv, mapCsvToMembers, mapCsvToVisits } from "@/lib/csvImport";
+import { MemberCreateInput } from "@/types";
 
 type ImportTarget = "members" | "visits" | "tasks";
 
@@ -17,7 +18,14 @@ export default function CsvImportPage() {
   const [rawHeaders, setRawHeaders] = useState<string[]>([]);
   const [previewRows, setPreviewRows] = useState<PreviewRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [importResult, setImportResult] = useState<{
+    successCount: number;
+    errorCount: number;
+    errors: Array<{ index: number; data: MemberCreateInput; error: string }>;
+  } | null>(null);
+  const [parsedMembersData, setParsedMembersData] = useState<MemberCreateInput[]>([]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -30,6 +38,8 @@ export default function CsvImportPage() {
     setInfoMessage(null);
     setRawHeaders([]);
     setPreviewRows([]);
+    setImportResult(null);
+    setParsedMembersData([]);
   };
 
   const handleReadClick = async () => {
@@ -37,6 +47,8 @@ export default function CsvImportPage() {
     setInfoMessage(null);
     setRawHeaders([]);
     setPreviewRows([]);
+    setImportResult(null);
+    setParsedMembersData([]);
 
     const input = document.getElementById(
       "csv-file-input"
@@ -63,7 +75,9 @@ export default function CsvImportPage() {
       let preview: PreviewRow[] = [];
 
       if (target === "members") {
-        const membersPreview = mapCsvToMembers(parsed.rows).map((m) => ({
+        const membersData = mapCsvToMembers(parsed.rows);
+        setParsedMembersData(membersData);
+        const membersPreview = membersData.map((m) => ({
           名前: m.name,
           プラン: m.plan,
           入会日: m.joinDate,
@@ -72,7 +86,7 @@ export default function CsvImportPage() {
         }));
         preview = membersPreview;
         setInfoMessage(
-          "会員CSVとして読み込みました（まだDBには保存されていません）"
+          `会員CSVとして読み込みました（${membersData.length}件、まだDBには保存されていません）`
         );
       } else if (target === "visits") {
         const visitsPreview = mapCsvToVisits(parsed.rows).map((v) => ({
@@ -108,6 +122,60 @@ export default function CsvImportPage() {
     }
   };
 
+  const handleSaveClick = async () => {
+    if (target !== "members") {
+      setError("現在、会員データの保存のみ対応しています");
+      return;
+    }
+
+    if (parsedMembersData.length === 0) {
+      setError("保存するデータがありません。先にCSVを読み込んでください");
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+    setInfoMessage(null);
+    setImportResult(null);
+
+    try {
+      const response = await fetch("/api/import-members", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(parsedMembersData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || "保存に失敗しました");
+      }
+
+      const result = await response.json();
+      setImportResult(result);
+
+      if (result.errorCount === 0) {
+        setInfoMessage(
+          `インポート成功: ${result.successCount}件の会員データを保存しました`
+        );
+      } else if (result.successCount > 0) {
+        setInfoMessage(
+          `部分成功: ${result.successCount}件を保存しましたが、${result.errorCount}件でエラーが発生しました`
+        );
+      } else {
+        setError(`インポート失敗: ${result.errorCount}件すべてでエラーが発生しました`);
+      }
+    } catch (e) {
+      console.error(e);
+      setError(
+        e instanceof Error ? e.message : "保存中にエラーが発生しました"
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const previewHeaders =
     previewRows.length > 0 ? Object.keys(previewRows[0]) : [];
 
@@ -125,7 +193,7 @@ export default function CsvImportPage() {
       <h1 className="text-4xl font-bold mb-2">CSVインポート</h1>
       <p className="text-zinc-400 text-sm mb-8">
         hacomono や手元のCSVデータを読み込み、TwinCoachに取り込むための基盤です。
-        現在はプレビュー表示のみを行い、DBへの保存は行いません。
+        CSVを読み込んでプレビューを確認後、保存ボタンでSupabaseに保存できます。
       </p>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
@@ -225,6 +293,80 @@ export default function CsvImportPage() {
         )}
       </div>
 
+      {/* 保存ボタン */}
+      {previewRows.length > 0 && target === "members" && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-semibold mb-2">データ保存</h2>
+              <p className="text-zinc-400 text-sm">
+                {parsedMembersData.length}件の会員データをSupabaseに保存します
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSaveClick}
+              disabled={isSaving || parsedMembersData.length === 0}
+              className="px-6 py-3 text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isSaving ? "保存中..." : "保存する"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* インポート結果 */}
+      {importResult && (
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-4">インポート結果</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-green-500/10 border border-green-500/30 rounded p-4">
+                <div className="text-green-400 text-sm font-semibold mb-1">
+                  成功
+                </div>
+                <div className="text-2xl font-bold text-green-300">
+                  {importResult.successCount}件
+                </div>
+              </div>
+              <div className="bg-red-500/10 border border-red-500/30 rounded p-4">
+                <div className="text-red-400 text-sm font-semibold mb-1">
+                  エラー
+                </div>
+                <div className="text-2xl font-bold text-red-300">
+                  {importResult.errorCount}件
+                </div>
+              </div>
+            </div>
+
+            {importResult.errors.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-300 mb-2">
+                  エラー詳細
+                </h3>
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {importResult.errors.map((err, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-red-500/10 border border-red-500/30 rounded p-3 text-sm"
+                    >
+                      <div className="text-red-400 font-semibold mb-1">
+                        行 {err.index + 1}: {err.error}
+                      </div>
+                      <div className="text-zinc-400 text-xs">
+                        名前: {err.data.name || "(未入力)"}, プラン:{" "}
+                        {err.data.plan || "(未入力)"}, 店舗名:{" "}
+                        {err.data.storeName || "(未入力)"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* プレビュー */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">読み込み結果プレビュー</h2>
@@ -273,5 +415,6 @@ export default function CsvImportPage() {
     </div>
   );
 }
+
 
 

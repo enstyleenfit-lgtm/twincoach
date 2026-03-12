@@ -4,6 +4,8 @@ import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
 import { getDualMembers, getRecommendedNextPlan } from "@/lib/planTransition";
+import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPrediction";
+import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -69,6 +71,57 @@ export default async function MemberDetailPage({
       </Link>
 
       <h1 className="text-4xl font-bold mb-8">{member.name}</h1>
+
+      {/* 収益リスク */}
+      {(() => {
+        const forecast = getRevenueRiskForecast(member);
+        return (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">収益リスク</h2>
+            <p className="text-zinc-400 text-xs mb-4">
+              退会確率をもとに、失う可能性のある売上を試算しています
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">月額売上</div>
+                <div className="text-2xl font-bold text-white">
+                  ¥{forecast.monthlyRevenue.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">年間売上</div>
+                <div className="text-2xl font-bold text-white">
+                  ¥{forecast.annualRevenue.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">30日退会確率</div>
+                <div className="text-2xl font-bold text-red-400">
+                  {forecast.probability30Days}%
+                </div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">60日退会確率</div>
+                <div className="text-2xl font-bold text-red-400">
+                  {forecast.probability60Days}%
+                </div>
+              </div>
+              <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">30日期待損失額</div>
+                <div className="text-2xl font-bold text-red-400">
+                  ¥{forecast.expectedLoss30Days.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">60日期待損失額</div>
+                <div className="text-2xl font-bold text-red-400">
+                  ¥{forecast.expectedLoss60Days.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
@@ -140,6 +193,137 @@ export default async function MemberDetailPage({
                   </ul>
                 ) : (
                   <p className="mt-2 text-zinc-500 text-sm">-</p>
+                );
+              })()}
+            </div>
+            <div>
+              <label className="text-zinc-400 text-sm mb-2 block">未来退会予測</label>
+              {(() => {
+                const prediction = getChurnPrediction(member);
+                return (
+                  <div className="mt-2 space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-zinc-400 text-sm">30日退会確率</span>
+                        <span
+                          className={`text-lg font-bold ${
+                            prediction.label30Days === "high"
+                              ? "text-red-400"
+                              : prediction.label30Days === "medium"
+                              ? "text-orange-400"
+                              : "text-zinc-400"
+                          }`}
+                        >
+                          {prediction.probability30Days}%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${
+                              prediction.label30Days === "high"
+                                ? "bg-red-400"
+                                : prediction.label30Days === "medium"
+                                ? "bg-orange-400"
+                                : "bg-zinc-400"
+                            }`}
+                            style={{ width: `${prediction.probability30Days}%` }}
+                          />
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            prediction.label30Days === "high"
+                              ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                              : prediction.label30Days === "medium"
+                              ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
+                              : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                          }`}
+                        >
+                          {prediction.label30Days === "high"
+                            ? "高"
+                            : prediction.label30Days === "medium"
+                            ? "中"
+                            : "低"}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-zinc-400 text-sm">60日退会確率</span>
+                        <span
+                          className={`text-lg font-bold ${
+                            prediction.label60Days === "high"
+                              ? "text-red-400"
+                              : prediction.label60Days === "medium"
+                              ? "text-orange-400"
+                              : "text-zinc-400"
+                          }`}
+                        >
+                          {prediction.probability60Days}%
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${
+                              prediction.label60Days === "high"
+                                ? "bg-red-400"
+                                : prediction.label60Days === "medium"
+                                ? "bg-orange-400"
+                                : "bg-zinc-400"
+                            }`}
+                            style={{ width: `${prediction.probability60Days}%` }}
+                          />
+                        </div>
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${
+                            prediction.label60Days === "high"
+                              ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                              : prediction.label60Days === "medium"
+                              ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
+                              : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                          }`}
+                        >
+                          {prediction.label60Days === "high"
+                            ? "高"
+                            : prediction.label60Days === "medium"
+                            ? "中"
+                            : "低"}
+                        </span>
+                      </div>
+                    </div>
+                    {prediction.reasons.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-zinc-800">
+                        <p className="text-zinc-400 text-xs mb-2">予測理由</p>
+                        <ul className="space-y-1 text-zinc-400 text-xs">
+                          {prediction.reasons.map((reason, idx) => (
+                            <li key={idx} className="flex gap-2">
+                              <span>・</span>
+                              <span>{reason}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            <div>
+              <label className="text-zinc-400 text-sm mb-2 block">未来退会予測の要因</label>
+              {(() => {
+                const reasons = getChurnPredictionReasons(member);
+                return reasons.length > 0 ? (
+                  <ul className="mt-2 space-y-1 text-zinc-400 text-xs">
+                    {reasons.map((reason, idx) => (
+                      <li key={idx} className="flex gap-2">
+                        <span>・</span>
+                        <span>{reason}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-zinc-500 text-xs">-</p>
                 );
               })()}
             </div>

@@ -18,6 +18,7 @@ export type DashboardSection =
   | "planTransition" // デュアル移行最適化
   | "trainerMetrics" // トレーナー別継続率
   | "priceRevision" // 価格改定影響モニター
+  | "churnPrediction" // 未来退会予測
   | "highRiskMembersList" // 退会リスク会員一覧
   | "needInterventionMembers"; // 介入推奨会員
 

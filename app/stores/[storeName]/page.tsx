@@ -1,0 +1,688 @@
+import Link from "next/link";
+import { memberRepository, taskRepository } from "@/lib/repositories";
+import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
+import { getRevenueAtRisk } from "@/lib/revenueRisk";
+import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
+import { getChurnPrediction } from "@/lib/churnPrediction";
+import { getPriorityQueue } from "@/lib/priorityQueue";
+import { getReservationAnalysis } from "@/lib/reservationAnalysis";
+import { getReservationHeatmapData } from "@/lib/reservationHeatmap";
+import { ReservationHeatmap } from "@/components/ReservationHeatmap";
+import { getFirst90DaysRiskSummary } from "@/lib/first90Days";
+import { getRevenueRiskForecast } from "@/lib/revenueForecast";
+import { getStoreRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
+import { getStoreActionPlan } from "@/lib/storeActionPlan";
+import { Member, Task } from "@/types";
+
+interface StoreDetailPageProps {
+  params: Promise<{ storeName: string }>;
+}
+
+function getRiskScoreColor(score: number): string {
+  if (score >= 80) {
+    return "text-red-400";
+  } else if (score >= 50) {
+    return "text-yellow-400";
+  } else {
+    return "text-green-400";
+  }
+}
+
+function getRiskLevelBadgeColor(level: "low" | "medium" | "high"): string {
+  switch (level) {
+    case "low":
+      return "text-green-400 bg-green-400/10 border-green-400/20";
+    case "medium":
+      return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
+    case "high":
+      return "text-red-400 bg-red-400/10 border-red-400/20";
+  }
+}
+
+function getPriorityBadgeColor(priority: "low" | "medium" | "high"): string {
+  switch (priority) {
+    case "high":
+      return "text-red-400 bg-red-400/10 border-red-400/20";
+    case "medium":
+      return "text-orange-400 bg-orange-400/10 border-orange-400/20";
+    case "low":
+      return "text-zinc-400 bg-zinc-400/10 border-zinc-400/20";
+  }
+}
+
+export default async function StoreDetailPage({ params }: StoreDetailPageProps) {
+  const { storeName } = await params;
+  const decodedStoreName = decodeURIComponent(storeName);
+
+  // データ取得
+  const allMembers = await memberRepository.getAll();
+  const allTasks = await taskRepository.getAll();
+
+  // 店舗ごとの会員をフィルタリング
+  const storeMembers = allMembers.filter(
+    (member) => member.storeName === decodedStoreName
+  );
+
+  // 店舗ごとのタスクをフィルタリング
+  const storeTasks = allTasks.filter((task) => {
+    const member = allMembers.find((m) => m.id === task.memberId);
+    return member?.storeName === decodedStoreName;
+  });
+
+  // 基本統計
+  const totalMembers = storeMembers.length;
+  const highRiskMembers = storeMembers.filter((member) => {
+    const riskResult = calculateRiskScore(member);
+    return riskResult.level === "high";
+  }).length;
+
+  // 月間売上とリスク売上、損失予測
+  let monthlyRevenue = 0;
+  let monthlyRevenueAtRisk = 0;
+  let annualRevenueAtRisk = 0;
+  let expectedLoss30Days = 0;
+  let expectedLoss60Days = 0;
+
+  storeMembers.forEach((member) => {
+    const revenue = getRevenueAtRisk(member);
+    monthlyRevenue += revenue.monthlyRevenue;
+
+    const forecast = getRevenueRiskForecast(member);
+    expectedLoss30Days += forecast.expectedLoss30Days;
+    expectedLoss60Days += forecast.expectedLoss60Days;
+
+    const riskResult = calculateRiskScore(member);
+    if (riskResult.level === "high") {
+      monthlyRevenueAtRisk += revenue.monthlyRevenue;
+      annualRevenueAtRisk += revenue.annualRevenueAtRisk;
+    }
+  });
+
+  // 推定継続率
+  const lowRiskMembers = storeMembers.filter((member) => {
+    const riskResult = calculateRiskScore(member);
+    return riskResult.level === "low";
+  }).length;
+
+  const mediumRiskMembers = storeMembers.filter((member) => {
+    const riskResult = calculateRiskScore(member);
+    return riskResult.level === "medium";
+  }).length;
+
+  const safeMembers = lowRiskMembers + mediumRiskMembers;
+  const estimatedRetentionRate =
+    totalMembers > 0 ? (safeMembers / totalMembers) * 100 : 0;
+
+  // 危険会員ランキング（リスクスコア順）
+  const highRiskMembersList = storeMembers
+    .map((member) => {
+      const riskResult = calculateRiskScore(member);
+      const revenue = getRevenueAtRisk(member);
+      return {
+        member,
+        riskScore: riskResult.score,
+        riskLevel: riskResult.level,
+        riskReasons: getRiskReasons(member),
+        monthlyRevenue: revenue.monthlyRevenue,
+        intervention: getInterventionSuggestion(member),
+      };
+    })
+    .filter((item) => item.riskLevel === "high")
+    .sort((a, b) => b.riskScore - a.riskScore)
+    .slice(0, 10); // トップ10
+
+  // 店舗内の退会予測ランキング（30日予測順、上位5名）
+  const churnRanking = storeMembers
+    .map((member) => {
+      const prediction = getChurnPrediction(member);
+      const riskResult = calculateRiskScore(member);
+      const intervention = getInterventionSuggestion(member);
+      return {
+        member,
+        prediction,
+        riskResult,
+        intervention,
+      };
+    })
+    .sort((a, b) => b.prediction.probability30Days - a.prediction.probability30Days)
+    .slice(0, 5);
+
+  // 今日の優先対応（店舗内の会員から優先キューを取得）
+  const priorityQueue = getPriorityQueue(storeMembers).slice(0, 5);
+
+  // 予約問題リスク会員数（店舗内の会員のみで計算）
+  const storeReservationAnalysis = getReservationAnalysis(storeMembers);
+  const reservationRiskMembersCount = storeReservationAnalysis.reservationRiskMembers.length;
+  const difficultReservationMembersCount = storeReservationAnalysis.difficultReservationMembers.length;
+
+  // 入会後90日高リスク会員数
+  const first90DaysSummary = getFirst90DaysRiskSummary(storeMembers);
+  const first90DaysHighRiskCount = first90DaysSummary.highRiskFirst90DaysMembers.length;
+
+  // 収益防衛シミュレーション（店舗版）
+  const storeRevenueDefenseSimulation = getStoreRevenueDefenseSimulation(
+    allMembers,
+    decodedStoreName
+  );
+
+  // 店舗別アクションプラン
+  const storeActionPlan = getStoreActionPlan(allMembers, decodedStoreName);
+
+  // 介入優先キュー（タスクを優先度順にソート）
+  const interventionQueue = storeTasks
+    .filter(
+      (task) => task.status === "pending" || task.status === "in progress"
+    )
+    .map((task) => {
+      const member = storeMembers.find((m) => m.id === task.memberId);
+      const intervention = member
+        ? getInterventionSuggestion(member)
+        : { priority: "medium" as const };
+      return {
+        task,
+        member,
+        priority: intervention.priority,
+      };
+    })
+    .sort((a, b) => {
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    });
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      {/* ヘッダー */}
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <div>
+          <Link
+            href="/stores"
+            className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block"
+          >
+            ← Back to Stores
+          </Link>
+          <h1 className="text-4xl font-bold mb-2">{decodedStoreName}</h1>
+          <p className="text-zinc-400 text-sm">店舗詳細ダッシュボード</p>
+        </div>
+      </div>
+
+      {/* サマリーカード */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">会員数</div>
+          <div className="text-3xl font-bold text-white">{totalMembers}</div>
+          <div className="text-zinc-500 text-xs mt-1">人</div>
+        </div>
+
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">高リスク会員数</div>
+          <div className="text-3xl font-bold text-red-400">{highRiskMembers}</div>
+          <div className="text-zinc-500 text-xs mt-1">人</div>
+        </div>
+
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">推定継続率</div>
+          <div className="text-4xl font-bold text-green-400">
+            {estimatedRetentionRate.toFixed(1)}%
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">
+            {safeMembers}/{totalMembers}人
+          </div>
+        </div>
+
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">月間売上</div>
+          <div className="text-3xl font-bold text-white">
+            ¥{monthlyRevenue.toLocaleString()}
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">/月</div>
+        </div>
+
+        <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">来月損失予測</div>
+          <div className="text-3xl font-bold text-red-400">
+            ¥{expectedLoss30Days.toLocaleString()}
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">30日期待損失額</div>
+        </div>
+
+        <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">60日損失予測</div>
+          <div className="text-3xl font-bold text-red-400">
+            ¥{expectedLoss60Days.toLocaleString()}
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">60日期待損失額</div>
+        </div>
+      </div>
+
+      {/* リスク売上カード */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">月間リスク売上</div>
+          <div className="text-3xl font-bold text-red-400">
+            ¥{monthlyRevenueAtRisk.toLocaleString()}
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">/月</div>
+        </div>
+
+        <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">年間リスク売上</div>
+          <div className="text-3xl font-bold text-red-400">
+            ¥{annualRevenueAtRisk.toLocaleString()}
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">/年</div>
+        </div>
+
+        <div className="bg-zinc-900 border border-orange-500/40 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">予約問題リスク会員数</div>
+          <div className="text-3xl font-bold text-orange-400">
+            {reservationRiskMembersCount}
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">人</div>
+        </div>
+
+        <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
+          <div className="text-zinc-400 text-sm mb-1">入会後90日高リスク会員数</div>
+          <div className="text-3xl font-bold text-red-400">
+            {first90DaysHighRiskCount}
+          </div>
+          <div className="text-zinc-500 text-xs mt-1">人</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* 店舗内の退会予測ランキング */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">店舗内 退会予測ランキング</h2>
+          {churnRanking.length === 0 ? (
+            <p className="text-zinc-400 text-sm">退会予測データがありません</p>
+          ) : (
+            <div className="space-y-3">
+              {churnRanking.map((item, index) => (
+                <Link
+                  key={item.member.id}
+                  href={`/members/${item.member.id}`}
+                  className="block bg-zinc-950 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-zinc-500 text-sm font-semibold w-6">
+                        #{index + 1}
+                      </span>
+                      <div className="flex-1">
+                        <div className="font-semibold text-white">
+                          {item.member.name}
+                        </div>
+                        <div className="text-zinc-400 text-xs">
+                          {item.member.plan}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right ml-4">
+                      <div
+                        className={`text-lg font-bold ${getRiskScoreColor(
+                          item.riskResult.score
+                        )}`}
+                      >
+                        {item.riskResult.score}
+                      </div>
+                      <div
+                        className={`text-sm font-semibold mt-1 ${
+                          item.prediction.label30Days === "high"
+                            ? "text-red-400"
+                            : item.prediction.label30Days === "medium"
+                            ? "text-orange-400"
+                            : "text-zinc-400"
+                        }`}
+                      >
+                        {item.prediction.probability30Days}%
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <div className="text-zinc-400 text-xs">
+                      <span className="font-semibold">推奨アクション:</span>{" "}
+                      {item.intervention.title}
+                    </div>
+                    <div className="text-blue-400 text-xs hover:underline">
+                      詳細を見る →
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 今日の優先対応 */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">今日の優先対応</h2>
+          {priorityQueue.length === 0 ? (
+            <p className="text-zinc-400 text-sm">優先対応が必要な会員はありません</p>
+          ) : (
+            <div className="space-y-3">
+              {priorityQueue.map((item, index) => {
+                const isHighRisk = item.riskScore >= 70 || item.probability30Days >= 70;
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/members/${item.id}`}
+                    className={`block bg-zinc-950 border rounded-lg p-4 hover:bg-zinc-800/50 transition-colors ${
+                      isHighRisk
+                        ? "border-red-500/40"
+                        : "border-zinc-800"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center gap-3 flex-1">
+                        <span className={`text-sm font-semibold ${
+                          isHighRisk ? "text-red-400" : "text-zinc-500"
+                        }`}>
+                          #{index + 1}
+                        </span>
+                        <div className="flex-1">
+                          <div className={`font-semibold ${
+                            isHighRisk ? "text-red-300" : "text-white"
+                          }`}>
+                            {item.name}
+                          </div>
+                          <div className="text-zinc-400 text-xs">
+                            {item.member.plan}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right ml-4">
+                        <span
+                          className={`text-xs px-2 py-1 rounded ${getPriorityBadgeColor(
+                            item.priority
+                          )}`}
+                        >
+                          {item.priority === "high" ? "高" : item.priority === "medium" ? "中" : "低"}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                      <div className="text-zinc-500 text-xs">
+                        30日退会確率: {item.probability30Days}%
+                      </div>
+                      <div className="text-zinc-400 text-xs">
+                        <span className="font-semibold">推奨アクション:</span>{" "}
+                        {item.suggestedAction}
+                      </div>
+                      <div className="text-blue-400 text-xs hover:underline">
+                        詳細を見る →
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* 店舗内の90日モニター */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">入会後90日モニター</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">0〜30日会員数</div>
+                <div className="text-2xl font-bold text-white">
+                  {first90DaysSummary.membersInFirst30Days.length}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">人</div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">31〜60日会員数</div>
+                <div className="text-2xl font-bold text-white">
+                  {first90DaysSummary.membersIn31to60Days.length}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">人</div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">61〜90日会員数</div>
+                <div className="text-2xl font-bold text-white">
+                  {first90DaysSummary.membersIn61to90Days.length}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">人</div>
+              </div>
+              <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">90日以内高リスク会員数</div>
+                <div className="text-2xl font-bold text-red-400">
+                  {first90DaysHighRiskCount}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">人</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 店舗内の予約問題サマリー */}
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">予約問題リスク</h2>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-zinc-950 border border-orange-500/40 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">予約問題リスク会員数</div>
+                <div className="text-2xl font-bold text-orange-400">
+                  {reservationRiskMembersCount}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">人</div>
+              </div>
+              <div className="bg-zinc-950 border border-orange-500/40 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">予約詰まりが疑われる会員数</div>
+                <div className="text-2xl font-bold text-orange-400">
+                  {difficultReservationMembersCount}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">人</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 予約詰まり時間帯ヒートマップ（店舗専用） */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">
+          予約詰まり時間帯ヒートマップ
+        </h2>
+        <p className="text-zinc-400 text-xs mb-6">
+          予約が集中している曜日・時間帯を可視化しています
+        </p>
+
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">予約問題リスク会員数</div>
+            <div className="text-2xl font-bold text-orange-400">
+              {storeReservationHeatmap.reservationRiskMembersCount}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">人</div>
+          </div>
+
+          <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">最も詰まっている時間帯</div>
+            <div className="text-lg font-bold text-red-400">
+              {storeReservationHeatmap.busiestTimeSlot || "なし"}
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">分散提案が必要な時間帯</div>
+            <div className="text-lg font-bold text-yellow-400">
+              {storeReservationHeatmap.needsDiversionTimeSlots.length}箇所
+            </div>
+            {storeReservationHeatmap.needsDiversionTimeSlots.length > 0 && (
+              <div className="text-zinc-500 text-xs mt-1">
+                {storeReservationHeatmap.needsDiversionTimeSlots.slice(0, 2).join(", ")}
+                {storeReservationHeatmap.needsDiversionTimeSlots.length > 2 && "..."}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+          <ReservationHeatmap
+            cells={storeReservationHeatmap.cells}
+            maxPressure={storeReservationHeatmap.maxPressure}
+          />
+        </div>
+      </div>
+
+      {/* この店舗のアクションプラン */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">
+          この店舗のアクションプラン
+        </h2>
+        <p className="text-zinc-400 text-xs mb-6">
+          店舗状況に応じて優先すべき改善行動を自動生成しています
+        </p>
+
+        <div
+          className={`bg-zinc-950 border rounded-lg p-6 ${
+            storeActionPlan.priorityLabel === "high"
+              ? "border-red-500/40"
+              : storeActionPlan.priorityLabel === "medium"
+              ? "border-yellow-500/40"
+              : "border-zinc-800"
+          }`}
+        >
+          <div className="mb-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span
+                className={`text-sm font-semibold px-3 py-1 rounded ${
+                  storeActionPlan.priorityLabel === "high"
+                    ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                    : storeActionPlan.priorityLabel === "medium"
+                    ? "text-yellow-400 bg-yellow-400/10 border border-yellow-400/20"
+                    : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                }`}
+              >
+                {storeActionPlan.priorityLabel === "high"
+                  ? "高優先度"
+                  : storeActionPlan.priorityLabel === "medium"
+                  ? "中優先度"
+                  : "低優先度"}
+              </span>
+              <h3 className="text-lg font-semibold text-white">
+                {storeActionPlan.topIssue}
+              </h3>
+            </div>
+            <p className="text-zinc-400 text-sm mt-2">
+              {storeActionPlan.expectedImpact}
+            </p>
+          </div>
+
+          <div className="mt-6">
+            <h4 className="text-sm font-semibold text-zinc-300 mb-3">
+              今やること
+            </h4>
+            <ul className="space-y-2">
+              {storeActionPlan.actionItems.map((item, index) => (
+                <li
+                  key={index}
+                  className="flex items-start gap-3 text-sm text-zinc-300"
+                >
+                  <span
+                    className={`mt-1 flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-semibold ${
+                      storeActionPlan.priorityLabel === "high"
+                        ? "bg-red-400/20 text-red-400"
+                        : storeActionPlan.priorityLabel === "medium"
+                        ? "bg-yellow-400/20 text-yellow-400"
+                        : "bg-zinc-400/20 text-zinc-400"
+                    }`}
+                  >
+                    {index + 1}
+                  </span>
+                  <span className="flex-1">{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* この店舗の収益防衛シミュレーション */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">
+          この店舗の収益防衛シミュレーション
+        </h2>
+        <p className="text-zinc-400 text-xs mb-6">
+          この店舗で優先的に対応すべき会員を守った場合の防衛売上です
+        </p>
+
+        {/* KPIカード */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">この店舗の来月損失予測</div>
+            <div className="text-3xl font-bold text-red-400">
+              ¥{storeRevenueDefenseSimulation.monthlyLossForecast30Days.toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">この店舗の60日損失予測</div>
+            <div className="text-3xl font-bold text-red-400">
+              ¥{storeRevenueDefenseSimulation.monthlyLossForecast60Days.toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">あと何円守ればよいか</div>
+            <div className="text-3xl font-bold text-yellow-400">
+              ¥{storeRevenueDefenseSimulation.revenueGap.toLocaleString()}
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-1">あと何人守ればよいか</div>
+            <div className="text-3xl font-bold text-yellow-400">
+              {storeRevenueDefenseSimulation.membersToSaveForGoal}
+            </div>
+            <div className="text-zinc-500 text-xs mt-1">人</div>
+          </div>
+        </div>
+
+        {/* 防衛シナリオ比較 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-2">上位3人を守った場合の防衛額</div>
+            <div className="text-2xl font-bold text-green-400">
+              ¥{storeRevenueDefenseSimulation.protectedRevenueIfTop3Saved.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-2">
+              防衛率:{" "}
+              {storeRevenueDefenseSimulation.monthlyLossForecast30Days > 0
+                ? (
+                    (storeRevenueDefenseSimulation.protectedRevenueIfTop3Saved /
+                      storeRevenueDefenseSimulation.monthlyLossForecast30Days) *
+                    100
+                  ).toFixed(1)
+                : "0.0"}
+              %
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-4">
+            <div className="text-zinc-400 text-sm mb-2">上位5人を守った場合の防衛額</div>
+            <div className="text-2xl font-bold text-green-400">
+              ¥{storeRevenueDefenseSimulation.protectedRevenueIfTop5Saved.toLocaleString()}
+            </div>
+            <div className="text-zinc-500 text-xs mt-2">
+              防衛率:{" "}
+              {storeRevenueDefenseSimulation.monthlyLossForecast30Days > 0
+                ? (
+                    (storeRevenueDefenseSimulation.protectedRevenueIfTop5Saved /
+                      storeRevenueDefenseSimulation.monthlyLossForecast30Days) *
+                    100
+                  ).toFixed(1)
+                : "0.0"}
+              %
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

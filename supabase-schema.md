@@ -259,3 +259,4 @@ CREATE POLICY "Authenticated users can view members"
 5. 環境変数 `NEXT_PUBLIC_SUPABASE_URL` と `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定
 6. アプリケーションを再起動
 
+

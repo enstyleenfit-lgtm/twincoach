@@ -1,4 +1,58 @@
+"use client";
+
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { createClientSupabase } from "@/lib/supabase/client";
+
 export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    // バリデーション
+    if (!email.trim()) {
+      setError("メールアドレスを入力してください");
+      setLoading(false);
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("パスワードを入力してください");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const supabase = createClientSupabase();
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+
+      if (authError) {
+        setError("メールアドレスまたはパスワードが正しくありません");
+        setLoading(false);
+        return;
+      }
+
+      if (data.user) {
+        // ログイン成功
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("ログインに失敗しました。もう一度お試しください");
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-black text-white">
       <div className="w-full max-w-md px-6">
@@ -15,7 +69,13 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form className="space-y-5">
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md">
+              <p className="text-red-400 text-sm">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-zinc-400 text-xs mb-2">
                 メールアドレス
@@ -23,8 +83,11 @@ export default function LoginPage() {
               <input
                 type="email"
                 name="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="w-full bg-black border border-zinc-800 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                disabled={loading}
+                className="w-full bg-black border border-zinc-800 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="you@example.com"
               />
             </div>
@@ -36,27 +99,28 @@ export default function LoginPage() {
               <input
                 type="password"
                 name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
-                className="w-full bg-black border border-zinc-800 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                disabled={loading}
+                className="w-full bg-black border border-zinc-800 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="••••••••"
               />
             </div>
 
             <button
-              type="button"
-              className="w-full mt-2 px-4 py-2.5 text-sm font-medium rounded-md bg-blue-500 text-white hover:bg-blue-400 transition-colors border border-blue-400/70"
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 px-4 py-2.5 text-sm font-medium rounded-md bg-blue-500 text-white hover:bg-blue-400 transition-colors border border-blue-400/70 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              ログイン
+              {loading ? "ログイン中..." : "ログイン"}
             </button>
-
-            <p className="text-[11px] text-zinc-500 mt-3 text-center">
-              ※ 現在はダミー画面です。将来的に Supabase Auth と連携して本認証を行います。
-            </p>
           </form>
         </div>
       </div>
     </div>
   );
 }
+
 
 
