@@ -22,7 +22,8 @@ export type DashboardSection =
   | "highRiskMembersList" // 退会リスク会員一覧
   | "needInterventionMembers" // 介入推奨会員
   | "retentionDriverAI" // 継続率ドライバー分析AI
-  | "storeSuccessAI"; // 成功店舗の再現AI
+  | "storeSuccessAI" // 成功店舗の再現AI
+  | "ltvRanking"; // 顧客LTVランキング
 
 /**
  * 各ロールで表示すべきダッシュボードセクション
@@ -41,6 +42,7 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "reservationAnalysis",
     "retentionDriverAI",
     "storeSuccessAI",
+    "ltvRanking",
   ],
 
   // FCオーナー: 自店舗の経営状況と危険売上
@@ -54,6 +56,7 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "dropoutRanking",
     "retentionDriverAI",
     "storeSuccessAI",
+    "ltvRanking",
   ],
 
   // 店舗責任者: 現場の優先対応と継続率改善
@@ -68,6 +71,7 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "planTransition",
     "retentionDriverAI",
     "storeSuccessAI",
+    "ltvRanking",
   ],
 
   // トレーナー: 今日の対応と担当会員管理
@@ -79,6 +83,7 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "planTransition",
     "retentionDriverAI",
     "storeSuccessAI",
+    "ltvRanking",
   ],
 };
 

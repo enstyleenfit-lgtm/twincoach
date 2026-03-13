@@ -20,6 +20,8 @@ import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
 import { analyzeRetentionDrivers, type RetentionDriver } from "@/lib/retentionDriverAI";
 import { analyzeSuccessfulStores, type SuccessfulStore } from "@/lib/storeSuccessAI";
+import { estimateChurnReasons, type ChurnReasonTag } from "@/lib/churnReasonAI";
+import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
 import { Role, Member, Task } from "@/types";
 
@@ -317,6 +319,16 @@ export default async function Home() {
 
   // 成功店舗の再現AI
   const storeSuccessAnalysis = analyzeSuccessfulStores(members);
+
+  // 顧客LTVランキング
+  const ltvRanking = members
+    .map((member: Member) => ({
+      member,
+      ltv: estimateMemberLTV(member),
+      riskResult: calculateRiskScore(member),
+    }))
+    .sort((a: { member: Member; ltv: ReturnType<typeof estimateMemberLTV>; riskResult: RiskScoreResult }, b: { member: Member; ltv: ReturnType<typeof estimateMemberLTV>; riskResult: RiskScoreResult }) => b.ltv.riskAdjustedLTV - a.ltv.riskAdjustedLTV)
+    .slice(0, 10); // Top 10
 
   // ダミーロール設定（将来的に認証から取得）
   // TODO: 実認証連携時に以下に置き換え
@@ -1278,6 +1290,9 @@ export default async function Home() {
                       提案タイトル
                     </th>
                     <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                      推定退会理由
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
                       クイックアクション
                     </th>
                   </tr>
@@ -1317,6 +1332,30 @@ export default async function Home() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-zinc-300 text-sm">{suggestion.title}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {(() => {
+                          const churnReasons = estimateChurnReasons(member);
+                          return churnReasons.reasons.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {churnReasons.reasons.slice(0, 3).map((reason: ChurnReasonTag, idx: number) => (
+                                <span
+                                  key={idx}
+                                  className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
+                                    reason.severity === "high"
+                                      ? "text-red-400 bg-red-400/10 border-red-400/20"
+                                      : "text-yellow-400 bg-yellow-400/10 border-yellow-400/20"
+                                  }`}
+                                  title={reason.description}
+                                >
+                                  {reason.tag}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-zinc-500 text-xs">-</span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2 flex-wrap">
@@ -2773,6 +2812,118 @@ export default async function Home() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 顧客LTVランキング */}
+      {shouldShow("ltvRanking") && (
+        <div className="mb-12">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8">
+            <h2 className="text-2xl font-semibold mb-2">顧客LTVランキング</h2>
+            <p className="text-zinc-400 text-sm mb-6">
+              TwinCoachが会員行動データから推定した将来売上です
+            </p>
+
+            {ltvRanking.length === 0 ? (
+              <p className="text-zinc-400 text-sm">データが不足しています</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-zinc-800 border-b border-zinc-700">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        順位
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        名前
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        プラン
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        推定LTV
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        リスク調整後LTV
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        月額売上
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        継続予測
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        リスクレベル
+                      </th>
+                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                        操作
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-800">
+                    {ltvRanking.map((item: { member: Member; ltv: ReturnType<typeof estimateMemberLTV>; riskResult: RiskScoreResult }, index: number) => {
+                      const ltvLevel = getLTVLevel(item.ltv.riskAdjustedLTV);
+                      return (
+                        <tr
+                          key={item.member.id}
+                          className="hover:bg-zinc-800/50 transition-colors"
+                        >
+                          <td className="px-4 py-3 text-zinc-300">#{index + 1}</td>
+                          <td className="px-4 py-3">
+                            <Link
+                              href={`/members/${item.member.id}`}
+                              className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                            >
+                              {item.member.name}
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3 text-zinc-300">{item.member.plan}</td>
+                          <td className="px-4 py-3">
+                            <span className="text-white font-semibold">
+                              ¥{item.ltv.estimatedLTV.toLocaleString()}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`font-bold ${getLTVLevelColor(ltvLevel)}`}>
+                              ¥{item.ltv.riskAdjustedLTV.toLocaleString()}
+                            </span>
+                            <div className="mt-1">
+                              <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getLTVLevelBadgeColor(ltvLevel)}`}>
+                                {ltvLevel === "high" ? "高LTV" : ltvLevel === "medium" ? "中LTV" : "低LTV"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-zinc-300">
+                            ¥{item.ltv.monthlyValue.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3 text-zinc-300">
+                            {item.ltv.expectedMonths}ヶ月
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getRiskLevelBadgeColor(
+                                item.riskResult.level
+                              )}`}
+                            >
+                              {item.riskResult.level.toUpperCase()}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <Link
+                              href={`/members/${item.member.id}`}
+                              className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                            >
+                              詳細を見る
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

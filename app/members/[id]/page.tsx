@@ -6,6 +6,8 @@ import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberS
 import { getDualMembers, getRecommendedNextPlan } from "@/lib/planTransition";
 import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPrediction";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
+import { estimateChurnReasons, type ChurnReasonTag } from "@/lib/churnReasonAI";
+import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -119,6 +121,113 @@ export default async function MemberDetailPage({
                 </div>
               </div>
             </div>
+          </div>
+        );
+      })()}
+
+      {/* 会員LTV */}
+      {(() => {
+        const ltv = estimateMemberLTV(member);
+        const ltvLevel = getLTVLevel(ltv.riskAdjustedLTV);
+        return (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-2">会員LTV</h2>
+            <p className="text-zinc-400 text-xs mb-4">
+              TwinCoachが会員行動データから推定した将来売上です
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">推定LTV</div>
+                <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
+                  ¥{ltv.estimatedLTV.toLocaleString()}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">
+                  継続予測: {ltv.expectedMonths}ヶ月
+                </div>
+              </div>
+              <div className={`bg-zinc-950 border rounded-lg p-4 ${
+                ltvLevel === "high" ? "border-green-500/40" :
+                ltvLevel === "medium" ? "border-yellow-500/40" :
+                "border-red-500/40"
+              }`}>
+                <div className="text-zinc-400 text-sm mb-1">リスク調整後LTV</div>
+                <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
+                  ¥{ltv.riskAdjustedLTV.toLocaleString()}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">
+                  <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getLTVLevelBadgeColor(ltvLevel)}`}>
+                    {ltvLevel === "high" ? "高LTV" : ltvLevel === "medium" ? "中LTV" : "低LTV"}
+                  </span>
+                </div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">月額売上</div>
+                <div className="text-2xl font-bold text-white">
+                  ¥{ltv.monthlyValue.toLocaleString()}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">/月</div>
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+                <div className="text-zinc-400 text-sm mb-1">継続予測月数</div>
+                <div className="text-2xl font-bold text-white">
+                  {ltv.expectedMonths}
+                </div>
+                <div className="text-zinc-500 text-xs mt-1">ヶ月</div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 退会理由推定 */}
+      {(() => {
+        const churnReasons = estimateChurnReasons(member);
+        return (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-2">退会理由推定</h2>
+            <p className="text-zinc-400 text-xs mb-4">
+              TwinCoachが行動データから推定した退会要因です
+            </p>
+            {churnReasons.reasons.length === 0 ? (
+              <p className="text-zinc-400 text-sm">退会要因は見つかりませんでした</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {churnReasons.reasons.map((reason: ChurnReasonTag, index: number) => (
+                  <div
+                    key={index}
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border ${
+                      reason.severity === "high"
+                        ? "text-red-400 bg-red-400/10 border-red-400/20"
+                        : "text-yellow-400 bg-yellow-400/10 border-yellow-400/20"
+                    }`}
+                  >
+                    <span>{reason.tag}</span>
+                    <span className="text-xs opacity-70">
+                      ({Math.round(reason.confidence * 100)}%)
+                    </span>
+                    <span
+                      className="text-xs opacity-60"
+                      title={reason.description}
+                    >
+                      ℹ️
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {churnReasons.reasons.length > 0 && (
+              <div className="mt-4 space-y-2">
+                {churnReasons.reasons.map((reason: ChurnReasonTag, index: number) => (
+                  <div
+                    key={index}
+                    className="text-zinc-400 text-xs bg-zinc-950 border border-zinc-800 rounded p-2"
+                  >
+                    <span className="font-semibold text-white">{reason.tag}:</span>{" "}
+                    {reason.description}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
       })()}
