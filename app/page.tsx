@@ -18,6 +18,8 @@ import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPredic
 import { getPriorityQueue } from "@/lib/priorityQueue";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
+import { analyzeRetentionDrivers, type RetentionDriver } from "@/lib/retentionDriverAI";
+import { analyzeSuccessfulStores, type SuccessfulStore } from "@/lib/storeSuccessAI";
 import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
 import { Role, Member, Task } from "@/types";
 
@@ -296,6 +298,25 @@ export default async function Home() {
 
   // 価格改定影響モニター
   const priceRevisionImpact = getPriceRevisionImpact(members);
+
+  // 未来退会予測データ
+  const churnPredictions = members.map((member: Member) => ({
+    member,
+    prediction: getChurnPrediction(member),
+    suggestion: getInterventionSuggestion(member),
+  }));
+  const topChurnPredictions = churnPredictions
+    .slice()
+    .sort((a: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }, b: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => b.prediction.probability30Days - a.prediction.probability30Days)
+    .slice(0, 5);
+  const highRisk30Days = churnPredictions.filter((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => item.prediction.label30Days === "high").length;
+  const highRisk60Days = churnPredictions.filter((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => item.prediction.label60Days === "high").length;
+
+  // 継続率ドライバー分析AI
+  const retentionDriverAnalysis = analyzeRetentionDrivers(members);
+
+  // 成功店舗の再現AI
+  const storeSuccessAnalysis = analyzeSuccessfulStores(members);
 
   // ダミーロール設定（将来的に認証から取得）
   // TODO: 実認証連携時に以下に置き換え
@@ -702,7 +723,7 @@ export default async function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {dropoutRanking.map(({ member, riskResult, suggestion, segment }, index) => {
+                  {dropoutRanking.map(({ member, riskResult, suggestion, segment }: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion>; segment: ReturnType<typeof getMemberSegment> }, index: number) => {
                     const rank = index + 1;
                     const segmentInfo = getSegmentInfo(segment);
                     const reasons = getRiskReasons(member).slice(0, 2);
@@ -893,7 +914,7 @@ export default async function Home() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-zinc-800">
-                    {dangerousRevenueRanking.map(({ member, revenue, riskResult }, index) => (
+                    {dangerousRevenueRanking.map(({ member, revenue, riskResult }: { member: Member; revenue: ReturnType<typeof getRevenueAtRisk>; riskResult: RiskScoreResult }, index: number) => (
                       <tr key={member.id} className="hover:bg-zinc-800/50 transition-colors">
                         <td className="px-4 py-3 text-sm text-zinc-300">#{index + 1}</td>
                         <td className="px-4 py-3 text-sm">
@@ -1262,7 +1283,7 @@ export default async function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {highRiskMembersList.map(({ member, riskResult, suggestion }) => (
+                  {highRiskMembersList.map(({ member, riskResult, suggestion }: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }) => (
                     <tr
                       key={member.id}
                       className="hover:bg-zinc-800/50 transition-colors"
@@ -1376,7 +1397,7 @@ export default async function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {needInterventionMembers.map(({ member, suggestion }) => (
+                  {needInterventionMembers.map(({ member, suggestion }: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }) => (
                     <tr
                       key={member.id}
                       className="hover:bg-zinc-800/50 transition-colors"
@@ -2177,7 +2198,7 @@ export default async function Home() {
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
-                      (sum, p) => sum + p.prediction.probability30Days,
+                      (sum: number, p: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => sum + p.prediction.probability30Days,
                       0
                     ) / churnPredictions.length
                   )
@@ -2192,7 +2213,7 @@ export default async function Home() {
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
-                      (sum, p) => sum + p.prediction.probability60Days,
+                      (sum: number, p: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => sum + p.prediction.probability60Days,
                       0
                     ) / churnPredictions.length
                   )
@@ -2233,7 +2254,7 @@ export default async function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {topChurnPredictions.map((item) => {
+                  {topChurnPredictions.map((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => {
                     const segment = getMemberSegment(item.member);
                     const segmentInfo = getSegmentInfo(segment);
                     const reasons = getChurnPredictionReasons(item.member);
@@ -2384,7 +2405,7 @@ export default async function Home() {
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
-                      (sum, p) => sum + p.prediction.probability30Days,
+                      (sum: number, p: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => sum + p.prediction.probability30Days,
                       0
                     ) / churnPredictions.length
                   )
@@ -2399,7 +2420,7 @@ export default async function Home() {
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
-                      (sum, p) => sum + p.prediction.probability60Days,
+                      (sum: number, p: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => sum + p.prediction.probability60Days,
                       0
                     ) / churnPredictions.length
                   )
@@ -2440,7 +2461,7 @@ export default async function Home() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-zinc-800">
-                  {topChurnPredictions.map((item) => {
+                  {topChurnPredictions.map((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => {
                     const segment = getMemberSegment(item.member);
                     const segmentInfo = getSegmentInfo(segment);
                     return (
@@ -2557,6 +2578,205 @@ export default async function Home() {
           )}
         </div>
       </div>
+      )}
+
+      {/* 継続率ドライバー分析AI */}
+      {shouldShow("retentionDriverAI") && (
+        <div className="mb-12">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8">
+            <h2 className="text-2xl font-semibold mb-2">継続率ドライバー分析AI</h2>
+            <p className="text-zinc-400 text-sm mb-6">
+              継続会員と高リスク会員の差から、継続率に影響する要因を分析しています
+            </p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 継続率を上げる要因 */}
+              <div className="bg-zinc-950 border border-green-500/20 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-green-400">
+                  継続率を上げる要因 Top3
+                </h3>
+                {retentionDriverAnalysis.positiveDrivers.length === 0 ? (
+                  <p className="text-zinc-400 text-sm">データが不足しています</p>
+                ) : (
+                  <div className="space-y-4">
+                    {retentionDriverAnalysis.positiveDrivers.slice(0, 3).map((driver: RetentionDriver, index: number) => (
+                      <div
+                        key={index}
+                        className="bg-zinc-900 border border-green-500/30 rounded-lg p-4"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-green-400 font-semibold text-sm">
+                                #{index + 1}
+                              </span>
+                              <h4 className="text-white font-semibold">{driver.factor}</h4>
+                            </div>
+                            <p className="text-zinc-400 text-xs mb-2">{driver.description}</p>
+                            <p className="text-green-300 text-xs">{driver.suggestion}</p>
+                          </div>
+                          <div className="ml-4 text-right">
+                            <div className="text-2xl font-bold text-green-400">
+                              {driver.impactScore}
+                            </div>
+                            <div className="text-zinc-500 text-xs">影響度</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 継続率を下げる要因 */}
+              <div className="bg-zinc-950 border border-red-500/20 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-red-400">
+                  継続率を下げる要因 Top3
+                </h3>
+                {retentionDriverAnalysis.negativeDrivers.length === 0 ? (
+                  <p className="text-zinc-400 text-sm">データが不足しています</p>
+                ) : (
+                  <div className="space-y-4">
+                    {retentionDriverAnalysis.negativeDrivers.slice(0, 3).map((driver: RetentionDriver, index: number) => (
+                      <div
+                        key={index}
+                        className="bg-zinc-900 border border-red-500/30 rounded-lg p-4"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-red-400 font-semibold text-sm">
+                                #{index + 1}
+                              </span>
+                              <h4 className="text-white font-semibold">{driver.factor}</h4>
+                            </div>
+                            <p className="text-zinc-400 text-xs mb-2">{driver.description}</p>
+                            <p className="text-red-300 text-xs">{driver.suggestion}</p>
+                          </div>
+                          <div className="ml-4 text-right">
+                            <div className="text-2xl font-bold text-red-400">
+                              {driver.impactScore}
+                            </div>
+                            <div className="text-zinc-500 text-xs">影響度</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 成功店舗の再現AI */}
+      {shouldShow("storeSuccessAI") && (
+        <div className="mb-12">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8">
+            <h2 className="text-2xl font-semibold mb-2">成功店舗の再現AI</h2>
+            <p className="text-zinc-400 text-sm mb-6">
+              成果が出ている店舗の特徴を抽出し、他店舗へ展開できる行動を提案します
+            </p>
+
+            {storeSuccessAnalysis.topStores.length === 0 ? (
+              <p className="text-zinc-400 text-sm">データが不足しています</p>
+            ) : (
+              <div className="space-y-6">
+                {storeSuccessAnalysis.topStores.slice(0, 3).map((store: SuccessfulStore, index: number) => (
+                  <div
+                    key={store.storeName}
+                    className="bg-zinc-950 border border-green-500/20 rounded-lg p-6"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-green-400 font-semibold text-lg">
+                            #{index + 1}
+                          </span>
+                          <h3 className="text-xl font-semibold text-white">
+                            {store.storeName}
+                          </h3>
+                          <Link
+                            href={`/stores/${encodeURIComponent(store.storeName)}`}
+                            className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                          >
+                            詳細を見る →
+                          </Link>
+                        </div>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="text-sm">
+                            <span className="text-zinc-400">成功スコア: </span>
+                            <span className="text-green-400 font-bold text-lg">
+                              {store.successScore}
+                            </span>
+                          </div>
+                          <div className="text-sm">
+                            <span className="text-zinc-400">継続率: </span>
+                            <span className="text-green-400 font-semibold">
+                              {store.metrics.estimatedRetentionRate.toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="text-sm">
+                            <span className="text-zinc-400">高リスク会員: </span>
+                            <span className="text-green-400 font-semibold">
+                              {store.metrics.highRiskMembers}人
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* 成功要因 */}
+                      <div>
+                        <h4 className="text-lg font-semibold mb-3 text-green-400">
+                          成功要因
+                        </h4>
+                        <ul className="space-y-2">
+                          {store.successFactors.map((factor, idx) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2 text-sm text-zinc-300"
+                            >
+                              <span className="text-green-400 mt-1">✓</span>
+                              <div>
+                                <div className="font-semibold text-white">
+                                  {factor.factor}
+                                </div>
+                                <div className="text-zinc-400 text-xs mt-1">
+                                  {factor.description}
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* 再現アクション */}
+                      <div>
+                        <h4 className="text-lg font-semibold mb-3 text-yellow-400">
+                          他店舗への再現アクション
+                        </h4>
+                        <ul className="space-y-2">
+                          {store.recommendedReplicationActions.map((action, idx) => (
+                            <li
+                              key={idx}
+                              className="flex items-start gap-2 text-sm text-zinc-300"
+                            >
+                              <span className="text-yellow-400 mt-1">→</span>
+                              <span>{action}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       <div className="mt-12">

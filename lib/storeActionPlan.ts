@@ -171,7 +171,7 @@ export function getStoreActionPlan(
           highRiskMembers.reduce(
             (sum, m) =>
               sum +
-              (m.monthly_revenue || 0) *
+              (m.monthlyRevenue || 0) *
                 (calculateRiskScore(m).score / 100),
             0
           )

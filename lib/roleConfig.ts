@@ -20,7 +20,9 @@ export type DashboardSection =
   | "priceRevision" // 価格改定影響モニター
   | "churnPrediction" // 未来退会予測
   | "highRiskMembersList" // 退会リスク会員一覧
-  | "needInterventionMembers"; // 介入推奨会員
+  | "needInterventionMembers" // 介入推奨会員
+  | "retentionDriverAI" // 継続率ドライバー分析AI
+  | "storeSuccessAI"; // 成功店舗の再現AI
 
 /**
  * 各ロールで表示すべきダッシュボードセクション
@@ -37,6 +39,8 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "trainerMetrics",
     "riskTrendChart",
     "reservationAnalysis",
+    "retentionDriverAI",
+    "storeSuccessAI",
   ],
 
   // FCオーナー: 自店舗の経営状況と危険売上
@@ -48,6 +52,8 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "kpiGap", // 自店舗のみ
     "first90Days",
     "dropoutRanking",
+    "retentionDriverAI",
+    "storeSuccessAI",
   ],
 
   // 店舗責任者: 現場の優先対応と継続率改善
@@ -60,6 +66,8 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "needInterventionMembers",
     "reservationAnalysis",
     "planTransition",
+    "retentionDriverAI",
+    "storeSuccessAI",
   ],
 
   // トレーナー: 今日の対応と担当会員管理
@@ -69,6 +77,8 @@ export const roleDashboardConfig: Record<Role, DashboardSection[]> = {
     "needInterventionMembers",
     "first90Days",
     "planTransition",
+    "retentionDriverAI",
+    "storeSuccessAI",
   ],
 };
 

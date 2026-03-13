@@ -49,9 +49,10 @@ export function PriceRevisionChart({
               color: "#e4e4e7",
             }}
             labelStyle={{ color: "#e4e4e7" }}
-            formatter={(value: number) =>
-              isPercentage ? `${value}%` : `¥${value.toLocaleString()}`
-            }
+            formatter={(value: unknown) => {
+              const numValue = typeof value === "number" ? value : 0;
+              return isPercentage ? `${numValue}%` : `¥${numValue.toLocaleString()}`;
+            }}
           />
           <Bar dataKey="value" radius={[6, 6, 0, 0]}>
             {data.map((entry, index) => (

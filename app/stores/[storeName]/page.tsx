@@ -12,6 +12,7 @@ import { getFirst90DaysRiskSummary } from "@/lib/first90Days";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getStoreRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
 import { getStoreActionPlan } from "@/lib/storeActionPlan";
+import { getStoreSuccessFactors } from "@/lib/storeSuccessAI";
 import { Member, Task } from "@/types";
 
 interface StoreDetailPageProps {
@@ -170,6 +171,9 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
 
   // 予約詰まり時間帯ヒートマップ（店舗専用）
   const storeReservationHeatmap = getReservationHeatmapData(storeMembers);
+
+  // 成功要因分析（他店舗が参考にすべき成功要因）
+  const storeSuccessFactors = getStoreSuccessFactors(allMembers, decodedStoreName);
 
   // 介入優先キュー（タスクを優先度順にソート）
   const interventionQueue = storeTasks
@@ -685,6 +689,80 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
           </div>
         </div>
       </div>
+
+      {/* 成功要因（他店舗が参考にすべき成功要因） */}
+      {storeSuccessFactors && (
+        <div className="bg-zinc-900 border border-green-500/20 rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4 text-green-400">
+            成功要因（他店舗が参考にすべき成功要因）
+          </h2>
+          <p className="text-zinc-400 text-xs mb-6">
+            この店舗の成功要因を分析し、他店舗への再現アクションを提案しています
+          </p>
+
+          <div className="mb-4">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-green-400 font-semibold">成功スコア:</span>
+              <span className="text-2xl font-bold text-green-400">
+                {storeSuccessFactors.successScore}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* 成功要因 */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-green-400">
+                成功要因
+              </h3>
+              {storeSuccessFactors.successFactors.length === 0 ? (
+                <p className="text-zinc-400 text-sm">成功要因が見つかりませんでした</p>
+              ) : (
+                <ul className="space-y-2">
+                  {storeSuccessFactors.successFactors.map((factor, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-sm text-zinc-300 bg-zinc-950 border border-green-500/20 rounded-lg p-3"
+                    >
+                      <span className="text-green-400 mt-1">✓</span>
+                      <div>
+                        <div className="font-semibold text-white">
+                          {factor.factor}
+                        </div>
+                        <div className="text-zinc-400 text-xs mt-1">
+                          {factor.description}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* 再現アクション */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-yellow-400">
+                他店舗への再現アクション
+              </h3>
+              {storeSuccessFactors.recommendedReplicationActions.length === 0 ? (
+                <p className="text-zinc-400 text-sm">再現アクションが見つかりませんでした</p>
+              ) : (
+                <ul className="space-y-2">
+                  {storeSuccessFactors.recommendedReplicationActions.map((action, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-start gap-2 text-sm text-zinc-300 bg-zinc-950 border border-yellow-500/20 rounded-lg p-3"
+                    >
+                      <span className="text-yellow-400 mt-1">→</span>
+                      <span>{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

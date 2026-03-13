@@ -260,3 +260,4 @@ CREATE POLICY "Authenticated users can view members"
 6. アプリケーションを再起動
 
 
+

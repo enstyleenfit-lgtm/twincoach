@@ -44,3 +44,4 @@ export function isSupabaseEnabled(): boolean {
   return !!(supabaseUrl && supabaseAnonKey);
 }
 
+
