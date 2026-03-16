@@ -14,7 +14,7 @@ export function TrainerSidebar() {
               href="/trainer"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              トレーナーダッシュボード
+              今日の予約
             </Link>
           </li>
           <li>
@@ -33,6 +33,14 @@ export function TrainerSidebar() {
               タスク
             </Link>
           </li>
+          <li>
+            <Link
+              href="/trainer/session-input"
+              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
+            >
+              セッション入力
+            </Link>
+          </li>
         </ul>
       </nav>
       <div className="p-4 border-t border-zinc-800">
@@ -41,4 +49,5 @@ export function TrainerSidebar() {
     </aside>
   );
 }
+
 

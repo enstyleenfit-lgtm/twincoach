@@ -14,7 +14,23 @@ export function OwnerSidebar() {
               href="/owner"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              オーナーダッシュボード
+              ダッシュボード
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/stores"
+              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
+            >
+              店舗一覧
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/trainers"
+              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
+            >
+              トレーナー
             </Link>
           </li>
           <li>
@@ -22,7 +38,7 @@ export function OwnerSidebar() {
               href="/members"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              会員一覧
+              会員
             </Link>
           </li>
           <li>
@@ -30,7 +46,7 @@ export function OwnerSidebar() {
               href="/tasks"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              介入タスク
+              タスク
             </Link>
           </li>
           <li>
@@ -38,7 +54,7 @@ export function OwnerSidebar() {
               href="/reports"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              月次レポート
+              レポート
             </Link>
           </li>
         </ul>
@@ -49,4 +65,5 @@ export function OwnerSidebar() {
     </aside>
   );
 }
+
 

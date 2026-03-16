@@ -14,7 +14,7 @@ export function HQSidebar() {
               href="/hq"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              HQダッシュボード
+              ダッシュボード
             </Link>
           </li>
           <li>
@@ -27,18 +27,26 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href="/reports"
+              href="/trainers"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              月次レポート
+              トレーナー
             </Link>
           </li>
           <li>
             <Link
-              href="/members"
+              href="/reports"
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
-              会員一覧
+              レポート
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/poc-summary"
+              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
+            >
+              PoCサマリー
             </Link>
           </li>
         </ul>
@@ -49,4 +57,5 @@ export function HQSidebar() {
     </aside>
   );
 }
+
 
