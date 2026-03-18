@@ -24,6 +24,7 @@ import { estimateChurnReasons, type ChurnReasonTag } from "@/lib/churnReasonAI";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
 import { Role, Member, Task } from "@/types";
+import { ImportedDashboardReflection } from "@/components/import/ImportedDashboardReflection";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -349,6 +350,7 @@ export default async function Home() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <ImportedDashboardReflection />
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-4xl font-bold mb-2">TwinCoach ダッシュボード</h1>

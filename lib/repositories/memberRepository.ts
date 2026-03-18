@@ -113,11 +113,12 @@ export class MemberRepository {
       plan: data.plan,
       storeName: data.storeName,
       joinDate: data.joinDate,
-      lastVisitDate: data.joinDate || today,
-      visitInterval: "0 days",
+      lastVisitDate: data.lastVisitDate || data.joinDate || today,
+      visitInterval: data.visitInterval || "0 days",
       assignedTrainer: data.assignedTrainer,
       notes: data.notes,
-      hasCancellationHistory: false,
+      hasCancellationHistory: data.hasCancellationHistory ?? false,
+      monthlyRevenue: data.monthlyRevenue,
     };
 
     if (isSupabaseEnabled()) {
@@ -246,11 +247,12 @@ export class MemberRepository {
       plan: data.plan,
       storeName: data.storeName,
       joinDate: data.joinDate,
-      lastVisitDate: data.joinDate || today,
-      visitInterval: "0 days",
+      lastVisitDate: data.lastVisitDate || data.joinDate || today,
+      visitInterval: data.visitInterval || "0 days",
       assignedTrainer: data.assignedTrainer,
       notes: data.notes,
-      hasCancellationHistory: false,
+      hasCancellationHistory: data.hasCancellationHistory ?? false,
+      monthlyRevenue: data.monthlyRevenue,
     }));
 
     // モック時（インメモリに追加）

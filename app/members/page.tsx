@@ -5,6 +5,7 @@ import Link from "next/link";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
 import { Member } from "@/types";
+import { loadImportedMembers, mergeBaseAndImported } from "@/lib/importStore";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -27,8 +28,10 @@ export default function MembersPage() {
           console.error("Failed to fetch members");
           return;
         }
-        const data = await response.json();
-        setMembers(data);
+        const baseMembers: Member[] = await response.json();
+        const importedMembers = loadImportedMembers();
+        const merged = mergeBaseAndImported(baseMembers, importedMembers);
+        setMembers(merged);
       } catch (error) {
         console.error("Error loading members:", error);
       }

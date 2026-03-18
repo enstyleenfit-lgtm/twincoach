@@ -6,6 +6,7 @@ import { Member } from "@/types";
 import { getStoreSummaries } from "@/lib/storeSummary";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { calculateRiskScore } from "@/lib/riskScore";
+import { loadImportedMembers, mergeBaseAndImported } from "@/lib/importStore";
 
 interface StoreListData {
   storeName: string;
@@ -28,7 +29,9 @@ export default function StoresPage() {
           console.error("Failed to fetch members");
           return;
         }
-        const members: Member[] = await response.json();
+        const baseMembers: Member[] = await response.json();
+        const importedMembers = loadImportedMembers();
+        const members: Member[] = mergeBaseAndImported(baseMembers, importedMembers);
 
         // 店舗別に集計
         const storeMap = new Map<string, StoreListData>();

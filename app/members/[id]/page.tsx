@@ -8,6 +8,7 @@ import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPredic
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { estimateChurnReasons, type ChurnReasonTag } from "@/lib/churnReasonAI";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
+import { MemberSessionsClient } from "@/components/members/MemberSessionsClient";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -73,6 +74,9 @@ export default async function MemberDetailPage({
       </Link>
 
       <h1 className="text-4xl font-bold mb-8">{member.name}</h1>
+
+      {/* 過去5回セッション（CSV取り込み・ローカル保存） */}
+      <MemberSessionsClient memberName={member.name} />
 
       {/* 収益リスク */}
       {(() => {
