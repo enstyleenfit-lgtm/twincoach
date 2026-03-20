@@ -1,15 +1,13 @@
-import { Member } from "@/types";
-
-export interface ChurnReasonTag {
-  tag: string;
-  confidence: number; // 0-1の信頼度
-  description: string;
-  severity: "high" | "medium"; // 退会要因（high）または注意要因（medium）
-}
-
-export interface ChurnReasonEstimate {
-  reasons: ChurnReasonTag[];
-}
+import { calculateRiskScore } from "@/lib/riskScore";
+import { sessionWithConversationTags } from "@/lib/conversationTagAI";
+import type {
+  ChurnReasonCategory,
+  ChurnReasonEstimate,
+  ChurnReasonTag,
+  ConversationTag,
+  Member,
+  Session,
+} from "@/types";
 
 /**
  * 日付文字列から現在日までの日数を計算
@@ -38,94 +36,71 @@ function parseVisitInterval(visitInterval: string): number {
  * @returns 推定退会理由タグ
  */
 export function estimateChurnReasons(
-  member: Member
+  member: Member,
+  sessions?: Session[]
 ): ChurnReasonEstimate {
   const reasons: ChurnReasonTag[] = [];
+  const risk = calculateRiskScore(member);
 
   // 1. 来店間隔拡大
   const visitIntervalDays = parseVisitInterval(member.visitInterval);
   const daysSinceLastVisit = getDaysSince(member.lastVisitDate);
 
   if (visitIntervalDays > 14 || daysSinceLastVisit > 14) {
-    const confidence = Math.min(
-      1.0,
-      0.5 + (Math.max(visitIntervalDays, daysSinceLastVisit) - 14) / 20
+    const confidence = Math.min(0.95, 0.62 + (Math.max(visitIntervalDays, daysSinceLastVisit) - 14) / 30);
+    pushReason(
+      reasons,
+      "来店間隔拡大",
+      "行動",
+      confidence,
+      visitIntervalDays > 14
+        ? `来店間隔が${visitIntervalDays}日以上空いています`
+        : `最終来店から${daysSinceLastVisit}日経過しています`
     );
-    reasons.push({
-      tag: "来店間隔拡大",
-      confidence: Math.round(confidence * 100) / 100,
-      description:
-        visitIntervalDays > 14
-          ? `来店間隔が${visitIntervalDays}日と長くなっています`
-          : `最終来店から${daysSinceLastVisit}日経過しています`,
-      severity: visitIntervalDays > 21 || daysSinceLastVisit > 21 ? "high" : "medium",
-    });
   }
 
-  // 2. 予約困難
-  if (member.hasCancellationHistory) {
-    reasons.push({
-      tag: "予約困難",
-      confidence: 0.64,
-      description: "キャンセル履歴が多く予約が不安定です",
-      severity: "high",
-    });
+  // 2. キャンセル履歴
+  if (member.hasCancellationHistory === true || member.reservationDifficultyLevel === "difficult") {
+    pushReason(
+      reasons,
+      "予約困難",
+      "行動",
+      member.reservationDifficultyLevel === "difficult" ? 0.84 : 0.72,
+      "キャンセル履歴や予約状況から、予約の取りづらさが見られます"
+    );
   }
 
-  // 予約の取りづらさも考慮
-  if (member.reservationDifficultyLevel === "difficult") {
-    reasons.push({
-      tag: "予約困難",
-      confidence: 0.75,
-      description: "希望時間帯の予約が取りづらい状況です",
-      severity: "high",
-    });
-  }
-
-  // 3. 初期離脱
+  // 3. 入会90日以内 かつ high risk
   const daysSinceJoin = getDaysSince(member.joinDate);
-  if (daysSinceJoin <= 90) {
-    const confidence = Math.min(1.0, 0.6 + (90 - daysSinceJoin) / 90 * 0.3);
-    reasons.push({
-      tag: "初期離脱",
-      confidence: Math.round(confidence * 100) / 100,
-      description: `入会から${daysSinceJoin}日目で、初期定着の重要期間です`,
-      severity: daysSinceJoin <= 30 ? "high" : "medium",
-    });
+  if (daysSinceJoin <= 90 && risk.level === "high") {
+    const confidence = Math.min(0.95, 0.73 + (90 - daysSinceJoin) / 300);
+    pushReason(
+      reasons,
+      "初期離脱",
+      "継続初期",
+      confidence,
+      `入会${daysSinceJoin}日以内かつ高リスク状態のため、初期離脱リスクが高まっています`
+    );
   }
 
-  // 4. モチベーション低下
-  if (visitIntervalDays > 10 && visitIntervalDays <= 14) {
-    reasons.push({
-      tag: "モチベーション低下",
-      confidence: 0.58,
-      description: `来店間隔が${visitIntervalDays}日と長めです`,
-      severity: "medium",
-    });
-  }
+  // 4-8. 会話タグ由来の推定
+  const conversationTags = getConversationTagsFromSessions(sessions, member.name);
+  const tagSet = new Set(conversationTags.map((t) => t.tag));
 
-  // 最終来店から7日以上空いている場合もモチベーション低下の可能性
-  if (daysSinceLastVisit >= 7 && daysSinceLastVisit <= 14) {
-    reasons.push({
-      tag: "モチベーション低下",
-      confidence: 0.55,
-      description: `最終来店から${daysSinceLastVisit}日経過しています`,
-      severity: "medium",
-    });
+  if (tagSet.has("仕事ストレス")) {
+    pushReason(reasons, "仕事ストレス", "生活", 0.71, "会話ログから仕事負荷の上昇が見られます");
   }
-
-  // 5. 予約時間帯の不一致（希望時間帯と実際の予約時間帯が異なる）
-  if (
-    member.preferredTimeSlot &&
-    member.bookedTimeSlot &&
-    member.preferredTimeSlot !== member.bookedTimeSlot
-  ) {
-    reasons.push({
-      tag: "予約困難",
-      confidence: 0.68,
-      description: "希望時間帯と実際の予約時間帯が異なります",
-      severity: "medium",
-    });
+  if (tagSet.has("睡眠不足")) {
+    pushReason(reasons, "体調悪化", "体調", 0.7, "会話ログから睡眠不足傾向が見られます");
+  }
+  if (tagSet.has("モチベ低下")) {
+    pushReason(reasons, "モチベーション低下", "心理", 0.68, "会話ログからモチベーション低下の兆候があります");
+  }
+  if (tagSet.has("食事課題")) {
+    pushReason(reasons, "成果実感不足リスク", "食事", 0.66, "食事面の課題により成果の実感低下が懸念されます");
+  }
+  if (tagSet.has("減量課題")) {
+    pushReason(reasons, "目標停滞", "目標", 0.67, "減量目標の進捗停滞が示唆されています");
   }
 
   // 信頼度順にソート（高い順）
@@ -133,8 +108,58 @@ export function estimateChurnReasons(
 
   return {
     reasons,
+    primaryReason: reasons[0]?.tag,
   };
 }
+
+function pushReason(
+  reasons: ChurnReasonTag[],
+  tag: string,
+  category: ChurnReasonCategory,
+  confidence: number,
+  description: string
+): void {
+  const existing = reasons.find((r) => r.tag === tag);
+  const normalizedConfidence = Math.max(0, Math.min(1, Math.round(confidence * 100) / 100));
+  const severity: "high" | "medium" = normalizedConfidence >= 0.75 ? "high" : "medium";
+
+  if (existing) {
+    if (normalizedConfidence > existing.confidence) {
+      existing.confidence = normalizedConfidence;
+      existing.description = description;
+      existing.category = category;
+      existing.severity = severity;
+    }
+    return;
+  }
+
+  reasons.push({
+    tag,
+    category,
+    confidence: normalizedConfidence,
+    description,
+    severity,
+  });
+}
+
+function getConversationTagsFromSessions(sessions: Session[] | undefined, memberName: string): ConversationTag[] {
+  if (!sessions || sessions.length === 0) return [];
+
+  const recent = sessions
+    .filter((s) => (s.memberName || "").trim() === memberName.trim())
+    .sort((a, b) => (b.sessionDate || "").localeCompare(a.sessionDate || ""))
+    .slice(0, 5)
+    .map(sessionWithConversationTags);
+
+  const map = new Map<string, ConversationTag>();
+  for (const session of recent) {
+    for (const tag of session.tags ?? []) {
+      map.set(tag.tag, tag);
+    }
+  }
+  return Array.from(map.values());
+}
+
 
 
 

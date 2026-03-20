@@ -1,3 +1,4 @@
+import { extractConversationTags } from "@/lib/conversationTagAI";
 import { Session } from "@/types";
 
 type CsvRow = Record<string, string>;
@@ -49,17 +50,22 @@ export function mapSessionCsvToSessions(rows: CsvRow[]): Session[] {
     );
   }
 
-  return rows.map((row) => ({
-    id: generateId(),
-    memberName: row["member_name"] ?? "",
-    sessionDate: row["session_date"] ?? "",
-    menuSummary: row["menu_summary"] ?? "",
-    conversationSummary: row["conversation_summary"] ?? "",
-    nextAction: row["next_action"] ?? "",
-    trainerName: row["trainer_name"] ?? "",
-    storeName: row["store_name"] ?? "",
-  }));
+  return rows.map((row) => {
+    const conversationSummary = row["conversation_summary"] ?? "";
+    return {
+      id: generateId(),
+      memberName: row["member_name"] ?? "",
+      sessionDate: row["session_date"] ?? "",
+      menuSummary: row["menu_summary"] ?? "",
+      conversationSummary,
+      nextAction: row["next_action"] ?? "",
+      trainerName: row["trainer_name"] ?? "",
+      storeName: row["store_name"] ?? "",
+      tags: extractConversationTags(conversationSummary),
+    };
+  });
 }
+
 
 
 

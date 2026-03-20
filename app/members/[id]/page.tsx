@@ -6,7 +6,7 @@ import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberS
 import { getDualMembers, getRecommendedNextPlan } from "@/lib/planTransition";
 import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPrediction";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
-import { estimateChurnReasons, type ChurnReasonTag } from "@/lib/churnReasonAI";
+import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { MemberSessionsClient } from "@/components/members/MemberSessionsClient";
 
@@ -183,53 +183,52 @@ export default async function MemberDetailPage({
         );
       })()}
 
-      {/* 退会理由推定 */}
+      {/* 退会理由AI */}
       {(() => {
         const churnReasons = estimateChurnReasons(member);
         return (
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-2">退会理由推定</h2>
+            <h2 className="text-xl font-semibold mb-2">退会理由AI</h2>
             <p className="text-zinc-400 text-xs mb-4">
-              TwinCoachが行動データから推定した退会要因です
+              会員の行動データとリスク情報から、想定される退会理由を推定しています
             </p>
             {churnReasons.reasons.length === 0 ? (
               <p className="text-zinc-400 text-sm">退会要因は見つかりませんでした</p>
             ) : (
-              <div className="flex flex-wrap gap-2">
-                {churnReasons.reasons.map((reason: ChurnReasonTag, index: number) => (
-                  <div
-                    key={index}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border ${
-                      reason.severity === "high"
-                        ? "text-red-400 bg-red-400/10 border-red-400/20"
-                        : "text-yellow-400 bg-yellow-400/10 border-yellow-400/20"
-                    }`}
-                  >
-                    <span>{reason.tag}</span>
-                    <span className="text-xs opacity-70">
-                      ({Math.round(reason.confidence * 100)}%)
-                    </span>
-                    <span
-                      className="text-xs opacity-60"
-                      title={reason.description}
+              <div className="space-y-3">
+                {churnReasons.primaryReason && (
+                  <div className="text-sm">
+                    <span className="text-zinc-400">主因: </span>
+                    <span className="text-white font-semibold">{churnReasons.primaryReason}</span>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {churnReasons.reasons.map((reason, index: number) => (
+                    <div
+                      key={index}
+                      className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2"
                     >
-                      ℹ️
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-            {churnReasons.reasons.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {churnReasons.reasons.map((reason: ChurnReasonTag, index: number) => (
-                  <div
-                    key={index}
-                    className="text-zinc-400 text-xs bg-zinc-950 border border-zinc-800 rounded p-2"
-                  >
-                    <span className="font-semibold text-white">{reason.tag}:</span>{" "}
-                    {reason.description}
-                  </div>
-                ))}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
+                              reason.severity === "high"
+                                ? "text-red-300 bg-red-400/10 border-red-400/25"
+                                : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
+                            }`}
+                          >
+                            {reason.tag}
+                          </span>
+                          <span className="text-zinc-500 text-xs">{reason.category}</span>
+                        </div>
+                        <span className="text-zinc-200 text-xs font-semibold">
+                          {Math.round(reason.confidence * 100)}%
+                        </span>
+                      </div>
+                      <p className="mt-1 text-zinc-400 text-xs">{reason.description}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

@@ -187,6 +187,44 @@ export interface Task {
 }
 
 /**
+ * 会話ログ自動タグ（ルールベース抽出）
+ */
+export type ConversationTagCategory =
+  | "生活"
+  | "体調"
+  | "食事"
+  | "心理"
+  | "姿勢"
+  | "目標";
+
+export interface ConversationTag {
+  tag: string;
+  category: ConversationTagCategory;
+}
+
+export type ChurnReasonCategory =
+  | "行動"
+  | "継続初期"
+  | "生活"
+  | "体調"
+  | "心理"
+  | "食事"
+  | "目標";
+
+export interface ChurnReasonTag {
+  tag: string;
+  confidence: number; // 0-1
+  description: string;
+  category: ChurnReasonCategory;
+  severity: "high" | "medium";
+}
+
+export interface ChurnReasonEstimate {
+  reasons: ChurnReasonTag[];
+  primaryReason?: string;
+}
+
+/**
  * セッション履歴（CSVインポート対応）
  * 会員詳細で直近のセッションを表示する用途
  */
@@ -199,4 +237,6 @@ export interface Session {
   nextAction: string;
   trainerName: string;
   storeName: string;
+  /** 会話要約から自動付与（CSV取り込み時・保存時に補完） */
+  tags?: ConversationTag[];
 }

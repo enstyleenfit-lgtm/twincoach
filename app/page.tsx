@@ -20,7 +20,7 @@ import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
 import { analyzeRetentionDrivers, type RetentionDriver } from "@/lib/retentionDriverAI";
 import { analyzeSuccessfulStores, type SuccessfulStore } from "@/lib/storeSuccessAI";
-import { estimateChurnReasons, type ChurnReasonTag } from "@/lib/churnReasonAI";
+import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
 import { Role, Member, Task } from "@/types";
@@ -314,6 +314,19 @@ export default async function Home() {
     .slice(0, 5);
   const highRisk30Days = churnPredictions.filter((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => item.prediction.label30Days === "high").length;
   const highRisk60Days = churnPredictions.filter((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => item.prediction.label60Days === "high").length;
+  const churnReasonByMember = new Map<string, ReturnType<typeof estimateChurnReasons>>(
+    members.map((member: Member) => [member.id, estimateChurnReasons(member)])
+  );
+  const churnReasonSummary = Array.from(churnReasonByMember.values())
+    .flatMap((item) => item.reasons.map((reason) => reason.tag))
+    .reduce((acc: Record<string, number>, tag: string) => {
+      acc[tag] = (acc[tag] ?? 0) + 1;
+      return acc;
+    }, {});
+  const topChurnReasonAnalysis: Array<{ tag: string; count: number }> = Object.entries(churnReasonSummary)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
 
   // 継続率ドライバー分析AI
   const retentionDriverAnalysis = analyzeRetentionDrivers(members);
@@ -782,6 +795,26 @@ export default async function Home() {
                           >
                             {member.name}
                           </Link>
+                          {(() => {
+                            const churnReasonTags = (churnReasonByMember.get(member.id)?.reasons ?? []).slice(0, 2);
+                            if (churnReasonTags.length === 0) return null;
+                            return (
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                {churnReasonTags.map((reason, idx) => (
+                                  <span
+                                    key={`${reason.tag}-${idx}`}
+                                    className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${
+                                      reason.severity === "high"
+                                        ? "text-red-300 bg-red-400/10 border-red-400/25"
+                                        : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
+                                    }`}
+                                  >
+                                    {reason.tag}
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          })()}
                           {reasons.length > 0 && (
                             <ul className="mt-2 space-y-1 text-zinc-400 text-xs">
                               {reasons.map((reason) => (
@@ -1340,7 +1373,7 @@ export default async function Home() {
                           const churnReasons = estimateChurnReasons(member);
                           return churnReasons.reasons.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
-                              {churnReasons.reasons.slice(0, 3).map((reason: ChurnReasonTag, idx: number) => (
+                              {churnReasons.reasons.slice(0, 2).map((reason, idx: number) => (
                                 <span
                                   key={idx}
                                   className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
@@ -2205,6 +2238,52 @@ export default async function Home() {
       </div>
       )}
 
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">退会理由AI分析</h2>
+          <p className="text-zinc-400 text-sm">
+            全会員の推定退会理由を集計し、優先して実行すべき対応を示します
+          </p>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          {topChurnReasonAnalysis.length === 0 ? (
+            <p className="text-zinc-400 text-sm">分析対象データがありません</p>
+          ) : (
+            <div className="space-y-3">
+              {topChurnReasonAnalysis.map((item, idx) => {
+                const actionMap: Record<string, string> = {
+                  来店間隔拡大: "14日以上会員へ次回予約リマインド",
+                  仕事ストレス: "忙しい会員向けの時短メニュー提案",
+                  初期離脱: "入会90日以内会員のフォロー面談強化",
+                  予約困難: "予約枠の優先確保と候補時間の先出し",
+                  体調悪化: "負荷調整メニューと休養ガイダンス",
+                  モチベーション低下: "短期目標の再設定と達成フィードバック",
+                  成果実感不足リスク: "食事レビューと週次チェックの導入",
+                  目標停滞: "目標再設定と中間KPIの可視化",
+                };
+                return (
+                  <div
+                    key={item.tag}
+                    className="bg-zinc-950 border border-zinc-800 rounded-lg p-3"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-zinc-500 text-xs font-mono">{idx + 1}.</span>
+                        <span className="text-white font-medium">{item.tag}</span>
+                      </div>
+                      <span className="text-zinc-300 text-sm">{item.count}人</span>
+                    </div>
+                    <p className="mt-1 text-zinc-400 text-xs">
+                      → {actionMap[item.tag] ?? "対象会員への個別フォローを実施"}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* 未来退会予測 */}
       {shouldShow("churnPrediction") && (
       <div className="mb-12">
@@ -2298,8 +2377,7 @@ export default async function Home() {
                   {topChurnPredictions.map((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => {
                     const segment = getMemberSegment(item.member);
                     const segmentInfo = getSegmentInfo(segment);
-                    const reasons = getChurnPredictionReasons(item.member);
-                    const displayReasons = reasons.slice(0, 2); // 最大2つ
+                    const displayReasons = (churnReasonByMember.get(item.member.id)?.reasons ?? []).slice(0, 2);
                     return (
                       <tr
                         key={item.member.id}
@@ -2382,13 +2460,20 @@ export default async function Home() {
                         </td>
                         <td className="px-4 py-3">
                           {displayReasons.length > 0 ? (
-                            <ul className="space-y-1">
+                            <div className="flex flex-wrap gap-1.5">
                               {displayReasons.map((reason, idx) => (
-                                <li key={idx} className="text-zinc-400 text-xs">
-                                  {reason}
-                                </li>
+                                <span
+                                  key={`${reason.tag}-${idx}`}
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${
+                                    reason.severity === "high"
+                                      ? "text-red-300 bg-red-400/10 border-red-400/25"
+                                      : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
+                                  }`}
+                                >
+                                  {reason.tag}
+                                </span>
                               ))}
-                            </ul>
+                            </div>
                           ) : (
                             <span className="text-zinc-500 text-xs">-</span>
                           )}

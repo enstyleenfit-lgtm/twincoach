@@ -1,3 +1,4 @@
+import { sessionWithConversationTags } from "@/lib/conversationTagAI";
 import { Member, MemberCreateInput, Session } from "@/types";
 
 const STORAGE_KEY = "twincoach:importedMembers:v1";
@@ -103,7 +104,7 @@ export function upsertImportedSessions(newSessions: Session[]): Session[] {
   const map = new Map<string, Session>();
   current.forEach((s) => map.set(sessionKey(s), s));
   newSessions.forEach((s) => map.set(sessionKey(s), s));
-  const merged = Array.from(map.values());
+  const merged = Array.from(map.values()).map(sessionWithConversationTags);
   saveImportedSessions(merged);
   return merged;
 }
