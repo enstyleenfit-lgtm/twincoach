@@ -2,6 +2,9 @@ import { getStoreSummaries, type StoreSummary } from "@/lib/storeSummary";
 import { calculateRetentionMetrics } from "@/lib/retentionMetrics";
 import { memberRepository } from "@/lib/repositories";
 import { generateHQActionPlan } from "@/lib/hqActionAI";
+import { calculateRiskScore } from "@/lib/riskScore";
+import { getRevenueRiskForecast } from "@/lib/revenueForecast";
+import { getPriceRevisionImpact } from "@/lib/priceRevisionImpact";
 import Link from "next/link";
 
 export default async function HQPage() {
@@ -13,14 +16,24 @@ export default async function HQPage() {
   const storeSummaries = getStoreSummaries(members);
   const totalRevenue = storeSummaries.reduce((sum, store) => sum + store.monthlyRevenue, 0);
   const totalRevenueAtRisk = storeSummaries.reduce((sum, store) => sum + store.monthlyRevenueAtRisk, 0);
+  const highRiskMembersCount = members.filter(
+    (m) => calculateRiskScore(m).level === "high"
+  ).length;
+
+  const nextMonthLoss = members.reduce((sum, m) => {
+    const forecast = getRevenueRiskForecast(m);
+    return sum + forecast.expectedLoss30Days;
+  }, 0);
   
   // 全店舗継続率
   const retentionMetrics = calculateRetentionMetrics(members);
 
+  const priceRevisionImpact = getPriceRevisionImpact(members);
+
   // 店舗ランキング（月間売上順）
   const storeRanking = [...storeSummaries]
     .sort((a, b) => b.monthlyRevenue - a.monthlyRevenue)
-    .slice(0, 10);
+    .slice(0, 5);
 
   // 問題店舗（高リスク会員が多い店舗）
   const problemStores = [...storeSummaries]
@@ -143,22 +156,47 @@ export default async function HQPage() {
           </p>
         </div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          <h3 className="text-zinc-400 text-sm mb-2">収益リスク（月間）</h3>
-          <p className="text-3xl font-bold text-red-400">
-            ¥{totalRevenueAtRisk.toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
           <h3 className="text-zinc-400 text-sm mb-2">全店舗継続率</h3>
-          <p className="text-3xl font-bold text-white">
+          <p className="text-3xl font-bold text-emerald-400">
             {retentionMetrics.estimatedRetentionRate}%
           </p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          <h3 className="text-zinc-400 text-sm mb-2">総店舗数</h3>
-          <p className="text-3xl font-bold text-white">
-            {storeSummaries.length}
+        <div className="bg-zinc-900 border border-red-500/30 rounded-lg p-6">
+          <h3 className="text-zinc-400 text-sm mb-2">高リスク会員数</h3>
+          <p className="text-3xl font-bold text-red-400">{highRiskMembersCount}</p>
+          <p className="text-zinc-500 text-xs mt-2">優先介入対象</p>
+        </div>
+        <div className="bg-zinc-900 border border-red-500/30 rounded-lg p-6">
+          <h3 className="text-zinc-400 text-sm mb-2">来月損失予測</h3>
+          <p className="text-3xl font-bold text-red-400">
+            ¥{nextMonthLoss.toLocaleString()}
           </p>
+          <p className="text-zinc-500 text-xs mt-2">30日期待損失の合計</p>
+        </div>
+      </div>
+
+      {/* 価格改定影響の要約 */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+        <h2 className="text-xl font-bold mb-4">価格改定影響の要約</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-black/30 border border-zinc-800 rounded-lg p-4">
+            <p className="text-zinc-400 text-xs mb-1">対象会員数</p>
+            <p className="text-2xl font-bold text-white">
+              {priceRevisionImpact.targetMembers.length}
+            </p>
+          </div>
+          <div className="bg-black/30 border border-zinc-800 rounded-lg p-4">
+            <p className="text-zinc-400 text-xs mb-1">改定後 高リスク</p>
+            <p className="text-2xl font-bold text-red-400">
+              {priceRevisionImpact.highRiskTargetMembers.length}
+            </p>
+          </div>
+          <div className="bg-black/30 border border-zinc-800 rounded-lg p-4">
+            <p className="text-zinc-400 text-xs mb-1">月間増収見込み</p>
+            <p className="text-2xl font-bold text-emerald-400">
+              ¥{priceRevisionImpact.monthlyRevenueIncrease.toLocaleString()}
+            </p>
+          </div>
         </div>
       </div>
 
