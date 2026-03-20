@@ -11,6 +11,7 @@ import {
   getTrainerEvaluationLevelLabel,
 } from "@/lib/trainerEvaluationAI";
 import { analyzeSuccessfulSessions } from "@/lib/successSessionAI";
+import { SuccessSessionAnalysisBridge } from "@/components/successSession/SuccessSessionAnalysisBridge";
 import { Member, Task } from "@/types";
 
 interface TrainerDetailPageProps {
@@ -409,41 +410,14 @@ export default async function TrainerDetailPage({
             担当会員の中で再現性の高い成功要因を抽出し、日々の指導に活かせる形で提示します
           </p>
         </div>
-        {successPatternAnalysis.commonPatterns.length === 0 ? (
-          <p className="text-zinc-400 text-sm">分析対象データが不足しています</p>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 space-y-2">
-              <h3 className="text-sm font-semibold text-green-300">このトレーナーで多い成功要因</h3>
-              {successPatternAnalysis.commonPatterns.map((pattern) => (
-                <div key={pattern.title} className="bg-zinc-950 border border-green-500/25 rounded-lg p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-zinc-100 text-sm font-medium">{pattern.title}</span>
-                    <span className="text-green-300 text-xs font-semibold">{pattern.impactScore}</span>
-                  </div>
-                  <p className="mt-1 text-zinc-400 text-xs">{pattern.description}</p>
-                </div>
-              ))}
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-emerald-300">真似すべき行動</h3>
-              {successPatternAnalysis.highPerformingSessionTraits.map((trait) => (
-                <div key={trait.trait} className="bg-zinc-950 border border-emerald-500/25 rounded-lg p-3">
-                  <div className="text-zinc-100 text-sm font-medium">{trait.trait}</div>
-                  <p className="mt-1 text-zinc-400 text-xs">{trait.description}</p>
-                </div>
-              ))}
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
-                <div className="text-zinc-300 text-xs font-semibold mb-2">維持すべき強み</div>
-                <ul className="space-y-1">
-                  {successPatternAnalysis.recommendedActions.map((item, idx) => (
-                    <li key={idx} className="text-zinc-400 text-xs">・{item}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
+        <SuccessSessionAnalysisBridge
+          serverAnalysis={successPatternAnalysis}
+          trainerName={decodedTrainerName}
+          embedInCard
+          patternsHeading="このトレーナーで多い成功要因"
+          traitsHeading="真似すべき行動"
+          actionsHeading="維持すべき強み"
+        />
       </div>
 
       {/* 担当会員一覧 */}

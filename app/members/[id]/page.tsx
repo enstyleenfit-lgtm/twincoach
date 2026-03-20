@@ -8,7 +8,7 @@ import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPredic
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { generateNextActions } from "@/lib/nextActionAI";
-import { analyzeSuccessfulSessions } from "@/lib/successSessionAI";
+import { MemberSuccessSessionInsight } from "@/components/successSession/MemberSuccessSessionInsight";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { MemberSessionsClient } from "@/components/members/MemberSessionsClient";
 
@@ -189,7 +189,6 @@ export default async function MemberDetailPage({
       {(() => {
         const churnReasons = estimateChurnReasons(member);
         const nextActions = generateNextActions(member, undefined, churnReasons);
-        const successInsight = analyzeSuccessfulSessions([member]);
         return (
           <>
             <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
@@ -270,27 +269,7 @@ export default async function MemberDetailPage({
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-2">成功セッション観点</h2>
-              <p className="text-zinc-400 text-xs mb-4">
-                継続につながる成功パターンの観点から、今回セッションで意識したいポイントです
-              </p>
-              {successInsight.commonPatterns.length === 0 ? (
-                <p className="text-zinc-500 text-sm">分析データが不足しています</p>
-              ) : (
-                <div className="space-y-2">
-                  {successInsight.commonPatterns.slice(0, 2).map((pattern) => (
-                    <div key={pattern.title} className="bg-zinc-950 border border-green-500/25 rounded-lg p-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-zinc-100 text-sm font-medium">{pattern.title}</span>
-                        <span className="text-green-300 text-xs font-semibold">{pattern.impactScore}</span>
-                      </div>
-                      <p className="mt-1 text-zinc-400 text-xs">{pattern.description}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <MemberSuccessSessionInsight member={member} />
           </>
         );
       })()}

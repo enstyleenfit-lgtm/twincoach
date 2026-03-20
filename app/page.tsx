@@ -28,8 +28,17 @@ import {
   getTrainerEvaluationLevelLabel,
 } from "@/lib/trainerEvaluationAI";
 import { analyzeSuccessfulSessions } from "@/lib/successSessionAI";
+import { SuccessSessionAnalysisBridge } from "@/components/successSession/SuccessSessionAnalysisBridge";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
-import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
+import {
+  roleDashboardConfig,
+  getRoleDisplayName,
+  getRoleDescription,
+  getCurrentRole,
+  type DashboardSection,
+} from "@/lib/roleConfig";
+import { generateHQActionPlan } from "@/lib/hqActionAI";
+import { NegotiationDashboard } from "@/components/dashboard/NegotiationDashboard";
 import { Role, Member, Task } from "@/types";
 import { ImportedDashboardReflection } from "@/components/import/ImportedDashboardReflection";
 
@@ -250,6 +259,7 @@ export default async function Home() {
   const revenueDefenseSimulation = getRevenueDefenseSimulation(members);
 
   const revenueImprovementPlan = generateRevenueImprovementPlan(members);
+  const hqActionPlan = generateHQActionPlan(members);
 
   // 店舗別サマリー
   const storeSummaries = getStoreSummaries(members).sort(
@@ -367,6 +377,40 @@ export default async function Home() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
 
+  const priorityTodayRows = priorityQueue.slice(0, 5).map((item) => {
+    const reasons = churnReasonByMember.get(item.id);
+    const tags = reasons?.reasons.slice(0, 3).map((r) => r.tag) ?? [];
+    const next = generateNextActions(item.member, undefined, reasons);
+    const first = next.actions[0];
+    const desc = first?.description ?? "";
+    return {
+      id: item.id,
+      name: item.name,
+      probability30Days: item.probability30Days,
+      churnTags: tags,
+      nextTitle: first?.title ?? "—",
+      nextDescShort: desc.length > 120 ? `${desc.slice(0, 117)}…` : desc,
+    };
+  });
+
+  const churnRankRows = topChurnPredictions.map(
+    ({
+      member,
+      prediction,
+    }: {
+      member: Member;
+      prediction: ReturnType<typeof getChurnPrediction>;
+    }) => ({
+      member,
+      prediction,
+      expectedLoss30Days: getRevenueRiskForecast(member).expectedLoss30Days,
+    })
+  );
+
+  const pitchStores = [...storeSummaries]
+    .sort((a, b) => b.expectedLoss30Days - a.expectedLoss30Days)
+    .slice(0, 5);
+
   // 継続率ドライバー分析AI
   const retentionDriverAnalysis = analyzeRetentionDrivers(members);
 
@@ -386,7 +430,7 @@ export default async function Home() {
   // ダミーロール設定（将来的に認証から取得）
   // TODO: 実認証連携時に以下に置き換え
   // const currentRole = await getCurrentRoleFromSession();
-  const currentRole: Role = "trainer"; // デフォルトは trainer、開発時は変更可能
+  const currentRole: Role = getCurrentRole();
   const visibleSections = roleDashboardConfig[currentRole];
 
   // セクション表示判定ヘルパー
@@ -401,123 +445,37 @@ export default async function Home() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <ImportedDashboardReflection />
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">TwinCoach ダッシュボード</h1>
-          <p className="text-zinc-400 text-sm">
-            {getRoleDescription(currentRole)}（現在のロール: {getRoleDisplayName(currentRole)}）
-          </p>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
+        <NegotiationDashboard
+          memberCount={members.length}
+          estimatedRetentionRate={retentionMetrics.estimatedRetentionRate}
+          highRiskCount={highRiskMembers}
+          nextMonthLoss={totalExpectedLoss30Days}
+          priorityToday={priorityTodayRows}
+          churnRanking={churnRankRows}
+          revenueRisk={{
+            loss30: totalExpectedLoss30Days,
+            loss60: totalExpectedLoss60Days,
+            annualDanger: highRiskAnnualRevenue,
+            membersToDefend: needIntervention,
+          }}
+          topStores={pitchStores}
+          hqPlan={hqActionPlan}
+        />
+
+        <div className="my-16 border-t border-zinc-800/80" aria-hidden />
+
+        <div className="mb-10 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4 sm:p-5">
+          <ImportedDashboardReflection />
         </div>
-      </div>
-      
-      {/* 今日の優先対応 */}
-      {shouldShow("interventionQueue") && (
-      <div className="mb-12">
-        <div className="mb-4">
-          <h2 className="text-3xl font-bold mb-2">今日の優先対応</h2>
-          <p className="text-zinc-400 text-sm">
-            本日対応すべき会員をAIが優先順位で表示します
+
+        <header className="mb-10 border-b border-zinc-800 pb-6">
+          <h2 className="text-xl font-semibold text-zinc-200">詳細ダッシュボード</h2>
+          <p className="mt-1 text-sm text-zinc-500">
+            {getRoleDescription(currentRole)}（表示ロール: {getRoleDisplayName(currentRole)}）
           </p>
-        </div>
-        {priorityQueue.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            {priorityQueue.map((item, index) => {
-              const rank = index + 1;
-              const segmentInfo = getSegmentInfo(item.segment as "short_term_result" | "habit_builder" | "at_risk_dropout");
-              const isHighRisk = item.riskScore >= 70 || item.probability30Days >= 70;
-              const sourceMember = members.find((m: Member) => m.id === item.id);
-              const nextAction = sourceMember ? generateNextActions(sourceMember) : null;
-              return (
-                <div
-                  key={item.id}
-                  className={`bg-zinc-900 border rounded-lg p-6 hover:border-zinc-700 transition-colors ${
-                    isHighRisk
-                      ? "border-red-500/40 shadow-lg shadow-red-500/10"
-                      : "border-zinc-800"
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-2xl font-bold ${isHighRisk ? "text-red-400" : "text-zinc-400"}`}>
-                        #{rank}
-                      </span>
-                      <Link
-                        href={`/members/${item.id}`}
-                        className={`hover:underline font-semibold text-lg ${
-                          isHighRisk ? "text-red-300" : "text-blue-400 hover:text-blue-300"
-                        }`}
-                      >
-                        {item.name}
-                      </Link>
-                    </div>
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getPriorityBadgeColor(
-                        item.priority
-                      )}`}
-                    >
-                      {item.priority === "high" ? "高" : item.priority === "medium" ? "中" : "低"}
-                    </span>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-zinc-400 text-xs">30日退会確率</span>
-                        <span
-                          className={`text-xl font-bold ${
-                            item.probability30Days >= 70
-                              ? "text-red-400"
-                              : item.probability30Days >= 50
-                              ? "text-orange-400"
-                              : "text-zinc-400"
-                          }`}
-                        >
-                          {item.probability30Days}%
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <span className="text-zinc-400 text-xs">推奨アクション</span>
-                      <p className="text-white text-sm font-medium mt-1">
-                        {item.suggestedAction}
-                      </p>
-                    </div>
-                    {nextAction && nextAction.actions.length > 0 && (
-                      <div>
-                        <span className="text-zinc-400 text-xs">次回提案AI</span>
-                        <div className="mt-1 space-y-1">
-                          {nextAction.actions.slice(0, 2).map((action, idx) => (
-                            <p key={idx} className="text-zinc-300 text-xs">
-                              → {action.title}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="pt-2 border-t border-zinc-800">
-                      <Link
-                        href={`/members/${item.id}`}
-                        className="w-full px-4 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block text-center"
-                      >
-                        詳細を見る
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">本日対応すべき会員はいません</p>
-          </div>
-        )}
-      </div>
-      )}
+        </header>
 
       {/* 収益防衛シミュレーション */}
       <div className="mb-12">
@@ -624,141 +582,6 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* 収益リスクAI */}
-      <div className="mb-12">
-        <div className="mb-4">
-          <h2 className="text-3xl font-bold mb-2">収益リスクAI</h2>
-          <p className="text-zinc-400 text-sm">
-            退会確率をもとに、失う可能性のある売上を試算しています
-          </p>
-        </div>
-
-        {/* KPIカード */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">来月失う可能性のある売上</div>
-            <div className="text-4xl font-bold text-red-400">
-              ¥{totalExpectedLoss30Days.toLocaleString()}
-            </div>
-            <div className="text-zinc-500 text-xs mt-1">30日期待損失額</div>
-          </div>
-
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">60日以内に失う可能性のある売上</div>
-            <div className="text-4xl font-bold text-red-400">
-              ¥{totalExpectedLoss60Days.toLocaleString()}
-            </div>
-            <div className="text-zinc-500 text-xs mt-1">60日期待損失額</div>
-          </div>
-
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">高リスク会員による年間危険売上</div>
-            <div className="text-4xl font-bold text-red-400">
-              ¥{highRiskAnnualRevenue.toLocaleString()}
-            </div>
-            <div className="text-zinc-500 text-xs mt-1">/年</div>
-          </div>
-
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">収益リスク対象会員数</div>
-            <div className="text-4xl font-bold text-white">
-              {revenueRiskRanking.length}
-            </div>
-            <div className="text-zinc-500 text-xs mt-1">上位5名</div>
-          </div>
-        </div>
-
-        {/* 収益リスクランキング */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-          <div className="p-6 border-b border-zinc-800">
-            <h3 className="text-xl font-semibold">収益リスクランキング（上位5名）</h3>
-            <p className="text-zinc-400 text-xs mt-1">
-              30日期待損失額が高い順に表示しています
-            </p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-zinc-800 border-b border-zinc-700">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    順位
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    名前
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    プラン
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    月額売上
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    30日退会確率
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    30日期待損失額
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    60日期待損失額
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    推奨アクション
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                    詳細を見る
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-800">
-                {revenueRiskRanking.map((item: { member: Member; forecast: ReturnType<typeof getRevenueRiskForecast>; intervention: ReturnType<typeof getInterventionSuggestion> }, index: number) => (
-                  <tr
-                    key={item.member.id}
-                    className="hover:bg-zinc-800/50 transition-colors"
-                  >
-                    <td className="px-6 py-4 text-zinc-300 font-semibold">
-                      #{index + 1}
-                    </td>
-                    <td className="px-6 py-4 text-white font-medium">
-                      {item.member.name}
-                    </td>
-                    <td className="px-6 py-4 text-zinc-300">{item.member.plan}</td>
-                    <td className="px-6 py-4 text-white">
-                      ¥{item.forecast.monthlyRevenue.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-red-400 font-semibold">
-                        {item.forecast.probability30Days}%
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-red-400 font-bold">
-                        ¥{item.forecast.expectedLoss30Days.toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-red-400 font-bold">
-                        ¥{item.forecast.expectedLoss60Days.toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-zinc-300 text-sm">
-                      {item.intervention.title}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/members/${item.member.id}`}
-                        className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
-                      >
-                        詳細 →
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
       {/* 収益改善AI */}
       <div className="mb-12">
         <div className="mb-4">
@@ -838,202 +661,6 @@ export default async function Home() {
           </div>
         </div>
       </div>
-
-      {/* 退会予測ランキング */}
-      {shouldShow("dropoutRanking") && (
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-3xl font-bold mb-2">退会予測ランキング</h2>
-            <p className="text-zinc-400 text-sm">
-              現在、優先対応すべき会員をリスク順に表示しています
-            </p>
-          </div>
-        </div>
-        {dropoutRanking.length > 0 ? (
-          <div className="bg-zinc-900 border-2 border-zinc-700 rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      順位
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      名前
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      プラン
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      リスクスコア
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      リスクレベル
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      会員タイプ
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      推奨アクション
-                    </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-800">
-                  {dropoutRanking.map(({ member, riskResult, suggestion, segment }: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion>; segment: ReturnType<typeof getMemberSegment> }, index: number) => {
-                    const rank = index + 1;
-                    const segmentInfo = getSegmentInfo(segment);
-                    const reasons = getRiskReasons(member).slice(0, 2);
-                    const isTopThree = rank <= 3;
-                    return (
-                      <tr
-                        key={member.id}
-                        className={`hover:bg-zinc-800/50 transition-colors ${
-                          isTopThree ? "bg-zinc-800/30" : ""
-                        }`}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            {rank === 1 && (
-                              <span className="text-2xl">🥇</span>
-                            )}
-                            {rank === 2 && (
-                              <span className="text-2xl">🥈</span>
-                            )}
-                            {rank === 3 && (
-                              <span className="text-2xl">🥉</span>
-                            )}
-                            <span
-                              className={`text-lg font-bold ${
-                                rank === 1
-                                  ? "text-yellow-400"
-                                  : rank === 2
-                                  ? "text-zinc-300"
-                                  : rank === 3
-                                  ? "text-orange-400"
-                                  : "text-zinc-400"
-                              }`}
-                            >
-                              {rank}位
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link
-                            href={`/members/${member.id}`}
-                            className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
-                          >
-                            {member.name}
-                          </Link>
-                          {(() => {
-                            const churnReasonTags = (churnReasonByMember.get(member.id)?.reasons ?? []).slice(0, 2);
-                            if (churnReasonTags.length === 0) return null;
-                            return (
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {churnReasonTags.map((reason, idx) => (
-                                  <span
-                                    key={`${reason.tag}-${idx}`}
-                                    className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${
-                                      reason.severity === "high"
-                                        ? "text-red-300 bg-red-400/10 border-red-400/25"
-                                        : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
-                                    }`}
-                                  >
-                                    {reason.tag}
-                                  </span>
-                                ))}
-                              </div>
-                            );
-                          })()}
-                          {reasons.length > 0 && (
-                            <ul className="mt-2 space-y-1 text-zinc-400 text-xs">
-                              {reasons.map((reason) => (
-                                <li key={reason} className="flex gap-2">
-                                  <span>・</span>
-                                  <span>{reason}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-zinc-300">{member.plan}</td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`text-xl font-bold ${getRiskScoreColor(
-                              riskResult.score
-                            )}`}
-                          >
-                            {riskResult.score}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getRiskLevelBadgeColor(
-                              riskResult.level
-                            )}`}
-                          >
-                            {riskResult.level === "high"
-                              ? "高"
-                              : riskResult.level === "medium"
-                              ? "中"
-                              : "低"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getSegmentColor(
-                              segment
-                            )}`}
-                            title={segmentInfo.description}
-                          >
-                            {segmentInfo.label}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="space-y-1">
-                            <p className="text-white text-sm font-medium">
-                              {suggestion.title}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className={`text-xs font-medium ${
-                                  suggestion.priority === "high"
-                                    ? "text-red-400"
-                                    : suggestion.priority === "medium"
-                                    ? "text-yellow-400"
-                                    : "text-green-400"
-                                }`}
-                              >
-                                優先度: {suggestion.priority === "high" ? "高" : suggestion.priority === "medium" ? "中" : "低"}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Link
-                            href={`/members/${member.id}`}
-                            className="px-4 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block"
-                          >
-                            詳細を見る
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">現在ランキング対象の会員はいません</p>
-          </div>
-        )}
-      </div>
-      )}
 
       {/* 退会リスク売上 */}
       {shouldShow("revenueAtRisk") && (
@@ -2454,43 +2081,7 @@ export default async function Home() {
             継続率が高い会員の傾向を抽出し、現場で再現しやすい成功パターンを可視化しています
           </p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-          {successSessionAnalysis.commonPatterns.length === 0 ? (
-            <p className="text-zinc-400 text-sm">分析対象データが不足しています</p>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 space-y-3">
-                <h3 className="text-sm font-semibold text-green-300">継続会員に共通する特徴 Top3</h3>
-                {successSessionAnalysis.commonPatterns.map((pattern) => (
-                  <div key={pattern.title} className="bg-zinc-950 border border-green-500/25 rounded-lg p-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-zinc-100 font-medium text-sm">{pattern.title}</span>
-                      <span className="text-green-300 text-xs font-semibold">{pattern.impactScore}</span>
-                    </div>
-                    <p className="mt-1 text-zinc-400 text-xs">{pattern.description}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-emerald-300">成功セッションの特徴 Top3</h3>
-                {successSessionAnalysis.highPerformingSessionTraits.map((trait) => (
-                  <div key={trait.trait} className="bg-zinc-950 border border-emerald-500/25 rounded-lg p-3">
-                    <div className="text-zinc-100 text-sm font-medium">{trait.trait}</div>
-                    <p className="mt-1 text-zinc-400 text-xs">{trait.description}</p>
-                  </div>
-                ))}
-                <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
-                  <div className="text-zinc-300 text-xs font-semibold mb-2">現場で真似すべきアクション</div>
-                  <ul className="space-y-1">
-                    {successSessionAnalysis.recommendedActions.map((item, idx) => (
-                      <li key={idx} className="text-zinc-400 text-xs">・{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        <SuccessSessionAnalysisBridge serverAnalysis={successSessionAnalysis} />
       </div>
 
       {/* 価格改定影響モニター */}
@@ -3343,6 +2934,7 @@ export default async function Home() {
             介入タスク
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );
