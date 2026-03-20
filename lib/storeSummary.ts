@@ -1,6 +1,7 @@
 import { Member } from "@/types";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getRevenueAtRisk } from "@/lib/revenueRisk";
+import { getStoreRevenueRiskSummaries } from "@/lib/storeRevenueRisk";
 
 export interface StoreSummary {
   storeName: string;
@@ -12,6 +13,9 @@ export interface StoreSummary {
   monthlyRevenueAtRisk: number;
   annualRevenueAtRisk: number;
   estimatedRetentionRate: number;
+  expectedLoss30Days: number;
+  successScore: number;
+  riskScore: number;
 }
 
 export function getStoreSummaries(members: Member[]): StoreSummary[] {
@@ -33,6 +37,9 @@ export function getStoreSummaries(members: Member[]): StoreSummary[] {
         monthlyRevenueAtRisk: 0,
         annualRevenueAtRisk: 0,
         estimatedRetentionRate: 0,
+        expectedLoss30Days: 0,
+        successScore: 0,
+        riskScore: 0,
       });
     }
 
@@ -59,6 +66,23 @@ export function getStoreSummaries(members: Member[]): StoreSummary[] {
     } else {
       summary.estimatedRetentionRate = 0;
     }
+  }
+
+  const revenueRiskMap = new Map(
+    getStoreRevenueRiskSummaries(members).map((s) => [s.storeName, s.expectedLoss30Days])
+  );
+  const maxMonthlyRevenue = Math.max(1, ...Array.from(storeMap.values()).map((s) => s.monthlyRevenue));
+  const maxExpectedLoss = Math.max(1, ...Array.from(revenueRiskMap.values()));
+
+  for (const summary of storeMap.values()) {
+    summary.expectedLoss30Days = revenueRiskMap.get(summary.storeName) ?? 0;
+    const retentionPart = (summary.estimatedRetentionRate / 100) * 35;
+    const highRiskRatio = summary.totalMembers > 0 ? summary.highRiskMembers / summary.totalMembers : 1;
+    const riskPart = (1 - highRiskRatio) * 25;
+    const revenuePart = (summary.monthlyRevenue / maxMonthlyRevenue) * 20;
+    const lossPart = (1 - summary.expectedLoss30Days / maxExpectedLoss) * 20;
+    summary.successScore = Math.round(Math.max(0, Math.min(100, retentionPart + riskPart + revenuePart + lossPart)));
+    summary.riskScore = Math.round(Math.max(0, Math.min(100, 100 - summary.successScore)));
   }
 
   return Array.from(storeMap.values());

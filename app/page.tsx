@@ -18,9 +18,16 @@ import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPredic
 import { getPriorityQueue } from "@/lib/priorityQueue";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
+import { generateRevenueImprovementPlan } from "@/lib/revenueImprovementAI";
 import { analyzeRetentionDrivers, type RetentionDriver } from "@/lib/retentionDriverAI";
 import { analyzeSuccessfulStores, type SuccessfulStore } from "@/lib/storeSuccessAI";
 import { estimateChurnReasons } from "@/lib/churnReasonAI";
+import { generateNextActions } from "@/lib/nextActionAI";
+import {
+  evaluateTrainerPerformance,
+  getTrainerEvaluationLevelLabel,
+} from "@/lib/trainerEvaluationAI";
+import { analyzeSuccessfulSessions } from "@/lib/successSessionAI";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { roleDashboardConfig, getRoleDisplayName, getRoleDescription, type DashboardSection } from "@/lib/roleConfig";
 import { Role, Member, Task } from "@/types";
@@ -242,10 +249,24 @@ export default async function Home() {
   // 収益防衛シミュレーション（全体版）
   const revenueDefenseSimulation = getRevenueDefenseSimulation(members);
 
+  const revenueImprovementPlan = generateRevenueImprovementPlan(members);
+
   // 店舗別サマリー
   const storeSummaries = getStoreSummaries(members).sort(
     (a, b) => b.annualRevenueAtRisk - a.annualRevenueAtRisk
   );
+  const retentionTopStores = [...storeSummaries]
+    .sort((a, b) => b.estimatedRetentionRate - a.estimatedRetentionRate)
+    .slice(0, 3);
+  const lossTopStores = [...storeSummaries]
+    .sort((a, b) => b.expectedLoss30Days - a.expectedLoss30Days)
+    .slice(0, 3);
+  const successTopStores = [...storeSummaries]
+    .sort((a, b) => b.successScore - a.successScore)
+    .slice(0, 3);
+  const problemTopStores = [...storeSummaries]
+    .sort((a, b) => b.riskScore - a.riskScore)
+    .slice(0, 3);
 
   // KPI緊張感モード用データ
   const storeTargets = getStoreKpiTargets();
@@ -298,6 +319,24 @@ export default async function Home() {
 
   // トレーナー別継続率
   const trainerMetrics = getTrainerMetrics(members);
+  const trainerEvaluations = trainerMetrics
+    .map((tm) => evaluateTrainerPerformance(members, tm.trainerName))
+    .filter((ev) => ev.trainerName !== "未割り当て");
+  const supportPriorityTrainers = trainerEvaluations
+    .slice()
+    .sort((a, b) => {
+      const weight: Record<typeof a.level, number> = {
+        support_needed: 4,
+        watch: 3,
+        good: 2,
+        excellent: 1,
+      };
+      const levelDiff = weight[b.level] - weight[a.level];
+      if (levelDiff !== 0) return levelDiff;
+      return a.summaryScore - b.summaryScore;
+    })
+    .slice(0, 3);
+  const successSessionAnalysis = analyzeSuccessfulSessions(members);
 
   // 価格改定影響モニター
   const priceRevisionImpact = getPriceRevisionImpact(members);
@@ -388,6 +427,8 @@ export default async function Home() {
               const rank = index + 1;
               const segmentInfo = getSegmentInfo(item.segment as "short_term_result" | "habit_builder" | "at_risk_dropout");
               const isHighRisk = item.riskScore >= 70 || item.probability30Days >= 70;
+              const sourceMember = members.find((m: Member) => m.id === item.id);
+              const nextAction = sourceMember ? generateNextActions(sourceMember) : null;
               return (
                 <div
                   key={item.id}
@@ -444,6 +485,18 @@ export default async function Home() {
                         {item.suggestedAction}
                       </p>
                     </div>
+                    {nextAction && nextAction.actions.length > 0 && (
+                      <div>
+                        <span className="text-zinc-400 text-xs">次回提案AI</span>
+                        <div className="mt-1 space-y-1">
+                          {nextAction.actions.slice(0, 2).map((action, idx) => (
+                            <p key={idx} className="text-zinc-300 text-xs">
+                              → {action.title}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     
                     <div className="pt-2 border-t border-zinc-800">
                       <Link
@@ -702,6 +755,86 @@ export default async function Home() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      </div>
+
+      {/* 収益改善AI */}
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">収益改善AI</h2>
+          <p className="text-zinc-400 text-sm">
+            継続率・LTV・収益リスク・防衛シミュレーションから、優先して取り組むテーマを提案します
+          </p>
+        </div>
+        <div className="bg-zinc-950 border border-emerald-500/35 rounded-xl p-8 shadow-xl shadow-black/40 ring-1 ring-emerald-500/10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <div>
+                <div className="text-xs uppercase tracking-wider text-emerald-400/90 font-semibold mb-2">
+                  最優先の改善テーマ
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-white leading-tight">
+                  {revenueImprovementPlan.topPriority}
+                </p>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wider text-zinc-500 font-semibold mb-2">
+                  想定改善インパクト
+                </div>
+                <p className="text-xl md:text-2xl font-bold text-emerald-400 leading-snug">
+                  {revenueImprovementPlan.expectedImpact}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 text-xs">
+                <span className="rounded-md bg-zinc-900 border border-zinc-800 px-3 py-1.5 text-zinc-300">
+                  月間売上{" "}
+                  <span className="text-white font-semibold">
+                    ¥{revenueImprovementPlan.metrics.monthlyRevenue.toLocaleString()}
+                  </span>
+                </span>
+                <span className="rounded-md bg-zinc-900 border border-zinc-800 px-3 py-1.5 text-zinc-300">
+                  平均リスク調整LTV{" "}
+                  <span className="text-white font-semibold">
+                    ¥{revenueImprovementPlan.metrics.avgRiskAdjustedLTV.toLocaleString()}
+                  </span>
+                </span>
+                <span className="rounded-md bg-zinc-900 border border-red-500/30 px-3 py-1.5 text-zinc-300">
+                  30日期待損失{" "}
+                  <span className="text-red-400 font-semibold">
+                    ¥{revenueImprovementPlan.metrics.expectedLoss30Days.toLocaleString()}
+                  </span>
+                </span>
+                <span className="rounded-md bg-zinc-900 border border-red-500/25 px-3 py-1.5 text-zinc-300">
+                  60日期待損失{" "}
+                  <span className="text-red-400 font-semibold">
+                    ¥{revenueImprovementPlan.metrics.expectedLoss60Days.toLocaleString()}
+                  </span>
+                </span>
+              </div>
+            </div>
+            <div className="rounded-lg bg-zinc-900/80 border border-zinc-800 p-6">
+              <div className="text-sm font-semibold text-zinc-300 mb-4">
+                今やること（Top 3）
+              </div>
+              <ul className="space-y-4">
+                {revenueImprovementPlan.actions.map((action, idx) => (
+                  <li key={`${action.title}-${idx}`} className="flex gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400 text-sm font-bold border border-emerald-500/30">
+                      {idx + 1}
+                    </span>
+                    <div>
+                      <div className="text-white font-medium text-sm leading-snug">
+                        {action.title}
+                      </div>
+                      <div className="text-emerald-400/90 text-xs mt-1 font-medium">
+                        {action.impact}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -1089,6 +1222,82 @@ export default async function Home() {
         </div>
       </div>
       )}
+
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-2xl font-semibold mb-2">店舗ランキング</h2>
+          <p className="text-zinc-400 text-sm">
+            継続・収益・損失リスクを並べて、優先改善が必要な店舗を一目で判断できます
+          </p>
+        </div>
+        {storeSummaries.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+            <p className="text-zinc-400 text-sm">店舗ランキング対象データがありません</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <h3 className="text-green-300 text-sm font-semibold mb-1">継続率上位3店舗</h3>
+              <p className="text-zinc-500 text-xs mb-2">継続率が高い順に並べています</p>
+              <div className="space-y-2">
+                {retentionTopStores.map((store, idx) => (
+                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-green-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-green-300 text-xs font-semibold">{store.estimatedRetentionRate.toFixed(1)}%</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <h3 className="text-red-300 text-sm font-semibold mb-1">来月損失予測上位3店舗</h3>
+              <p className="text-zinc-500 text-xs mb-2">来月失う可能性のある売上が大きい順です</p>
+              <div className="space-y-2">
+                {lossTopStores.map((store, idx) => (
+                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-red-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-red-300 text-xs font-semibold">{formatter.format(store.expectedLoss30Days)}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <h3 className="text-emerald-300 text-sm font-semibold mb-1">成功店舗上位3店舗</h3>
+              <p className="text-zinc-500 text-xs mb-2">成功度スコアが高い順です</p>
+              <div className="space-y-2">
+                {successTopStores.map((store, idx) => (
+                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-emerald-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-emerald-300 text-xs font-semibold">Score {store.successScore}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+              <h3 className="text-orange-300 text-sm font-semibold mb-1">問題店舗上位3店舗</h3>
+              <p className="text-zinc-500 text-xs mb-2">リスクスコアが高い順です</p>
+              <div className="space-y-2">
+                {problemTopStores.map((store, idx) => (
+                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-orange-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-orange-300 text-xs font-semibold">Risk {store.riskScore}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* KPI緊張感モード */}
       {shouldShow("kpiGap") && (
@@ -2182,6 +2391,107 @@ export default async function Home() {
         )}
       </div>
       )}
+
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">トレーナー改善提案AI</h2>
+          <p className="text-zinc-400 text-sm">
+            支援優先度の高いトレーナーを可視化し、育成アクションの優先順位を整理します
+          </p>
+        </div>
+        {supportPriorityTrainers.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+            <p className="text-zinc-400 text-sm">評価対象のトレーナーがいません</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {supportPriorityTrainers.map((trainer) => (
+              <div key={trainer.trainerName} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <Link
+                    href={`/trainers/${encodeURIComponent(trainer.trainerName)}`}
+                    className="text-blue-400 hover:text-blue-300 hover:underline font-semibold"
+                  >
+                    {trainer.trainerName}
+                  </Link>
+                  <span
+                    className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
+                      trainer.level === "support_needed"
+                        ? "text-red-300 bg-red-400/10 border-red-400/25"
+                        : trainer.level === "watch"
+                        ? "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
+                        : trainer.level === "good"
+                        ? "text-blue-300 bg-blue-400/10 border-blue-400/25"
+                        : "text-green-300 bg-green-400/10 border-green-400/25"
+                    }`}
+                  >
+                    {getTrainerEvaluationLevelLabel(trainer.level)}
+                  </span>
+                </div>
+                <div className="text-zinc-500 text-xs mb-3">総合スコア {trainer.summaryScore}</div>
+                <div className="text-zinc-200 text-sm">
+                  最優先改善ポイント:
+                  <div className="mt-1 text-yellow-300">
+                    {trainer.improvementPoints[0]?.title ?? "現状維持の運用を継続"}
+                  </div>
+                </div>
+                <Link
+                  href={`/trainers/${encodeURIComponent(trainer.trainerName)}`}
+                  className="mt-4 inline-block text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                >
+                  詳細を見る →
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-12">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-2">成功セッション分析AI</h2>
+          <p className="text-zinc-400 text-sm">
+            継続率が高い会員の傾向を抽出し、現場で再現しやすい成功パターンを可視化しています
+          </p>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          {successSessionAnalysis.commonPatterns.length === 0 ? (
+            <p className="text-zinc-400 text-sm">分析対象データが不足しています</p>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 space-y-3">
+                <h3 className="text-sm font-semibold text-green-300">継続会員に共通する特徴 Top3</h3>
+                {successSessionAnalysis.commonPatterns.map((pattern) => (
+                  <div key={pattern.title} className="bg-zinc-950 border border-green-500/25 rounded-lg p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-zinc-100 font-medium text-sm">{pattern.title}</span>
+                      <span className="text-green-300 text-xs font-semibold">{pattern.impactScore}</span>
+                    </div>
+                    <p className="mt-1 text-zinc-400 text-xs">{pattern.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-emerald-300">成功セッションの特徴 Top3</h3>
+                {successSessionAnalysis.highPerformingSessionTraits.map((trait) => (
+                  <div key={trait.trait} className="bg-zinc-950 border border-emerald-500/25 rounded-lg p-3">
+                    <div className="text-zinc-100 text-sm font-medium">{trait.trait}</div>
+                    <p className="mt-1 text-zinc-400 text-xs">{trait.description}</p>
+                  </div>
+                ))}
+                <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
+                  <div className="text-zinc-300 text-xs font-semibold mb-2">現場で真似すべきアクション</div>
+                  <ul className="space-y-1">
+                    {successSessionAnalysis.recommendedActions.map((item, idx) => (
+                      <li key={idx} className="text-zinc-400 text-xs">・{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* 価格改定影響モニター */}
       {shouldShow("priceRevision") && (

@@ -7,6 +7,8 @@ import { getDualMembers, getRecommendedNextPlan } from "@/lib/planTransition";
 import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPrediction";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { estimateChurnReasons } from "@/lib/churnReasonAI";
+import { generateNextActions } from "@/lib/nextActionAI";
+import { analyzeSuccessfulSessions } from "@/lib/successSessionAI";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { MemberSessionsClient } from "@/components/members/MemberSessionsClient";
 
@@ -186,52 +188,110 @@ export default async function MemberDetailPage({
       {/* 退会理由AI */}
       {(() => {
         const churnReasons = estimateChurnReasons(member);
+        const nextActions = generateNextActions(member, undefined, churnReasons);
+        const successInsight = analyzeSuccessfulSessions([member]);
         return (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-2">退会理由AI</h2>
-            <p className="text-zinc-400 text-xs mb-4">
-              会員の行動データとリスク情報から、想定される退会理由を推定しています
-            </p>
-            {churnReasons.reasons.length === 0 ? (
-              <p className="text-zinc-400 text-sm">退会要因は見つかりませんでした</p>
-            ) : (
-              <div className="space-y-3">
-                {churnReasons.primaryReason && (
-                  <div className="text-sm">
-                    <span className="text-zinc-400">主因: </span>
-                    <span className="text-white font-semibold">{churnReasons.primaryReason}</span>
-                  </div>
-                )}
-                <div className="space-y-2">
-                  {churnReasons.reasons.map((reason, index: number) => (
-                    <div
-                      key={index}
-                      className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
-                              reason.severity === "high"
-                                ? "text-red-300 bg-red-400/10 border-red-400/25"
-                                : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
-                            }`}
-                          >
-                            {reason.tag}
+          <>
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-2">退会理由AI</h2>
+              <p className="text-zinc-400 text-xs mb-4">
+                会員の行動データとリスク情報から、想定される退会理由を推定しています
+              </p>
+              {churnReasons.reasons.length === 0 ? (
+                <p className="text-zinc-400 text-sm">退会要因は見つかりませんでした</p>
+              ) : (
+                <div className="space-y-3">
+                  {churnReasons.primaryReason && (
+                    <div className="text-sm">
+                      <span className="text-zinc-400">主因: </span>
+                      <span className="text-white font-semibold">{churnReasons.primaryReason}</span>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    {churnReasons.reasons.map((reason, index: number) => (
+                      <div
+                        key={index}
+                        className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
+                                reason.severity === "high"
+                                  ? "text-red-300 bg-red-400/10 border-red-400/25"
+                                  : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
+                              }`}
+                            >
+                              {reason.tag}
+                            </span>
+                            <span className="text-zinc-500 text-xs">{reason.category}</span>
+                          </div>
+                          <span className="text-zinc-200 text-xs font-semibold">
+                            {Math.round(reason.confidence * 100)}%
                           </span>
-                          <span className="text-zinc-500 text-xs">{reason.category}</span>
                         </div>
-                        <span className="text-zinc-200 text-xs font-semibold">
-                          {Math.round(reason.confidence * 100)}%
-                        </span>
+                        <p className="mt-1 text-zinc-400 text-xs">{reason.description}</p>
                       </div>
-                      <p className="mt-1 text-zinc-400 text-xs">{reason.description}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-2">次回提案AI</h2>
+              <p className="text-zinc-400 text-xs mb-4">
+                退会理由AIと会員状態をもとに、次回セッションで実行すべき具体アクションを提案します
+              </p>
+              <div className="mb-3">
+                <span className="text-zinc-400 text-sm">優先度: </span>
+                <span
+                  className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold border ${
+                    nextActions.priority === "high"
+                      ? "text-red-300 bg-red-400/10 border-red-400/25"
+                      : nextActions.priority === "medium"
+                      ? "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
+                      : "text-zinc-300 bg-zinc-500/10 border-zinc-500/25"
+                  }`}
+                >
+                  {nextActions.priority.toUpperCase()}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {nextActions.actions.map((action, idx) => (
+                  <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-zinc-500 text-xs">{action.type}</span>
+                      <span className="text-white text-sm font-medium">{action.title}</span>
+                    </div>
+                    <p className="mt-1 text-zinc-400 text-xs">{action.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+              <h2 className="text-xl font-semibold mb-2">成功セッション観点</h2>
+              <p className="text-zinc-400 text-xs mb-4">
+                継続につながる成功パターンの観点から、今回セッションで意識したいポイントです
+              </p>
+              {successInsight.commonPatterns.length === 0 ? (
+                <p className="text-zinc-500 text-sm">分析データが不足しています</p>
+              ) : (
+                <div className="space-y-2">
+                  {successInsight.commonPatterns.slice(0, 2).map((pattern) => (
+                    <div key={pattern.title} className="bg-zinc-950 border border-green-500/25 rounded-lg p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-zinc-100 text-sm font-medium">{pattern.title}</span>
+                        <span className="text-green-300 text-xs font-semibold">{pattern.impactScore}</span>
+                      </div>
+                      <p className="mt-1 text-zinc-400 text-xs">{pattern.description}</p>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </>
         );
       })()}
 

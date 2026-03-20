@@ -224,6 +224,121 @@ export interface ChurnReasonEstimate {
   primaryReason?: string;
 }
 
+export type NextActionPriority = "high" | "medium" | "low";
+
+export type NextActionType =
+  | "会話"
+  | "トレーニング"
+  | "介入"
+  | "行動"
+  | "体調"
+  | "心理"
+  | "目標"
+  | "継続";
+
+export interface NextActionItem {
+  type: NextActionType;
+  title: string;
+  description: string;
+}
+
+export interface NextActionSuggestion {
+  priority: NextActionPriority;
+  actions: NextActionItem[];
+}
+
+export type TrainerEvaluationLevel =
+  | "excellent"
+  | "good"
+  | "watch"
+  | "support_needed";
+
+export interface TrainerEvaluationInsight {
+  title: string;
+  description: string;
+}
+
+export interface TrainerEvaluationResult {
+  trainerName: string;
+  summaryScore: number;
+  level: TrainerEvaluationLevel;
+  strengths: TrainerEvaluationInsight[];
+  improvementPoints: TrainerEvaluationInsight[];
+  actionItems: string[];
+  metrics: {
+    totalMembers: number;
+    highRiskMembers: number;
+    estimatedRetentionRate: number;
+    highChurn30DaysMembers: number;
+    annualRevenueAtRisk: number;
+    earlyHighRiskMembers90Days: number;
+    sessionRecordCount: number;
+    sessionRecordQuality: number;
+  };
+}
+
+export interface SuccessSessionPattern {
+  title: string;
+  description: string;
+  impactScore: number;
+}
+
+export interface HighPerformingSessionTrait {
+  trait: string;
+  description: string;
+}
+
+export interface SuccessSessionAnalysis {
+  commonPatterns: SuccessSessionPattern[];
+  highPerformingSessionTraits: HighPerformingSessionTrait[];
+  recommendedActions: string[];
+}
+
+export interface StorePerformanceSummary {
+  storeName: string;
+  totalMembers: number;
+  highRiskMembers: number;
+  estimatedRetentionRate: number;
+  monthlyRevenue: number;
+  expectedLoss30Days: number;
+  successScore: number;
+  riskScore: number;
+}
+
+/** 収益改善AIの推奨アクション1行 */
+export interface RevenueImprovementAction {
+  title: string;
+  impact: string;
+}
+
+/** 本部向け改善提案AIの出力 */
+export interface HQActionPlan {
+  topIssue: string;
+  priorityLabel: "high" | "medium" | "low";
+  summary: string;
+  actions: string[];
+  /** 今月優先して対応すべき店舗（最大3） */
+  priorityStores: string[];
+}
+
+/** 収益改善AIのプラン出力 */
+export interface RevenueImprovementPlan {
+  topPriority: string;
+  expectedImpact: string;
+  actions: RevenueImprovementAction[];
+  /** 高LTVかつ高リスクの会員数 */
+  highImpactMemberCount: number;
+  metrics: {
+    monthlyRevenue: number;
+    avgRiskAdjustedLTV: number;
+    expectedLoss30Days: number;
+    expectedLoss60Days: number;
+    highRiskMembers: number;
+    first90HighRiskCount: number;
+    reservationRiskCount: number;
+  };
+}
+
 /**
  * セッション履歴（CSVインポート対応）
  * 会員詳細で直近のセッションを表示する用途

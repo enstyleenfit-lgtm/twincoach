@@ -11,6 +11,7 @@ import { ReservationHeatmap } from "@/components/ReservationHeatmap";
 import { getFirst90DaysRiskSummary } from "@/lib/first90Days";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getStoreRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
+import { generateRevenueImprovementPlan } from "@/lib/revenueImprovementAI";
 import { getStoreActionPlan } from "@/lib/storeActionPlan";
 import { getStoreSuccessFactors } from "@/lib/storeSuccessAI";
 import { Member, Task } from "@/types";
@@ -166,6 +167,11 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
     decodedStoreName
   );
 
+  const storeRevenueImprovementPlan = generateRevenueImprovementPlan(
+    allMembers,
+    decodedStoreName
+  );
+
   // 店舗別アクションプラン
   const storeActionPlan = getStoreActionPlan(allMembers, decodedStoreName);
 
@@ -293,6 +299,94 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             {first90DaysHighRiskCount}
           </div>
           <div className="text-zinc-500 text-xs mt-1">人</div>
+        </div>
+      </div>
+
+      {/* この店舗の収益改善プラン */}
+      <div className="mb-8">
+        <div className="mb-4">
+          <h2 className="text-2xl font-bold mb-1">この店舗の収益改善プラン</h2>
+          <p className="text-zinc-400 text-sm">
+            当店のLTV・損失予測・90日リスク・予約リスクを踏まえた優先アクションです
+          </p>
+        </div>
+        <div className="bg-zinc-950 border border-emerald-500/35 rounded-xl p-8 shadow-xl shadow-black/40 ring-1 ring-emerald-500/10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              <div>
+                <div className="text-xs uppercase tracking-wider text-emerald-400/90 font-semibold mb-2">
+                  最優先の改善テーマ
+                </div>
+                <p className="text-2xl md:text-3xl font-bold text-white leading-tight">
+                  {storeRevenueImprovementPlan.topPriority}
+                </p>
+              </div>
+              <div>
+                <div className="text-xs uppercase tracking-wider text-zinc-500 font-semibold mb-2">
+                  想定改善インパクト
+                </div>
+                <p className="text-xl md:text-2xl font-bold text-emerald-400 leading-snug">
+                  {storeRevenueImprovementPlan.expectedImpact}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                <div className="rounded-lg bg-zinc-900 border border-emerald-500/20 p-4">
+                  <div className="text-zinc-500 mb-1">高インパクト会員数</div>
+                  <div className="text-3xl font-bold text-emerald-400">
+                    {storeRevenueImprovementPlan.highImpactMemberCount}
+                  </div>
+                  <div className="text-zinc-500 mt-1">高LTV×高リスク</div>
+                </div>
+                <div className="rounded-lg bg-zinc-900 border border-zinc-800 p-4">
+                  <div className="text-zinc-500 mb-1">月間売上</div>
+                  <div className="text-xl font-bold text-white">
+                    ¥{storeRevenueImprovementPlan.metrics.monthlyRevenue.toLocaleString()}
+                  </div>
+                </div>
+                <div className="rounded-lg bg-zinc-900 border border-red-500/30 p-4">
+                  <div className="text-zinc-500 mb-1">30日期待損失</div>
+                  <div className="text-xl font-bold text-red-400">
+                    ¥{storeRevenueImprovementPlan.metrics.expectedLoss30Days.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg bg-zinc-900/80 border border-zinc-800 p-6">
+              <div className="text-sm font-semibold text-zinc-300 mb-4">
+                今やること（Top 3）
+              </div>
+              <ul className="space-y-4">
+                {storeRevenueImprovementPlan.actions.map((action, idx) => (
+                  <li key={`${action.title}-${idx}`} className="flex gap-3">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400 text-sm font-bold border border-emerald-500/30">
+                      {idx + 1}
+                    </span>
+                    <div>
+                      <div className="text-white font-medium text-sm leading-snug">
+                        {action.title}
+                      </div>
+                      <div className="text-emerald-400/90 text-xs mt-1 font-medium">
+                        {action.impact}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-6 pt-4 border-t border-zinc-800 text-xs text-zinc-500 space-y-1">
+                <div>
+                  高リスク {storeRevenueImprovementPlan.metrics.highRiskMembers}名 / 90日高リスク{" "}
+                  {storeRevenueImprovementPlan.metrics.first90HighRiskCount}名 / 予約リスク{" "}
+                  {storeRevenueImprovementPlan.metrics.reservationRiskCount}名
+                </div>
+                <div>
+                  60日期待損失{" "}
+                  <span className="text-red-400 font-semibold">
+                    ¥{storeRevenueImprovementPlan.metrics.expectedLoss60Days.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

@@ -6,6 +6,11 @@ import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { getChurnPrediction } from "@/lib/churnPrediction";
 import { getPriorityQueue } from "@/lib/priorityQueue";
 import { getTrainerImprovementSuggestion } from "@/lib/trainerImprovementAI";
+import {
+  evaluateTrainerPerformance,
+  getTrainerEvaluationLevelLabel,
+} from "@/lib/trainerEvaluationAI";
+import { analyzeSuccessfulSessions } from "@/lib/successSessionAI";
 import { Member, Task } from "@/types";
 
 interface TrainerDetailPageProps {
@@ -141,6 +146,8 @@ export default async function TrainerDetailPage({
     allMembers,
     decodedTrainerName
   );
+  const trainerEvaluation = evaluateTrainerPerformance(allMembers, decodedTrainerName);
+  const successPatternAnalysis = analyzeSuccessfulSessions(trainerMembers);
 
   // 介入タスク一覧（pending + in progress）
   const interventionTasks = trainerTasks
@@ -303,6 +310,140 @@ export default async function TrainerDetailPage({
             </ul>
           </div>
         </div>
+      </div>
+
+      {/* トレーナー評価AI */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold mb-1">トレーナー評価AI</h2>
+          <p className="text-zinc-500 text-xs">
+            人を責めるためではなく、育成・改善支援のための指標として表示しています
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+            <div className="text-zinc-400 text-xs mb-1">総合スコア</div>
+            <div className="text-3xl font-bold text-white">{trainerEvaluation.summaryScore}</div>
+          </div>
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+            <div className="text-zinc-400 text-xs mb-1">評価</div>
+            <div
+              className={`text-lg font-semibold ${
+                trainerEvaluation.level === "excellent"
+                  ? "text-green-400"
+                  : trainerEvaluation.level === "good"
+                  ? "text-blue-300"
+                  : trainerEvaluation.level === "watch"
+                  ? "text-yellow-300"
+                  : "text-red-300"
+              }`}
+            >
+              {getTrainerEvaluationLevelLabel(trainerEvaluation.level)}
+            </div>
+          </div>
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+            <div className="text-zinc-400 text-xs mb-1">30日 high 予測会員</div>
+            <div className="text-2xl font-bold text-zinc-200">
+              {trainerEvaluation.metrics.highChurn30DaysMembers}人
+            </div>
+          </div>
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+            <div className="text-zinc-400 text-xs mb-1">記録品質</div>
+            <div className="text-2xl font-bold text-zinc-200">
+              {trainerEvaluation.metrics.sessionRecordQuality}%
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="bg-zinc-950 border border-green-500/30 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-green-300 mb-2">強み</h3>
+            {trainerEvaluation.strengths.length === 0 ? (
+              <p className="text-zinc-500 text-xs">現時点では抽出中です</p>
+            ) : (
+              <ul className="space-y-2">
+                {trainerEvaluation.strengths.map((item, idx) => (
+                  <li key={idx} className="text-xs text-zinc-300">
+                    <span className="text-green-300">・{item.title}</span>
+                    <p className="text-zinc-500 mt-1">{item.description}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="bg-zinc-950 border border-yellow-500/30 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-yellow-300 mb-2">改善ポイント</h3>
+            {trainerEvaluation.improvementPoints.length === 0 ? (
+              <p className="text-zinc-500 text-xs">大きな改善ポイントはありません</p>
+            ) : (
+              <ul className="space-y-2">
+                {trainerEvaluation.improvementPoints.map((item, idx) => (
+                  <li key={idx} className="text-xs text-zinc-300">
+                    <span className="text-yellow-300">・{item.title}</span>
+                    <p className="text-zinc-500 mt-1">{item.description}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
+            <h3 className="text-sm font-semibold text-zinc-200 mb-2">今やること</h3>
+            <ul className="space-y-2">
+              {trainerEvaluation.actionItems.map((item, idx) => (
+                <li key={idx} className="text-xs text-zinc-300">
+                  ・{item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold mb-1">成功パターン分析</h2>
+          <p className="text-zinc-500 text-xs">
+            担当会員の中で再現性の高い成功要因を抽出し、日々の指導に活かせる形で提示します
+          </p>
+        </div>
+        {successPatternAnalysis.commonPatterns.length === 0 ? (
+          <p className="text-zinc-400 text-sm">分析対象データが不足しています</p>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 space-y-2">
+              <h3 className="text-sm font-semibold text-green-300">このトレーナーで多い成功要因</h3>
+              {successPatternAnalysis.commonPatterns.map((pattern) => (
+                <div key={pattern.title} className="bg-zinc-950 border border-green-500/25 rounded-lg p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-zinc-100 text-sm font-medium">{pattern.title}</span>
+                    <span className="text-green-300 text-xs font-semibold">{pattern.impactScore}</span>
+                  </div>
+                  <p className="mt-1 text-zinc-400 text-xs">{pattern.description}</p>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-emerald-300">真似すべき行動</h3>
+              {successPatternAnalysis.highPerformingSessionTraits.map((trait) => (
+                <div key={trait.trait} className="bg-zinc-950 border border-emerald-500/25 rounded-lg p-3">
+                  <div className="text-zinc-100 text-sm font-medium">{trait.trait}</div>
+                  <p className="mt-1 text-zinc-400 text-xs">{trait.description}</p>
+                </div>
+              ))}
+              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
+                <div className="text-zinc-300 text-xs font-semibold mb-2">維持すべき強み</div>
+                <ul className="space-y-1">
+                  {successPatternAnalysis.recommendedActions.map((item, idx) => (
+                    <li key={idx} className="text-zinc-400 text-xs">・{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 担当会員一覧 */}
