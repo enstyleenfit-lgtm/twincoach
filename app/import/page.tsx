@@ -126,31 +126,31 @@ export default function CsvImportPage() {
           );
         } else {
           // hacomono想定CSV
-          const parsed = parseCsv(text);
-          setRawHeaders(parsed.headers);
+      const parsed = parseCsv(text);
+      setRawHeaders(parsed.headers);
 
-          if (parsed.rows.length === 0) {
-            setInfoMessage("CSVにデータ行がありません");
-            setPreviewRows([]);
-            return;
-          }
+      if (parsed.rows.length === 0) {
+        setInfoMessage("CSVにデータ行がありません");
+        setPreviewRows([]);
+        return;
+      }
 
           const membersData = mapHacomonoCsvToMembers(parsed.rows);
-          setParsedMembersData(membersData);
+        setParsedMembersData(membersData);
 
-          const membersPreview = membersData.map((m) => ({
-            名前: m.name,
-            プラン: m.plan,
+        const membersPreview = membersData.map((m) => ({
+          名前: m.name,
+          プラン: m.plan,
             最終来店日: m.lastVisitDate ?? "",
             来店間隔: m.visitInterval ?? "",
-            店舗名: m.storeName,
-            担当トレーナー: m.assignedTrainer ?? "",
+          店舗名: m.storeName,
+          担当トレーナー: m.assignedTrainer ?? "",
             退会履歴: String(Boolean(m.hasCancellationHistory)),
-          }));
-          preview = membersPreview;
-          setInfoMessage(
+        }));
+        preview = membersPreview;
+        setInfoMessage(
             `会員CSV（hacomono想定）として読み込みました（${membersData.length}件、まだDBには保存されていません）`
-          );
+        );
         }
       } else if (target === "visits") {
         const parsed = parseCsv(text);
