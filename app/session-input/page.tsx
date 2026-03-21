@@ -7,10 +7,8 @@ import {
   saveImportedSessions,
 } from "@/lib/importStore";
 import { sessionWithConversationTags } from "@/lib/conversationTagAI";
-import {
-  generateNextActionsAfterSessionInput,
-  persistNextActionSuggestion,
-} from "@/lib/nextActionAI";
+import { generateNextActionsAfterSessionInput } from "@/lib/nextActionAI";
+import { persistNextActionSuggestion } from "@/lib/memberNextActionStorage";
 
 type SessionRecord = {
   memberId: string;
@@ -317,7 +315,7 @@ export default function SessionInputPage() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
     const raw = window.localStorage.getItem(SESSION_RECORDS_KEY);
     const parsed = safeParse<SavedSession[]>(raw);
     setSavedSessions(Array.isArray(parsed) ? parsed : []);
@@ -472,7 +470,7 @@ export default function SessionInputPage() {
       records,
     };
 
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
     const nextSavedSessions = [saved, ...savedSessions].slice(0, 300);
     window.localStorage.setItem(
       SESSION_RECORDS_KEY,

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   MEMBER_NEXT_ACTION_STORAGE_KEY,
   readStoredNextActionSuggestion,
-} from "@/lib/nextActionAI";
+} from "@/lib/memberNextActionStorage";
 import type { NextActionSuggestion } from "@/types";
 
 function formatUpdatedAt(iso: string): string {
