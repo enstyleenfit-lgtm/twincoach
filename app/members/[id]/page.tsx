@@ -11,6 +11,7 @@ import { generateNextActions } from "@/lib/nextActionAI";
 import { MemberSuccessSessionInsight } from "@/components/successSession/MemberSuccessSessionInsight";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { MemberSessionsClient } from "@/components/members/MemberSessionsClient";
+import { MemberNextActionsClient } from "@/components/members/MemberNextActionsClient";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -237,37 +238,10 @@ export default async function MemberDetailPage({
               )}
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-2">次回提案AI</h2>
-              <p className="text-zinc-400 text-xs mb-4">
-                退会理由AIと会員状態をもとに、次回セッションで実行すべき具体アクションを提案します
-              </p>
-              <div className="mb-3">
-                <span className="text-zinc-400 text-sm">優先度: </span>
-                <span
-                  className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold border ${
-                    nextActions.priority === "high"
-                      ? "text-red-300 bg-red-400/10 border-red-400/25"
-                      : nextActions.priority === "medium"
-                      ? "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
-                      : "text-zinc-300 bg-zinc-500/10 border-zinc-500/25"
-                  }`}
-                >
-                  {nextActions.priority.toUpperCase()}
-                </span>
-              </div>
-              <div className="space-y-2">
-                {nextActions.actions.map((action, idx) => (
-                  <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-zinc-500 text-xs">{action.type}</span>
-                      <span className="text-white text-sm font-medium">{action.title}</span>
-                    </div>
-                    <p className="mt-1 text-zinc-400 text-xs">{action.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <MemberNextActionsClient
+              memberId={member.id}
+              fallbackSuggestion={nextActions}
+            />
 
             <MemberSuccessSessionInsight member={member} />
           </>

@@ -7,6 +7,10 @@ import {
   saveImportedSessions,
 } from "@/lib/importStore";
 import { sessionWithConversationTags } from "@/lib/conversationTagAI";
+import {
+  generateNextActionsAfterSessionInput,
+  persistNextActionSuggestion,
+} from "@/lib/nextActionAI";
 
 type SessionRecord = {
   memberId: string;
@@ -475,7 +479,17 @@ export default function SessionInputPage() {
       JSON.stringify(nextSavedSessions)
     );
     setSavedSessions(nextSavedSessions);
-    setStatus("保存しました");
+
+    const nextSuggestion = generateNextActionsAfterSessionInput(selectedMember, records, {
+      sessionId,
+      sessionDate,
+      trainerName: TRAINER_NAME,
+    });
+    persistNextActionSuggestion(selectedMember.id, nextSuggestion);
+    const primaryNextAction =
+      nextSuggestion.actions[0]?.title ?? "次回予約をその場で確定";
+
+    setStatus("保存しました · 次回提案を更新しました");
 
     // 既存のセッション履歴（MemberSessionsClient）へも反映
     try {
@@ -488,7 +502,7 @@ export default function SessionInputPage() {
         sessionDate,
         menuSummary,
         conversationSummary,
-        nextAction: "次回予約をその場で確定",
+        nextAction: primaryNextAction,
         trainerName: TRAINER_NAME,
         storeName: selectedMember.storeName,
       });
