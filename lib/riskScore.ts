@@ -1,28 +1,9 @@
 import { Member } from "@/types";
+import { getDaysSinceDate, parseVisitIntervalDays } from "@/lib/memberDateUtils";
 
 export interface RiskScoreResult {
   score: number;
   level: "low" | "medium" | "high";
-}
-
-/**
- * 日付文字列から現在日までの日数を計算
- */
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-/**
- * 来店間隔文字列（例: "3 days"）から日数を抽出
- */
-function parseVisitInterval(visitInterval: string): number {
-  const match = visitInterval.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
 }
 
 /**
@@ -34,19 +15,19 @@ export function getRiskReasons(member: Member): string[] {
   const reasons: string[] = [];
 
   // ① 来店間隔
-  const visitIntervalDays = parseVisitInterval(member.visitInterval);
+  const visitIntervalDays = parseVisitIntervalDays(member.visitInterval);
   if (visitIntervalDays >= 15) {
     reasons.push("来店間隔が長くなっています");
   }
 
   // ② 最終来店
-  const daysSinceLastVisit = getDaysSince(member.lastVisitDate);
+  const daysSinceLastVisit = getDaysSinceDate(member.lastVisitDate);
   if (daysSinceLastVisit >= 14) {
     reasons.push("最終来店から日数が経過しています");
   }
 
   // ③ 入会期間
-  const daysSinceJoin = getDaysSince(member.joinDate);
+  const daysSinceJoin = getDaysSinceDate(member.joinDate);
   if (daysSinceJoin <= 90) {
     reasons.push("入会から90日以内の重要期間です");
   }
@@ -66,8 +47,8 @@ export function getRiskReasons(member: Member): string[] {
  * 15〜21日 → +40
  * 22日以上 → +60
  */
-function calculateVisitIntervalScore(visitInterval: string): number {
-  const days = parseVisitInterval(visitInterval);
+function calculateVisitIntervalScore(visitInterval: string | undefined): number {
+  const days = parseVisitIntervalDays(visitInterval);
   if (days <= 7) return 0;
   if (days <= 14) return 20;
   if (days <= 21) return 40;
@@ -80,8 +61,8 @@ function calculateVisitIntervalScore(visitInterval: string): number {
  * 91〜180日 → +10
  * 181日以上 → +0
  */
-function calculateJoinDateScore(joinDate: string): number {
-  const days = getDaysSince(joinDate);
+function calculateJoinDateScore(joinDate: string | undefined): number {
+  const days = getDaysSinceDate(joinDate);
   if (days <= 90) return 20;
   if (days <= 180) return 10;
   return 0;
@@ -94,8 +75,8 @@ function calculateJoinDateScore(joinDate: string): number {
  * 15〜21日 → +20
  * 22日以上 → +40
  */
-function calculateLastVisitScore(lastVisitDate: string): number {
-  const days = getDaysSince(lastVisitDate);
+function calculateLastVisitScore(lastVisitDate: string | undefined): number {
+  const days = getDaysSinceDate(lastVisitDate);
   if (days <= 7) return 0;
   if (days <= 14) return 10;
   if (days <= 21) return 20;

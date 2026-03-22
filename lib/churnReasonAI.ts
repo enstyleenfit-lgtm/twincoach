@@ -1,4 +1,5 @@
 import { calculateRiskScore } from "@/lib/riskScore";
+import { getDaysSinceDate, parseVisitIntervalDays } from "@/lib/memberDateUtils";
 import { sessionWithConversationTags } from "@/lib/conversationTagAI";
 import type {
   ChurnReasonCategory,
@@ -8,26 +9,6 @@ import type {
   Member,
   Session,
 } from "@/types";
-
-/**
- * 日付文字列から現在日までの日数を計算
- */
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-/**
- * 来店間隔文字列（例: "3 days"）から日数を抽出
- */
-function parseVisitInterval(visitInterval: string): number {
-  const match = visitInterval.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
-}
 
 /**
  * 退会理由タグAI
@@ -43,8 +24,8 @@ export function estimateChurnReasons(
   const risk = calculateRiskScore(member);
 
   // 1. 来店間隔拡大
-  const visitIntervalDays = parseVisitInterval(member.visitInterval);
-  const daysSinceLastVisit = getDaysSince(member.lastVisitDate);
+  const visitIntervalDays = parseVisitIntervalDays(member.visitInterval);
+  const daysSinceLastVisit = getDaysSinceDate(member.lastVisitDate);
 
   if (visitIntervalDays > 14 || daysSinceLastVisit > 14) {
     const confidence = Math.min(0.95, 0.62 + (Math.max(visitIntervalDays, daysSinceLastVisit) - 14) / 30);
@@ -71,7 +52,7 @@ export function estimateChurnReasons(
   }
 
   // 3. 入会90日以内 かつ high risk
-  const daysSinceJoin = getDaysSince(member.joinDate);
+  const daysSinceJoin = getDaysSinceDate(member.joinDate);
   if (daysSinceJoin <= 90 && risk.level === "high") {
     const confidence = Math.min(0.95, 0.73 + (90 - daysSinceJoin) / 300);
     pushReason(

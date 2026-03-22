@@ -3,6 +3,7 @@ import { calculateRiskScore } from "./riskScore";
 import { getInterventionSuggestion } from "./interventionSuggestion";
 import { getChurnPrediction } from "./churnPrediction";
 import { getMemberSegment } from "./memberSegmentation";
+import { getDaysSinceDate } from "@/lib/memberDateUtils";
 
 export interface PriorityQueueItem {
   id: string;
@@ -17,18 +18,6 @@ export interface PriorityQueueItem {
 }
 
 /**
- * 日付文字列から現在日までの日数を計算
- */
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-/**
  * 優先順位スコアを計算
  * @param member 会員情報
  * @returns 優先順位スコア（高いほど優先）
@@ -37,7 +26,7 @@ function calculatePriorityScore(member: Member): number {
   const riskResult = calculateRiskScore(member);
   const prediction = getChurnPrediction(member);
   const suggestion = getInterventionSuggestion(member);
-  const daysSinceLastVisit = getDaysSince(member.lastVisitDate);
+  const daysSinceLastVisit = getDaysSinceDate(member.lastVisitDate);
 
   let score = 0;
 

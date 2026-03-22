@@ -4,6 +4,7 @@ import { estimateMemberLTV, getLTVLevel } from "@/lib/ltvPrediction";
 import { generateNextActions } from "@/lib/nextActionAI";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getChurnPrediction } from "@/lib/churnPrediction";
+import { parseVisitIntervalDays } from "@/lib/memberDateUtils";
 import type {
   HighPerformingSessionTrait,
   Member,
@@ -11,11 +12,6 @@ import type {
   SuccessSessionAnalysis,
   SuccessSessionPattern,
 } from "@/types";
-
-function parseVisitInterval(visitInterval: string): number {
-  const match = (visitInterval || "").match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
-}
 
 function impactFromRatio(ratio: number, base: number): number {
   return Math.max(40, Math.min(95, Math.round(base + ratio * 45)));
@@ -107,7 +103,7 @@ function appendMemberDerivedPatterns(
   }
 
   const midFreq = targetMembers.filter((m) => {
-    const d = parseVisitInterval(m.visitInterval);
+    const d = parseVisitIntervalDays(m.visitInterval);
     return d >= 8 && d <= 14;
   }).length;
   if (midFreq > 0) {
@@ -132,7 +128,7 @@ function appendMemberDerivedPatterns(
 
   if (targetMembers.length === 1) {
     const m = targetMembers[0];
-    const d = parseVisitInterval(m.visitInterval);
+    const d = parseVisitIntervalDays(m.visitInterval);
     if (d > 7 && isRecentVisitRelative(m, cohortLatest, 60)) {
       push({
         title: "間隔は空くが来店は継続",
@@ -241,7 +237,7 @@ export function analyzeSuccessfulSessions(
   const highPerformingSessionTraits: HighPerformingSessionTrait[] = [];
 
   const weeklyVisitMembers = targetMembers.filter((m) => {
-    const days = parseVisitInterval(m.visitInterval);
+    const days = parseVisitIntervalDays(m.visitInterval);
     return days > 0 && days <= 7;
   }).length;
   if (weeklyVisitMembers > 0) {

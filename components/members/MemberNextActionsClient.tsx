@@ -35,6 +35,7 @@ export function MemberNextActionsClient({ memberId, fallbackSuggestion }: Props)
   } | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     const load = () => {
       setStored(readStoredNextActionSuggestion(memberId));
     };
@@ -48,6 +49,14 @@ export function MemberNextActionsClient({ memberId, fallbackSuggestion }: Props)
 
   const nextActions = stored?.suggestion ?? fallbackSuggestion;
   const fromSessionInput = Boolean(stored);
+
+  const priority: "high" | "medium" | "low" =
+    nextActions?.priority === "high" ||
+    nextActions?.priority === "medium" ||
+    nextActions?.priority === "low"
+      ? nextActions.priority
+      : "low";
+  const actions = Array.isArray(nextActions?.actions) ? nextActions.actions : [];
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
@@ -69,18 +78,18 @@ export function MemberNextActionsClient({ memberId, fallbackSuggestion }: Props)
         <span className="text-zinc-400 text-sm">優先度: </span>
         <span
           className={`inline-flex items-center px-2 py-1 rounded text-xs font-semibold border ${
-            nextActions.priority === "high"
+            priority === "high"
               ? "text-red-300 bg-red-400/10 border-red-400/25"
-              : nextActions.priority === "medium"
+              : priority === "medium"
                 ? "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
                 : "text-zinc-300 bg-zinc-500/10 border-zinc-500/25"
           }`}
         >
-          {nextActions.priority.toUpperCase()}
+          {priority.toUpperCase()}
         </span>
       </div>
       <div className="space-y-2">
-        {nextActions.actions.map((action, idx) => (
+        {actions.map((action, idx) => (
           <div key={idx} className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
             <div className="flex items-center gap-2">
               <span className="text-zinc-500 text-xs">{action.type}</span>

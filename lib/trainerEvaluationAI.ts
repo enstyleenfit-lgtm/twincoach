@@ -3,16 +3,8 @@ import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { generateNextActions } from "@/lib/nextActionAI";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getRevenueAtRisk } from "@/lib/revenueRisk";
+import { getDaysSinceDate } from "@/lib/memberDateUtils";
 import type { Member, Session, TrainerEvaluationResult } from "@/types";
-
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
@@ -90,7 +82,7 @@ export function evaluateTrainerPerformance(
     if (risk.level === "high") {
       highRiskMembers += 1;
       annualRevenueAtRisk += getRevenueAtRisk(member).annualRevenueAtRisk;
-      if (getDaysSince(member.joinDate) <= 90) {
+      if (getDaysSinceDate(member.joinDate) <= 90) {
         earlyHighRiskMembers90Days += 1;
       }
     } else {

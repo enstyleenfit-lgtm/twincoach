@@ -2,6 +2,7 @@ import { Member } from "@/types";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { getMemberSegment } from "@/lib/memberSegmentation";
+import { getDaysSinceDate } from "@/lib/memberDateUtils";
 
 export interface First90DaysMember {
   member: Member;
@@ -20,24 +21,12 @@ export interface First90DaysRiskSummary {
 }
 
 /**
- * 日付文字列から現在日までの日数を計算
- */
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-/**
  * 入会後90日以内の会員を取得
  */
 export function getFirst90DaysMembers(members: Member[]): First90DaysMember[] {
   return members
     .map((member) => {
-      const daysSinceJoin = getDaysSince(member.joinDate);
+      const daysSinceJoin = getDaysSinceDate(member.joinDate);
       return {
         member,
         daysSinceJoin,

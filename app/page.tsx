@@ -41,6 +41,7 @@ import { generateHQActionPlan } from "@/lib/hqActionAI";
 import { NegotiationDashboard } from "@/components/dashboard/NegotiationDashboard";
 import { Role, Member, Task } from "@/types";
 import { ImportedDashboardReflection } from "@/components/import/ImportedDashboardReflection";
+import { memberRepository, taskRepository } from "@/lib/repositories";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -86,20 +87,11 @@ function getPriorityBadgeColor(priority: "low" | "medium" | "high"): string {
 }
 
 export default async function Home() {
-  // データ取得（API Route 経由）
-  // Server Component からは相対パスで fetch 可能
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const [membersResponse, tasksResponse] = await Promise.all([
-    fetch(`${baseUrl}/api/members`, {
-      cache: "no-store",
-    }),
-    fetch(`${baseUrl}/api/tasks`, {
-      cache: "no-store",
-    }),
+  // サーバーでは自ホストへの HTTP ループバックを避け、API Route と同じデータ取得を直接行う
+  const [members, tasks] = await Promise.all([
+    memberRepository.getAll(),
+    taskRepository.getAll(),
   ]);
-
-  const members = membersResponse.ok ? await membersResponse.json() : [];
-  const tasks = tasksResponse.ok ? await tasksResponse.json() : [];
 
   // High Risk Members (risk score >= 70)
   const highRiskMembers = members.filter((member: Member) => {

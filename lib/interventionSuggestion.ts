@@ -1,31 +1,12 @@
 import { Member } from "@/types";
 import { calculateRiskScore } from "@/lib/riskScore";
+import { getDaysSinceDate, parseVisitIntervalDays } from "@/lib/memberDateUtils";
 
 export interface InterventionSuggestion {
   type: "reservation" | "motivation" | "lifestyle";
   title: string;
   action: string;
   priority: "low" | "medium" | "high";
-}
-
-/**
- * 日付文字列から現在日までの日数を計算
- */
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-/**
- * 来店間隔文字列（例: "3 days"）から日数を抽出
- */
-function parseVisitInterval(visitInterval: string): number {
-  const match = visitInterval.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
 }
 
 /**
@@ -37,9 +18,9 @@ export function getInterventionSuggestion(
   member: Member
 ): InterventionSuggestion {
   const riskResult = calculateRiskScore(member);
-  const visitIntervalDays = parseVisitInterval(member.visitInterval);
-  const daysSinceJoin = getDaysSince(member.joinDate);
-  const daysSinceLastVisit = getDaysSince(member.lastVisitDate);
+  const visitIntervalDays = parseVisitIntervalDays(member.visitInterval);
+  const daysSinceJoin = getDaysSinceDate(member.joinDate);
+  const daysSinceLastVisit = getDaysSinceDate(member.lastVisitDate);
 
   // ① 予約型
   // 条件: visitIntervalが15日以上 または hasCancellationHistoryがtrue

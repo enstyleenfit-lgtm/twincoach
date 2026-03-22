@@ -1,5 +1,6 @@
 import { Member } from "@/types";
 import { calculateRiskScore } from "./riskScore";
+import { getDaysSinceDate, parseVisitIntervalDays } from "@/lib/memberDateUtils";
 
 export interface ChurnPrediction {
   probability30Days: number;
@@ -7,26 +8,6 @@ export interface ChurnPrediction {
   label30Days: "low" | "medium" | "high";
   label60Days: "low" | "medium" | "high";
   reasons: string[];
-}
-
-/**
- * 日付文字列から現在日までの日数を計算
- */
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-/**
- * 来店間隔文字列（例: "3 days"）から日数を抽出
- */
-function parseVisitInterval(visitInterval: string): number {
-  const match = visitInterval.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
 }
 
 /**
@@ -42,7 +23,7 @@ export function getChurnPrediction(member: Member): ChurnPrediction {
   let baseProbability = riskResult.score;
 
   // 来店間隔による加算
-  const visitIntervalDays = parseVisitInterval(member.visitInterval);
+  const visitIntervalDays = parseVisitIntervalDays(member.visitInterval);
   if (visitIntervalDays >= 15) {
     baseProbability += 15;
     reasons.push("来店間隔が長い");
@@ -51,7 +32,7 @@ export function getChurnPrediction(member: Member): ChurnPrediction {
   }
 
   // 最終来店からの日数による加算
-  const daysSinceLastVisit = getDaysSince(member.lastVisitDate);
+  const daysSinceLastVisit = getDaysSinceDate(member.lastVisitDate);
   if (daysSinceLastVisit >= 21) {
     baseProbability += 20;
     reasons.push("最終来店から21日以上経過");
@@ -69,7 +50,7 @@ export function getChurnPrediction(member: Member): ChurnPrediction {
   }
 
   // 入会からの日数による調整（90日以内は30日予測を高める）
-  const daysSinceJoin = getDaysSince(member.joinDate);
+  const daysSinceJoin = getDaysSinceDate(member.joinDate);
   const isNewMember = daysSinceJoin <= 90;
   if (isNewMember) {
     baseProbability += 10;
@@ -140,7 +121,7 @@ export function getChurnPredictionReasons(member: Member): string[] {
   const reasons: string[] = [];
 
   // 来店間隔による理由
-  const visitIntervalDays = parseVisitInterval(member.visitInterval);
+  const visitIntervalDays = parseVisitIntervalDays(member.visitInterval);
   if (visitIntervalDays >= 15) {
     reasons.push("来店間隔が長くなっています");
   } else if (visitIntervalDays >= 8) {
@@ -148,7 +129,7 @@ export function getChurnPredictionReasons(member: Member): string[] {
   }
 
   // 最終来店からの日数による理由
-  const daysSinceLastVisit = getDaysSince(member.lastVisitDate);
+  const daysSinceLastVisit = getDaysSinceDate(member.lastVisitDate);
   if (daysSinceLastVisit >= 21) {
     reasons.push("最終来店から日数が経過しています");
   } else if (daysSinceLastVisit >= 14) {
@@ -156,7 +137,7 @@ export function getChurnPredictionReasons(member: Member): string[] {
   }
 
   // 入会からの日数による理由
-  const daysSinceJoin = getDaysSince(member.joinDate);
+  const daysSinceJoin = getDaysSinceDate(member.joinDate);
   if (daysSinceJoin <= 90) {
     reasons.push("入会後90日以内の重要期間です");
   }

@@ -1,5 +1,6 @@
 import { Member } from "@/types";
 import { calculateRiskScore } from "./riskScore";
+import { getDaysSinceDate, parseVisitIntervalDays } from "@/lib/memberDateUtils";
 
 export interface RetentionDriver {
   factor: string;
@@ -11,26 +12,6 @@ export interface RetentionDriver {
 export interface RetentionDriverAnalysis {
   positiveDrivers: RetentionDriver[];
   negativeDrivers: RetentionDriver[];
-}
-
-/**
- * 日付文字列から現在日までの日数を計算
- */
-function getDaysSince(dateString: string): number {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  date.setHours(0, 0, 0, 0);
-  const diffTime = today.getTime() - date.getTime();
-  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
-}
-
-/**
- * 来店間隔文字列（例: "3 days"）から日数を抽出
- */
-function parseVisitInterval(visitInterval: string): number {
-  const match = visitInterval.match(/(\d+)/);
-  return match ? parseInt(match[1], 10) : 0;
 }
 
 /**
@@ -75,11 +56,11 @@ export function analyzeRetentionDrivers(
 
   // 1. 来店間隔の分析
   const retainedAvgInterval = retainedMembers.reduce((sum: number, m: Member) => {
-    return sum + parseVisitInterval(m.visitInterval);
+    return sum + parseVisitIntervalDays(m.visitInterval);
   }, 0) / retainedMembers.length;
 
   const atRiskAvgInterval = atRiskMembers.reduce((sum: number, m: Member) => {
-    return sum + parseVisitInterval(m.visitInterval);
+    return sum + parseVisitIntervalDays(m.visitInterval);
   }, 0) / atRiskMembers.length;
 
   const intervalDiff = atRiskAvgInterval - retainedAvgInterval;
@@ -94,12 +75,12 @@ export function analyzeRetentionDrivers(
 
   // 2. 週1回以上の来店率
   const retainedWeeklyVisitors = retainedMembers.filter((m: Member) => {
-    return parseVisitInterval(m.visitInterval) <= 7;
+    return parseVisitIntervalDays(m.visitInterval) <= 7;
   }).length;
   const retainedWeeklyRate = (retainedWeeklyVisitors / retainedMembers.length) * 100;
 
   const atRiskWeeklyVisitors = atRiskMembers.filter((m: Member) => {
-    return parseVisitInterval(m.visitInterval) <= 7;
+    return parseVisitIntervalDays(m.visitInterval) <= 7;
   }).length;
   const atRiskWeeklyRate = (atRiskWeeklyVisitors / atRiskMembers.length) * 100;
 
@@ -114,12 +95,12 @@ export function analyzeRetentionDrivers(
 
   // 3. 来店間隔15日以上の割合
   const retainedLongInterval = retainedMembers.filter((m: Member) => {
-    return parseVisitInterval(m.visitInterval) >= 15;
+    return parseVisitIntervalDays(m.visitInterval) >= 15;
   }).length;
   const retainedLongIntervalRate = (retainedLongInterval / retainedMembers.length) * 100;
 
   const atRiskLongInterval = atRiskMembers.filter((m: Member) => {
-    return parseVisitInterval(m.visitInterval) >= 15;
+    return parseVisitIntervalDays(m.visitInterval) >= 15;
   }).length;
   const atRiskLongIntervalRate = (atRiskLongInterval / atRiskMembers.length) * 100;
 
@@ -150,12 +131,12 @@ export function analyzeRetentionDrivers(
 
   // 5. 入会後90日以内の割合
   const retainedNewMembers = retainedMembers.filter((m: Member) => {
-    return getDaysSince(m.joinDate) <= 90;
+    return getDaysSinceDate(m.joinDate) <= 90;
   }).length;
   const retainedNewRate = (retainedNewMembers / retainedMembers.length) * 100;
 
   const atRiskNewMembers = atRiskMembers.filter((m: Member) => {
-    return getDaysSince(m.joinDate) <= 90;
+    return getDaysSinceDate(m.joinDate) <= 90;
   }).length;
   const atRiskNewRate = (atRiskNewMembers / atRiskMembers.length) * 100;
 
@@ -170,12 +151,12 @@ export function analyzeRetentionDrivers(
 
   // 6. 最終来店から7日以内の割合
   const retainedRecentVisitors = retainedMembers.filter((m: Member) => {
-    return getDaysSince(m.lastVisitDate) <= 7;
+    return getDaysSinceDate(m.lastVisitDate) <= 7;
   }).length;
   const retainedRecentRate = (retainedRecentVisitors / retainedMembers.length) * 100;
 
   const atRiskRecentVisitors = atRiskMembers.filter((m: Member) => {
-    return getDaysSince(m.lastVisitDate) <= 7;
+    return getDaysSinceDate(m.lastVisitDate) <= 7;
   }).length;
   const atRiskRecentRate = (atRiskRecentVisitors / atRiskMembers.length) * 100;
 
@@ -190,12 +171,12 @@ export function analyzeRetentionDrivers(
 
   // 7. 最終来店から14日以上経過の割合
   const retainedLongAbsence = retainedMembers.filter((m: Member) => {
-    return getDaysSince(m.lastVisitDate) >= 14;
+    return getDaysSinceDate(m.lastVisitDate) >= 14;
   }).length;
   const retainedLongAbsenceRate = (retainedLongAbsence / retainedMembers.length) * 100;
 
   const atRiskLongAbsence = atRiskMembers.filter((m: Member) => {
-    return getDaysSince(m.lastVisitDate) >= 14;
+    return getDaysSinceDate(m.lastVisitDate) >= 14;
   }).length;
   const atRiskLongAbsenceRate = (atRiskLongAbsence / atRiskMembers.length) * 100;
 
