@@ -412,6 +412,7 @@ export default async function TrainerDetailPage({
         </div>
         <SuccessSessionAnalysisBridge
           serverAnalysis={successPatternAnalysis}
+          baseMembersFromServer={allMembers}
           trainerName={decodedTrainerName}
           embedInCard
           patternsHeading="このトレーナーで多い成功要因"

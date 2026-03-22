@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { RoleBasedShell } from "@/components/sidebar/RoleBasedShell";
 import "./globals.css";
@@ -18,15 +18,21 @@ export const metadata: Metadata = {
   description: "TwinCoach Dashboard",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ja" className="h-full max-w-full overflow-x-hidden">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh w-full max-w-full overflow-x-hidden text-base`}
       >
         <RoleBasedShell>{children}</RoleBasedShell>
       </body>

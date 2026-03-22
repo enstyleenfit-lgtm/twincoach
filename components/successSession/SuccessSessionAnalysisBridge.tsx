@@ -8,6 +8,8 @@ import { SuccessSessionAnalysisPanel } from "./SuccessSessionAnalysisPanel";
 
 type Props = {
   serverAnalysis: SuccessSessionAnalysis;
+  /** サーバーで取得した全会員（指定時は /api への fetch を行わない） */
+  baseMembersFromServer?: Member[];
   /** 指定時は担当トレーナー名が一致する会員のみで再計算 */
   trainerName?: string;
   embedInCard?: boolean;
@@ -18,6 +20,7 @@ type Props = {
 
 export function SuccessSessionAnalysisBridge({
   serverAnalysis,
+  baseMembersFromServer,
   trainerName,
   embedInCard,
   patternsHeading,
@@ -35,40 +38,27 @@ export function SuccessSessionAnalysisBridge({
       return;
     }
 
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/members", { cache: "no-store" });
-        const base: Member[] = res.ok ? await res.json() : [];
-        let merged: Member[] = mergeBaseAndImported(base, loadImportedMembers());
-        if (trainerName) {
-          const t = trainerName.trim();
-          merged = merged.filter((m) => (m.assignedTrainer || "").trim() === t);
-        }
-        if (merged.length === 0) {
-          if (!cancelled) {
-            setSessionEnhanced(false);
-            setAnalysis(serverAnalysis);
-          }
-          return;
-        }
-        const next = analyzeSuccessfulSessions(merged, sessions);
-        if (!cancelled) {
-          setSessionEnhanced(true);
-          setAnalysis(next);
-        }
-      } catch {
-        if (!cancelled) {
-          setSessionEnhanced(false);
-          setAnalysis(serverAnalysis);
-        }
+    try {
+      let merged: Member[] =
+        baseMembersFromServer != null
+          ? mergeBaseAndImported(baseMembersFromServer, loadImportedMembers())
+          : loadImportedMembers();
+      if (trainerName) {
+        const t = trainerName.trim();
+        merged = merged.filter((m) => (m.assignedTrainer || "").trim() === t);
       }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [serverAnalysis, trainerName]);
+      if (merged.length === 0) {
+        setSessionEnhanced(false);
+        setAnalysis(serverAnalysis);
+        return;
+      }
+      setSessionEnhanced(true);
+      setAnalysis(analyzeSuccessfulSessions(merged, sessions));
+    } catch {
+      setSessionEnhanced(false);
+      setAnalysis(serverAnalysis);
+    }
+  }, [serverAnalysis, trainerName, baseMembersFromServer]);
 
   return (
     <SuccessSessionAnalysisPanel

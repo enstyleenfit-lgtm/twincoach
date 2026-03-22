@@ -9,23 +9,26 @@ import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getStoreSummaries } from "@/lib/storeSummary";
 import { getChurnPrediction } from "@/lib/churnPrediction";
 
-export function ImportedDashboardReflection() {
-  const [members, setMembers] = useState<Member[] | null>(null);
+type Props = {
+  /** サーバーで取得した会員（指定時は fetch しない） */
+  baseMembersFromServer?: Member[];
+};
+
+export function ImportedDashboardReflection({ baseMembersFromServer }: Props) {
+  const [members, setMembers] = useState<Member[] | null>(
+    baseMembersFromServer != null
+      ? mergeBaseAndImported(baseMembersFromServer, loadImportedMembers())
+      : null
+  );
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/members", { cache: "no-store" });
-        const baseMembers: Member[] = res.ok ? await res.json() : [];
-        const imported = loadImportedMembers();
-        setMembers(mergeBaseAndImported(baseMembers, imported));
-      } catch {
-        const imported = loadImportedMembers();
-        setMembers(imported);
-      }
-    };
-    load();
-  }, []);
+    if (baseMembersFromServer != null) {
+      setMembers(mergeBaseAndImported(baseMembersFromServer, loadImportedMembers()));
+      return;
+    }
+    const imported = loadImportedMembers();
+    setMembers(imported.length ? imported : []);
+  }, [baseMembersFromServer]);
 
   const computed = useMemo(() => {
     if (!members) return null;

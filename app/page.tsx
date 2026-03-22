@@ -459,7 +459,7 @@ export default async function Home() {
         <div className="my-16 border-t border-zinc-800/80" aria-hidden />
 
         <div className="mb-10 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4 sm:p-5">
-          <ImportedDashboardReflection />
+          <ImportedDashboardReflection baseMembersFromServer={members} />
         </div>
 
         <header className="mb-10 border-b border-zinc-800 pb-6">
@@ -2073,7 +2073,10 @@ export default async function Home() {
             継続率が高い会員の傾向を抽出し、現場で再現しやすい成功パターンを可視化しています
           </p>
         </div>
-        <SuccessSessionAnalysisBridge serverAnalysis={successSessionAnalysis} />
+        <SuccessSessionAnalysisBridge
+          serverAnalysis={successSessionAnalysis}
+          baseMembersFromServer={members}
+        />
       </div>
 
       {/* 価格改定影響モニター */}

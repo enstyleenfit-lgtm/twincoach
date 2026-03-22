@@ -125,7 +125,7 @@ export function getRoleDisplayName(role: Role): string {
     case "manager":
       return "店舗責任者";
     case "trainer":
-      return "トレーナー";
+      return "店舗";
   }
 }
 

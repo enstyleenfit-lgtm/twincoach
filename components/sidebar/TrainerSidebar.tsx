@@ -1,14 +1,15 @@
- "use client";
+"use client";
 
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import { TRAINER_APP_BRANDING_TITLE } from "@/lib/trainerBranding";
 import { RoleSwitchControl } from "@/components/sidebar/RoleSwitchControl";
 
 export function TrainerSidebar() {
   return (
     <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex-shrink-0 flex flex-col">
       <div className="p-6 border-b border-zinc-800">
-        <h1 className="text-xl font-bold text-white">TwinCoach トレーナー</h1>
+        <h1 className="text-xl font-bold text-white">{TRAINER_APP_BRANDING_TITLE}</h1>
         <RoleSwitchControl />
       </div>
       <nav className="p-4 flex-1">

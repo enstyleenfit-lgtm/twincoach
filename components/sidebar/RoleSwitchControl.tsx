@@ -49,7 +49,7 @@ export function RoleSwitchControl() {
           onClick={() => go("trainer")}
           className={`${btn} ${currentRole === "trainer" ? on : off}`}
         >
-          トレーナー
+          店舗
         </button>
       </div>
     </div>

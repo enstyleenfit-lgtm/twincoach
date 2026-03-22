@@ -19,8 +19,32 @@
   }
 }
 
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/*
+ * タブレット幅・スマホ横持ち（〜1023px）でもサイドバーを消す（md=768px だと iPhone 横でサイドバーが出る）
+ * Tailwind lg=1024px と揃える。components/sidebar/RoleBasedShell.tsx の data-app-sidebar-slot 用
+ */
+@media (max-width: 1023px) {
+  [data-app-sidebar-slot] {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    overflow: hidden !important;
+    flex: 0 0 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
 }
