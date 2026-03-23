@@ -1,4 +1,3 @@
-import { TRAINER_APP_BRANDING_TITLE } from "@/lib/trainerBranding";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getRevenueAtRisk } from "@/lib/revenueRisk";
 import { getPriorityQueue } from "@/lib/priorityQueue";
@@ -124,7 +123,7 @@ export default async function TrainerPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">{TRAINER_APP_BRANDING_TITLE}</h1>
+      <h1 className="text-3xl font-bold mb-8">TwinCoach 店舗</h1>
       <p className="text-zinc-400 mb-8">担当: {trainerName}</p>
 
       {/* 2カラムレイアウト */}
