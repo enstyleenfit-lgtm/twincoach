@@ -38,6 +38,34 @@ export class TaskRepository {
   }
 
   /**
+   * 指定店舗のタスクのみ取得
+   * - Supabase接続時: store_id で絞り込み（未契約/未所属は上位で 403）
+   * - モック時: 現状 store を持たないため空配列
+   */
+  async getAllForStore(storeId: string): Promise<Task[]> {
+    if (!storeId) return [];
+    if (isSupabaseEnabled()) {
+      try {
+        const supabase = await createServerSupabase();
+        const { data, error } = await supabase
+          .from("tasks")
+          .select("*")
+          .eq("store_id", storeId)
+          .order("due_date", { ascending: true });
+        if (error) {
+          console.error("Supabase error:", error);
+          return [];
+        }
+        return (data as SupabaseTask[]).map(mapSupabaseTaskToTask);
+      } catch (error) {
+        console.error("Failed to create Supabase client:", error);
+        return [];
+      }
+    }
+    return [];
+  }
+
+  /**
    * 会員IDでタスクを取得
    */
   async getByMemberId(memberId: string): Promise<Task[]> {

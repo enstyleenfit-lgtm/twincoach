@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { memberRepository } from "@/lib/repositories";
 import { MemberCreateInput } from "@/types";
+import { getStoreIdFromRequest } from "@/lib/authz/storeContext";
+import { AuthzError } from "@/lib/authz/errors";
+import { requireStoreAccess } from "@/lib/authz/authorize";
 
 export interface ImportResult {
   successCount: number;
@@ -14,6 +17,12 @@ export interface ImportResult {
  */
 export async function POST(request: NextRequest) {
   try {
+    const storeId = getStoreIdFromRequest(request);
+    if (!storeId) {
+      return NextResponse.json({ error: "store_id is required" }, { status: 400 });
+    }
+    await requireStoreAccess({ storeId, requiredRoles: ["owner", "hq"] });
+
     const body: MemberCreateInput[] = await request.json();
 
     if (!Array.isArray(body)) {
@@ -41,6 +50,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(importResult);
   } catch (error) {
+    if (error instanceof AuthzError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+    }
     console.error("Import error:", error);
     return NextResponse.json(
       {

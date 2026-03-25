@@ -31,6 +31,34 @@ export class MemberRepository {
   }
 
   /**
+   * 指定店舗の会員のみを取得
+   * - Supabase接続時: store_id で絞り込む（未契約/未所属は上位で 403）
+   * - モック時: storeName で絞り込む（暫定）
+   */
+  async getAllForStore(storeIdOrName: string): Promise<Member[]> {
+    if (!storeIdOrName) return [];
+    if (isSupabaseEnabled()) {
+      try {
+        const supabase = await createServerSupabase();
+        const { data, error } = await supabase
+          .from("members")
+          .select("*")
+          .eq("store_id", storeIdOrName)
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Supabase error:", error);
+          return [];
+        }
+        return (data as SupabaseMember[]).map(mapSupabaseMemberToMember);
+      } catch (error) {
+        console.error("Failed to create Supabase client:", error);
+        return [];
+      }
+    }
+    return mockMembersStore.filter((m) => m.storeName === storeIdOrName);
+  }
+
+  /**
    * 互換メソッド（既存呼び出し用）
    */
   /**

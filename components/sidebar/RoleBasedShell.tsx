@@ -9,6 +9,7 @@ import {
 } from "@/components/sidebar/MobileTrainerTabBar";
 import { OwnerSidebar } from "@/components/sidebar/OwnerSidebar";
 import { TrainerSidebar } from "@/components/sidebar/TrainerSidebar";
+import { AppTopBar } from "@/components/layout/AppTopBar";
 
 type Props = { children: ReactNode };
 type Role = "hq" | "owner" | "trainer";
@@ -45,6 +46,7 @@ export function RoleBasedShell({ children }: Props) {
           role === "trainer" ? TRAINER_MOBILE_MAIN_PADDING : ""
         }`}
       >
+        <AppTopBar />
         {children}
       </main>
       {role === "trainer" ? <MobileTrainerTabBar /> : null}
