@@ -337,7 +337,7 @@ export function NegotiationDashboard({
           {topStores.map((s) => (
             <Link
               key={s.storeName}
-              href={`/stores/${encodeURIComponent(s.storeName)}`}
+              href={`/store/${encodeURIComponent(s.storeName)}`}
               className="group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 transition-colors hover:border-zinc-600"
             >
               <p className="text-lg font-semibold text-white group-hover:text-blue-400">
@@ -419,7 +419,7 @@ export function NegotiationDashboard({
                   {hqPlan.priorityStores.slice(0, 3).map((name) => (
                     <li key={name}>
                       <Link
-                        href={`/stores/${encodeURIComponent(name)}`}
+                        href={`/store/${encodeURIComponent(name)}`}
                         className="inline-flex rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-white hover:border-violet-500/40 hover:text-violet-300"
                       >
                         {name}

@@ -11,20 +11,18 @@ import Link from "next/link";
 import { getTrainerMetrics } from "@/lib/trainerMetrics";
 import { generateRevenueImprovementPlan } from "@/lib/revenueImprovementAI";
 import { getStoreActionPlan } from "@/lib/storeActionPlan";
-
-// TODO: 認証情報から店舗名を取得する実装に置き換える
-function getOwnerStoreName(): string {
-  // 現時点ではモックとして最初の店舗を使用
-  // 将来的には認証情報（セッション/クッキー）から取得
-  return "三軒茶屋本店";
-}
+import { getCurrentStoreIdFromCookies } from "@/lib/authz/storeContext";
 
 export default async function OwnerPage() {
-  const members = await memberRepository.getAll();
-  const ownerStoreName = getOwnerStoreName();
+  const ownerStoreId = await getCurrentStoreIdFromCookies();
 
-  // 自店舗の会員のみフィルタ
-  const storeMembers = members.filter((m: Member) => m.storeName === ownerStoreName);
+  // オーナーは所属店舗のみを取得（モック互換のため name fallback 付き）
+  const storeMembers = ownerStoreId
+    ? await memberRepository.getAllForStore(ownerStoreId)
+    : [];
+  const ownerStoreName =
+    storeMembers[0]?.storeName ??
+    "店舗未選択";
 
   // 自店舗の集計
   const storeSummaries = getStoreSummaries(storeMembers);
@@ -66,7 +64,7 @@ export default async function OwnerPage() {
     .filter((m) => calculateRiskScore(m).level === "high")
     .reduce((sum, m) => sum + getRevenueRiskForecast(m).annualRevenue, 0);
 
-  const topStoresByLoss = getStoreSummaries(members)
+  const topStoresByLoss = getStoreSummaries(storeMembers)
     .slice()
     .sort((a, b) => b.expectedLoss30Days - a.expectedLoss30Days)
     .slice(0, 5);
@@ -76,8 +74,8 @@ export default async function OwnerPage() {
     .sort((a, b) => a.estimatedRetentionRate - b.estimatedRetentionRate)
     .slice(0, 5);
 
-  const revenueImprovementPlan = generateRevenueImprovementPlan(members, ownerStoreName);
-  const storeActionPlan = getStoreActionPlan(members, ownerStoreName);
+  const revenueImprovementPlan = generateRevenueImprovementPlan(storeMembers, ownerStoreName);
+  const storeActionPlan = getStoreActionPlan(storeMembers, ownerStoreName);
 
   return (
     <div className="p-8">
@@ -262,7 +260,7 @@ export default async function OwnerPage() {
           {topStoresByLoss.map((store) => (
             <Link
               key={store.storeName}
-              href={`/stores/${encodeURIComponent(store.storeName)}`}
+              href={`/store/${encodeURIComponent(store.storeName)}`}
               className="rounded-lg border border-zinc-800 bg-black/20 p-5 hover:border-zinc-600 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">

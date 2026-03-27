@@ -131,7 +131,7 @@ export default async function HQPage() {
                         {i + 1}.
                       </span>
                       <Link
-                        href={`/stores/${encodeURIComponent(name)}`}
+                        href={`/store/${encodeURIComponent(name)}`}
                         className="text-lg font-semibold text-white hover:text-emerald-400 transition-colors border-b border-transparent hover:border-emerald-400/50 pb-0.5"
                       >
                         {name}
@@ -222,7 +222,7 @@ export default async function HQPage() {
                   </td>
                   <td className="py-3 px-4">
                     <Link
-                      href={`/stores/${encodeURIComponent(store.storeName)}`}
+                      href={`/store/${encodeURIComponent(store.storeName)}`}
                       className="text-blue-400 hover:text-blue-300"
                     >
                       {store.storeName}
@@ -270,7 +270,7 @@ export default async function HQPage() {
                   <tr key={store.storeName} className="border-b border-zinc-800 hover:bg-zinc-800/50">
                     <td className="py-3 px-4">
                       <Link
-                        href={`/stores/${encodeURIComponent(store.storeName)}`}
+                        href={`/store/${encodeURIComponent(store.storeName)}`}
                         className="text-blue-400 hover:text-blue-300"
                       >
                         {store.storeName}

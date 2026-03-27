@@ -54,22 +54,27 @@ function getPriorityBadgeColor(priority: "low" | "medium" | "high"): string {
 
 export default async function StoreDetailPage({ params }: StoreDetailPageProps) {
   const { storeName } = await params;
-  const decodedStoreName = decodeURIComponent(storeName);
+  const decodedStoreIdOrName = decodeURIComponent(storeName);
 
-  // データ取得
+  // データ取得（一覧/比較用途）
   const allMembers = await memberRepository.getAll();
-  const allTasks = await taskRepository.getAll();
 
-  // 店舗ごとの会員をフィルタリング
-  const storeMembers = allMembers.filter(
-    (member: Member) => member.storeName === decodedStoreName
-  );
+  // 店舗詳細用途（store_id 優先、モック時は storeName fallback）
+  const scopedMembers = await memberRepository.getAllForStore(decodedStoreIdOrName);
+  const storeMembers =
+    scopedMembers.length > 0
+      ? scopedMembers
+      : allMembers.filter((member: Member) => member.storeName === decodedStoreIdOrName);
 
-  // 店舗ごとのタスクをフィルタリング
-  const storeTasks = allTasks.filter((task: Task) => {
-    const member = allMembers.find((m: Member) => m.id === task.memberId);
-    return member?.storeName === decodedStoreName;
-  });
+  // タスクも同様に store_id 優先
+  const scopedTasks = await taskRepository.getAllForStore(decodedStoreIdOrName);
+  const storeTasks =
+    scopedTasks.length > 0
+      ? scopedTasks
+      : (await taskRepository.getAll()).filter((task: Task) => {
+          const member = allMembers.find((m: Member) => m.id === task.memberId);
+          return member?.storeName === decodedStoreIdOrName;
+        });
 
   // 基本統計
   const totalMembers = storeMembers.length;
@@ -164,22 +169,22 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   // 収益防衛シミュレーション（店舗版）
   const storeRevenueDefenseSimulation = getStoreRevenueDefenseSimulation(
     allMembers,
-    decodedStoreName
+    decodedStoreIdOrName
   );
 
   const storeRevenueImprovementPlan = generateRevenueImprovementPlan(
     allMembers,
-    decodedStoreName
+    decodedStoreIdOrName
   );
 
   // 店舗別アクションプラン
-  const storeActionPlan = getStoreActionPlan(allMembers, decodedStoreName);
+  const storeActionPlan = getStoreActionPlan(allMembers, decodedStoreIdOrName);
 
   // 予約詰まり時間帯ヒートマップ（店舗専用）
   const storeReservationHeatmap = getReservationHeatmapData(storeMembers);
 
   // 成功要因分析（他店舗が参考にすべき成功要因）
-  const storeSuccessFactors = getStoreSuccessFactors(allMembers, decodedStoreName);
+  const storeSuccessFactors = getStoreSuccessFactors(allMembers, decodedStoreIdOrName);
 
   // 介入優先キュー（タスクを優先度順にソート）
   const interventionQueue = storeTasks
@@ -213,7 +218,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
           >
             ← Back to Stores
           </Link>
-          <h1 className="text-4xl font-bold mb-2">{decodedStoreName}</h1>
+          <h1 className="text-4xl font-bold mb-2">{decodedStoreIdOrName}</h1>
           <p className="text-zinc-400 text-sm">店舗詳細ダッシュボード</p>
         </div>
       </div>

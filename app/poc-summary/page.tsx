@@ -220,7 +220,7 @@ export default async function PocSummaryPage() {
             {storeSummaries.map((store, index) => (
               <Link
                 key={store.storeName}
-                href={`/stores/${encodeURIComponent(store.storeName)}`}
+                href={`/store/${encodeURIComponent(store.storeName)}`}
                 className="block bg-zinc-950 border border-zinc-800 rounded-lg p-6 hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-center justify-between">

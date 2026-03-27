@@ -92,7 +92,7 @@ export default function StoresClient({ initialMembers }: Props) {
                     <tr key={store.storeName} className="hover:bg-zinc-800/50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="text-zinc-500 text-xs mr-2">#{index + 1}</span>
-                        <Link href={`/stores/${encodeURIComponent(store.storeName)}`} className="text-blue-400 hover:text-blue-300 hover:underline font-medium">
+                        <Link href={`/store/${encodeURIComponent(store.storeName)}`} className="text-blue-400 hover:text-blue-300 hover:underline font-medium">
                           {store.storeName}
                         </Link>
                       </td>

@@ -807,7 +807,7 @@ export default async function Home() {
                   <tr key={store.storeName} className="hover:bg-zinc-800/50 transition-colors">
                     <td className="px-4 py-3 text-sm text-zinc-100">
                       <Link
-                        href={`/stores/${encodeURIComponent(store.storeName)}`}
+                        href={`/store/${encodeURIComponent(store.storeName)}`}
                         className="text-blue-400 hover:text-blue-300 hover:underline"
                       >
                         {store.storeName}
@@ -860,7 +860,7 @@ export default async function Home() {
               <p className="text-zinc-500 text-xs mb-2">継続率が高い順に並べています</p>
               <div className="space-y-2">
                 {retentionTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-green-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-green-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
                       <span className="text-green-300 text-xs font-semibold">{store.estimatedRetentionRate.toFixed(1)}%</span>
@@ -875,7 +875,7 @@ export default async function Home() {
               <p className="text-zinc-500 text-xs mb-2">来月失う可能性のある売上が大きい順です</p>
               <div className="space-y-2">
                 {lossTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-red-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-red-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
                       <span className="text-red-300 text-xs font-semibold">{formatter.format(store.expectedLoss30Days)}</span>
@@ -890,7 +890,7 @@ export default async function Home() {
               <p className="text-zinc-500 text-xs mb-2">成功度スコアが高い順です</p>
               <div className="space-y-2">
                 {successTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-emerald-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-emerald-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
                       <span className="text-emerald-300 text-xs font-semibold">Score {store.successScore}</span>
@@ -905,7 +905,7 @@ export default async function Home() {
               <p className="text-zinc-500 text-xs mb-2">リスクスコアが高い順です</p>
               <div className="space-y-2">
                 {problemTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/stores/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-orange-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-orange-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
                       <span className="text-orange-300 text-xs font-semibold">Risk {store.riskScore}</span>
@@ -2720,7 +2720,7 @@ export default async function Home() {
                             {store.storeName}
                           </h3>
                           <Link
-                            href={`/stores/${encodeURIComponent(store.storeName)}`}
+                            href={`/store/${encodeURIComponent(store.storeName)}`}
                             className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
                           >
                             詳細を見る →
