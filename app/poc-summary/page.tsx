@@ -1,4 +1,6 @@
-import Link from "next/link";
+import { ContextualMemberLink } from "@/components/navigation/ContextualMemberLink";
+import { ContextualStoreLink } from "@/components/navigation/ContextualStoreLink";
+import { PocSummaryFooterLinks } from "@/components/navigation/PocSummaryFooterLinks";
 import { memberRepository } from "@/lib/repositories";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
@@ -163,9 +165,9 @@ export default async function PocSummaryPage() {
           <h2 className="text-3xl font-bold mb-6">退会予測ランキング（上位5名）</h2>
           <div className="space-y-4">
             {churnRanking.map((item, index) => (
-              <Link
+              <ContextualMemberLink
                 key={item.member.id}
-                href={`/members/${item.member.id}`}
+                memberId={item.member.id}
                 className="block bg-zinc-950 border border-zinc-800 rounded-lg p-6 hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-center justify-between">
@@ -208,7 +210,7 @@ export default async function PocSummaryPage() {
                   <span className="font-semibold">推奨アクション:</span>{" "}
                   {item.intervention.title}
                 </div>
-              </Link>
+              </ContextualMemberLink>
             ))}
           </div>
         </div>
@@ -218,9 +220,9 @@ export default async function PocSummaryPage() {
           <h2 className="text-3xl font-bold mb-6">店舗別収益リスク 上位3店舗</h2>
           <div className="space-y-4">
             {storeSummaries.map((store, index) => (
-              <Link
+              <ContextualStoreLink
                 key={store.storeName}
-                href={`/store/${encodeURIComponent(store.storeName)}`}
+                storeName={store.storeName}
                 className="block bg-zinc-950 border border-zinc-800 rounded-lg p-6 hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-center justify-between">
@@ -266,7 +268,7 @@ export default async function PocSummaryPage() {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </ContextualStoreLink>
             ))}
           </div>
         </div>
@@ -279,9 +281,9 @@ export default async function PocSummaryPage() {
               const isHighRisk =
                 item.riskScore >= 70 || item.probability30Days >= 70;
               return (
-                <Link
+                <ContextualMemberLink
                   key={item.id}
-                  href={`/members/${item.id}`}
+                  memberId={item.id}
                   className={`block bg-zinc-950 border rounded-lg p-6 hover:bg-zinc-800/50 transition-colors ${
                     isHighRisk ? "border-red-500/40" : "border-zinc-800"
                   }`}
@@ -331,7 +333,7 @@ export default async function PocSummaryPage() {
                       {item.suggestedAction}
                     </div>
                   </div>
-                </Link>
+                </ContextualMemberLink>
               );
             })}
           </div>
@@ -426,38 +428,7 @@ export default async function PocSummaryPage() {
 
         {/* 導線リンク */}
         <div className="text-center">
-          <div className="flex justify-center gap-4 flex-wrap">
-            <Link
-              href="/demo"
-              className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
-            >
-              Demo画面を見る
-            </Link>
-            <Link
-              href="/price-revision"
-              className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
-            >
-              価格改定影響分析を見る
-            </Link>
-            <Link
-              href="/stores"
-              className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
-            >
-              店舗一覧を見る
-            </Link>
-            <Link
-              href="/members"
-              className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
-            >
-              会員一覧を見る
-            </Link>
-            <Link
-              href="/"
-              className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
-            >
-              ダッシュボードを見る
-            </Link>
-          </div>
+          <PocSummaryFooterLinks />
         </div>
       </div>
     </div>

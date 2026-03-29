@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { ContextualMemberLink } from "@/components/navigation/ContextualMemberLink";
+import { TrainerListBackLink } from "@/components/trainers/TrainerListBackLink";
 import { memberRepository, taskRepository } from "@/lib/repositories";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getRevenueAtRisk } from "@/lib/revenueRisk";
@@ -176,12 +177,9 @@ export default async function TrainerDetailPage({
       {/* ヘッダー */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <Link
-            href="/"
-            className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block"
-          >
-            ← ダッシュボードに戻る
-          </Link>
+          <TrainerListBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block">
+            ← トレーナー一覧に戻る
+          </TrainerListBackLink>
           <h1 className="text-4xl font-bold mb-2">{decodedTrainerName}</h1>
           <p className="text-zinc-400 text-sm">
             担当会員の状況と優先対応を確認して、継続率改善に取り組みましょう
@@ -434,9 +432,9 @@ export default async function TrainerDetailPage({
         ) : (
           <div className="space-y-3 max-h-[600px] overflow-y-auto">
             {membersList.map((item) => (
-              <Link
+              <ContextualMemberLink
                 key={item.member.id}
-                href={`/members/${item.member.id}`}
+                memberId={item.member.id}
                 className="block bg-zinc-950 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
@@ -484,7 +482,7 @@ export default async function TrainerDetailPage({
                     {item.intervention.title}
                   </div>
                 </div>
-              </Link>
+              </ContextualMemberLink>
             ))}
           </div>
         )}
@@ -508,9 +506,9 @@ export default async function TrainerDetailPage({
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto">
               {churnPredictions.map((item, index) => (
-                <Link
+                <ContextualMemberLink
                   key={item.member.id}
-                  href={`/members/${item.member.id}`}
+                  memberId={item.member.id}
                   className="block bg-zinc-950 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -564,7 +562,7 @@ export default async function TrainerDetailPage({
                       {item.intervention.title}
                     </div>
                   </div>
-                </Link>
+                </ContextualMemberLink>
               ))}
             </div>
           )}
@@ -587,9 +585,9 @@ export default async function TrainerDetailPage({
               {priorityQueue.map((item, index) => {
                 const isHighRisk = item.riskScore >= 80;
                 return (
-                  <Link
+                  <ContextualMemberLink
                     key={item.id}
-                    href={`/members/${item.id}`}
+                    memberId={item.id}
                     className={`block border rounded-lg p-4 hover:bg-zinc-800/50 transition-colors ${
                       isHighRisk
                         ? "bg-red-950/30 border-red-800/50"
@@ -642,7 +640,7 @@ export default async function TrainerDetailPage({
                         {item.suggestedAction}
                       </div>
                     </div>
-                  </Link>
+                  </ContextualMemberLink>
                 );
               })}
             </div>

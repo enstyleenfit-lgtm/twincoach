@@ -5,7 +5,7 @@ import { generateHQActionPlan } from "@/lib/hqActionAI";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { getPriceRevisionImpact } from "@/lib/priceRevisionImpact";
-import Link from "next/link";
+import { ContextualStoreLink } from "@/components/navigation/ContextualStoreLink";
 
 export default async function HQPage() {
   const members = await memberRepository.getAll();
@@ -130,12 +130,12 @@ export default async function HQPage() {
                       <span className="text-zinc-500 font-mono text-sm w-6">
                         {i + 1}.
                       </span>
-                      <Link
-                        href={`/store/${encodeURIComponent(name)}`}
+                      <ContextualStoreLink
+                        storeName={name}
                         className="text-lg font-semibold text-white hover:text-emerald-400 transition-colors border-b border-transparent hover:border-emerald-400/50 pb-0.5"
                       >
                         {name}
-                      </Link>
+                      </ContextualStoreLink>
                     </li>
                   ))}
                 </ol>
@@ -221,12 +221,12 @@ export default async function HQPage() {
                     <span className="text-lg font-bold text-white">{index + 1}</span>
                   </td>
                   <td className="py-3 px-4">
-                    <Link
-                      href={`/store/${encodeURIComponent(store.storeName)}`}
+                    <ContextualStoreLink
+                      storeName={store.storeName}
                       className="text-blue-400 hover:text-blue-300"
                     >
                       {store.storeName}
-                    </Link>
+                    </ContextualStoreLink>
                   </td>
                   <td className="py-3 px-4 text-right text-white">
                     ¥{store.monthlyRevenue.toLocaleString()}
@@ -269,12 +269,12 @@ export default async function HQPage() {
                 problemStores.map((store) => (
                   <tr key={store.storeName} className="border-b border-zinc-800 hover:bg-zinc-800/50">
                     <td className="py-3 px-4">
-                      <Link
-                        href={`/store/${encodeURIComponent(store.storeName)}`}
+                      <ContextualStoreLink
+                        storeName={store.storeName}
                         className="text-blue-400 hover:text-blue-300"
                       >
                         {store.storeName}
-                      </Link>
+                      </ContextualStoreLink>
                     </td>
                     <td className="py-3 px-4 text-right">
                       <span className="text-red-400 font-bold">{store.highRiskMembers}名</span>

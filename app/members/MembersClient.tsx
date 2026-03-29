@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAppRouteSegment } from "@/components/navigation/AppRouteContext";
+import { dashboardHref, memberDetailHref } from "@/lib/routeContext";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
 import { Member } from "@/types";
@@ -23,6 +25,7 @@ type Props = {
 
 export default function MembersClient({ initialMembers }: Props) {
   console.log("[render-check] app/members/MembersClient.tsx rendered");
+  const seg = useAppRouteSegment();
   const [members, setMembers] = useState<Member[]>([]);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -43,7 +46,7 @@ export default function MembersClient({ initialMembers }: Props) {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
         <Link
-          href="/"
+          href={dashboardHref(seg)}
           className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
         >
           ← ダッシュボードに戻る
@@ -66,7 +69,7 @@ export default function MembersClient({ initialMembers }: Props) {
               return (
                 <Link
                   key={member.id}
-                  href={`/members/${member.id}`}
+                  href={memberDetailHref(seg, member.id)}
                   className="block rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-2 hover:border-zinc-700 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -134,7 +137,7 @@ export default function MembersClient({ initialMembers }: Props) {
                     >
                       <td className="px-6 py-4">
                         <Link
-                          href={`/members/${member.id}`}
+                          href={memberDetailHref(seg, member.id)}
                           className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
                         >
                           {member.name}

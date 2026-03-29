@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { DashboardBackLink } from "@/components/navigation/DashboardBackLink";
+import { ContextualMemberLink } from "@/components/navigation/ContextualMemberLink";
 import { memberRepository } from "@/lib/repositories";
 import { getPriceRevisionImpact } from "@/lib/priceRevisionImpact";
 import { calculateRiskScore } from "@/lib/riskScore";
@@ -238,12 +240,9 @@ export default async function PriceRevisionPage() {
       {/* ヘッダー */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <Link
-            href="/"
-            className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block"
-          >
+          <DashboardBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block">
             ← ダッシュボードに戻る
-          </Link>
+          </DashboardBackLink>
           <h1 className="text-4xl font-bold mb-2">価格改定影響分析</h1>
           <p className="text-zinc-400 text-sm">
             価格改定後の離脱リスクを管理し、守るべき売上を可視化します
@@ -373,9 +372,9 @@ export default async function PriceRevisionPage() {
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto">
               {churnPredictions.map((item, index) => (
-                <Link
+                <ContextualMemberLink
                   key={item.member.id}
-                  href={`/members/${item.member.id}`}
+                  memberId={item.member.id}
                   className="block bg-zinc-950 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -433,7 +432,7 @@ export default async function PriceRevisionPage() {
                       {item.intervention.title}
                     </div>
                   </div>
-                </Link>
+                </ContextualMemberLink>
               ))}
             </div>
           )}
@@ -453,9 +452,9 @@ export default async function PriceRevisionPage() {
               {priorityQueue.map((item, index) => {
                 const isHighRisk = item.riskScore >= 80;
                 return (
-                  <Link
+                  <ContextualMemberLink
                     key={item.id}
-                    href={`/members/${item.id}`}
+                    memberId={item.id}
                     className={`block border rounded-lg p-4 hover:bg-zinc-800/50 transition-colors ${
                       isHighRisk
                         ? "bg-red-950/30 border-red-800/50"
@@ -516,7 +515,7 @@ export default async function PriceRevisionPage() {
                         {item.suggestedAction}
                       </div>
                     </div>
-                  </Link>
+                  </ContextualMemberLink>
                 );
               })}
             </div>
@@ -721,9 +720,9 @@ export default async function PriceRevisionPage() {
             ) : (
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {priceRevisionChurnRanking.map((item, index) => (
-                  <Link
+                  <ContextualMemberLink
                     key={item.member.id}
-                    href={`/members/${item.member.id}`}
+                    memberId={item.member.id}
                     className="block bg-zinc-900 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-2">
@@ -781,7 +780,7 @@ export default async function PriceRevisionPage() {
                         {item.intervention.title}
                       </div>
                     </div>
-                  </Link>
+                  </ContextualMemberLink>
                 ))}
               </div>
             )}
@@ -801,9 +800,9 @@ export default async function PriceRevisionPage() {
                 {priceRevisionPriorityQueue.map((item, index) => {
                   const isHighRisk = item.riskScore >= 80;
                   return (
-                    <Link
+                    <ContextualMemberLink
                       key={item.id}
-                      href={`/members/${item.id}`}
+                      memberId={item.id}
                       className={`block border rounded-lg p-4 hover:bg-zinc-800/50 transition-colors ${
                         isHighRisk
                           ? "bg-red-950/30 border-red-800/50"
@@ -864,7 +863,7 @@ export default async function PriceRevisionPage() {
                           {item.suggestedAction}
                         </div>
                       </div>
-                    </Link>
+                    </ContextualMemberLink>
                   );
                 })}
               </div>

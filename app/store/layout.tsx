@@ -1,9 +1,9 @@
 import { AppRouteProvider } from "@/components/navigation/AppRouteContext";
 
-export default function OwnerLayout({
+export default function StoreDetailRouteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <AppRouteProvider segment="owner">{children}</AppRouteProvider>;
+  return <AppRouteProvider segment="store">{children}</AppRouteProvider>;
 }

@@ -1,4 +1,6 @@
-import Link from "next/link";
+import { DashboardBackLink } from "@/components/navigation/DashboardBackLink";
+import { ContextualStoreLink } from "@/components/navigation/ContextualStoreLink";
+import { ContextualTrainerLink } from "@/components/navigation/ContextualTrainerLink";
 import { memberRepository } from "@/lib/repositories";
 import { getMonthlyReportSummary } from "@/lib/monthlyReport";
 
@@ -18,12 +20,9 @@ export default async function ReportsPage() {
       <div className="container mx-auto px-8 py-12 max-w-7xl">
         {/* ヘッダー */}
         <div className="mb-12">
-          <Link
-            href="/"
-            className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-4 inline-block"
-          >
+          <DashboardBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-4 inline-block">
             ← ダッシュボードに戻る
-          </Link>
+          </DashboardBackLink>
           <h1 className="text-5xl font-bold mb-4">月次レポート</h1>
           <p className="text-2xl text-zinc-400">{monthYear}</p>
         </div>
@@ -110,9 +109,9 @@ export default async function ReportsPage() {
           <h2 className="text-3xl font-bold mb-6">店舗別リスク 上位3店舗</h2>
           <div className="space-y-4">
             {report.top3Stores.map((store, index) => (
-              <Link
+              <ContextualStoreLink
                 key={store.storeName}
-                href={`/store/${encodeURIComponent(store.storeName)}`}
+                storeName={store.storeName}
                 className="block bg-zinc-950 border border-zinc-800 rounded-lg p-6 hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-center justify-between">
@@ -159,7 +158,7 @@ export default async function ReportsPage() {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </ContextualStoreLink>
             ))}
           </div>
         </div>
@@ -169,9 +168,9 @@ export default async function ReportsPage() {
           <h2 className="text-3xl font-bold mb-6">トレーナー別リスク 上位3名</h2>
           <div className="space-y-4">
             {report.top3Trainers.map((trainer, index) => (
-              <Link
+              <ContextualTrainerLink
                 key={trainer.trainerName}
-                href={`/trainers/${encodeURIComponent(trainer.trainerName)}`}
+                trainerName={trainer.trainerName}
                 className="block bg-zinc-950 border border-zinc-800 rounded-lg p-6 hover:bg-zinc-800/50 transition-colors"
               >
                 <div className="flex items-center justify-between">
@@ -218,7 +217,7 @@ export default async function ReportsPage() {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </ContextualTrainerLink>
             ))}
           </div>
         </div>

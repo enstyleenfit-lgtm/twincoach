@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { ContextualMemberLink } from "@/components/navigation/ContextualMemberLink";
+import { StoresListBackLink } from "@/components/navigation/StoresListBackLink";
 import { memberRepository, taskRepository } from "@/lib/repositories";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getRevenueAtRisk } from "@/lib/revenueRisk";
@@ -212,12 +213,9 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
       {/* ヘッダー */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <Link
-            href="/stores"
-            className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block"
-          >
+          <StoresListBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block">
             ← Back to Stores
-          </Link>
+          </StoresListBackLink>
           <h1 className="text-4xl font-bold mb-2">{decodedStoreIdOrName}</h1>
           <p className="text-zinc-400 text-sm">店舗詳細ダッシュボード</p>
         </div>
@@ -404,9 +402,9 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
           ) : (
             <div className="space-y-3">
               {churnRanking.map((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; riskResult: ReturnType<typeof calculateRiskScore>; intervention: ReturnType<typeof getInterventionSuggestion> }, index: number) => (
-                <Link
+                <ContextualMemberLink
                   key={item.member.id}
-                  href={`/members/${item.member.id}`}
+                  memberId={item.member.id}
                   className="block bg-zinc-950 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -453,7 +451,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
                       詳細を見る →
                     </div>
                   </div>
-                </Link>
+                </ContextualMemberLink>
               ))}
             </div>
           )}
@@ -469,9 +467,9 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
               {priorityQueue.map((item: PriorityQueueItem, index: number) => {
                 const isHighRisk = item.riskScore >= 70 || item.probability30Days >= 70;
                 return (
-                  <Link
+                  <ContextualMemberLink
                     key={item.id}
-                    href={`/members/${item.id}`}
+                    memberId={item.id}
                     className={`block bg-zinc-950 border rounded-lg p-4 hover:bg-zinc-800/50 transition-colors ${
                       isHighRisk
                         ? "border-red-500/40"
@@ -518,7 +516,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
                         詳細を見る →
                       </div>
                     </div>
-                  </Link>
+                  </ContextualMemberLink>
                 );
               })}
             </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { DashboardBackLink } from "@/components/navigation/DashboardBackLink";
 import { generateTasksFromHighRiskMembers } from "@/lib/taskGenerator";
 import { Task, Member } from "@/types";
 
@@ -104,12 +105,9 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-6">
-          <Link
-            href="/"
-            className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
-          >
+          <DashboardBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm">
             ← Back to Dashboard
-          </Link>
+          </DashboardBackLink>
         </div>
         <h1 className="text-4xl font-bold mb-8">介入タスク</h1>
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
@@ -126,12 +124,9 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
-        <Link
-          href="/"
-          className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
-        >
+        <DashboardBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm">
           ← Back to Dashboard
-        </Link>
+        </DashboardBackLink>
       </div>
       <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8">タスク一覧</h1>
 

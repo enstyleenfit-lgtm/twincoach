@@ -9,14 +9,16 @@ import {
 } from "@/components/sidebar/MobileTrainerTabBar";
 import { OwnerSidebar } from "@/components/sidebar/OwnerSidebar";
 import { TrainerSidebar } from "@/components/sidebar/TrainerSidebar";
+import { StoreSidebar } from "@/components/sidebar/StoreSidebar";
 import { AppTopBar } from "@/components/layout/AppTopBar";
 
 type Props = { children: ReactNode };
-type Role = "hq" | "owner" | "trainer";
+type Role = "hq" | "owner" | "store" | "trainer";
 
 function roleFromPathname(pathname: string): Role {
   if (pathname.startsWith("/hq")) return "hq";
   if (pathname.startsWith("/owner")) return "owner";
+  if (pathname.startsWith("/stores") || pathname.startsWith("/store/")) return "store";
   return "trainer";
 }
 
@@ -29,6 +31,8 @@ export function RoleBasedShell({ children }: Props) {
       <HQSidebar />
     ) : role === "owner" ? (
       <OwnerSidebar />
+    ) : role === "store" ? (
+      <StoreSidebar />
     ) : (
       <TrainerSidebar />
     );

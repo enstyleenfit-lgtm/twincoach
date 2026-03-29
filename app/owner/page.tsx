@@ -8,6 +8,7 @@ import { generateNextActions } from "@/lib/nextActionAI";
 import { memberRepository } from "@/lib/repositories";
 import { Member } from "@/types";
 import Link from "next/link";
+import { ContextualStoreLink } from "@/components/navigation/ContextualStoreLink";
 import { getTrainerMetrics } from "@/lib/trainerMetrics";
 import { generateRevenueImprovementPlan } from "@/lib/revenueImprovementAI";
 import { getStoreActionPlan } from "@/lib/storeActionPlan";
@@ -132,7 +133,7 @@ export default async function OwnerPage() {
                   <tr key={member.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
                     <td className="py-3 px-4">
                       <Link
-                        href={`/members/${member.id}`}
+                        href={`/owner/members/${member.id}`}
                         className="text-blue-400 hover:text-blue-300"
                       >
                         {member.name}
@@ -202,7 +203,7 @@ export default async function OwnerPage() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
                       <Link
-                        href={`/members/${item.id}`}
+                        href={`/owner/members/${item.id}`}
                         className="text-white font-semibold hover:text-blue-400"
                       >
                         {item.name}
@@ -240,7 +241,7 @@ export default async function OwnerPage() {
                   </div>
                   <div className="mt-4">
                     <Link
-                      href={`/members/${item.id}`}
+                      href={`/owner/members/${item.id}`}
                       className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
                     >
                       詳細を見る →
@@ -258,9 +259,9 @@ export default async function OwnerPage() {
         <h2 className="text-xl font-bold mb-4">店舗別サマリー</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {topStoresByLoss.map((store) => (
-            <Link
+            <ContextualStoreLink
               key={store.storeName}
-              href={`/store/${encodeURIComponent(store.storeName)}`}
+              storeName={store.storeName}
               className="rounded-lg border border-zinc-800 bg-black/20 p-5 hover:border-zinc-600 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
@@ -295,7 +296,7 @@ export default async function OwnerPage() {
                   </span>
                 </div>
               </div>
-            </Link>
+            </ContextualStoreLink>
           ))}
         </div>
       </div>

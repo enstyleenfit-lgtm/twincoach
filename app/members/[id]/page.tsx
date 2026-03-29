@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MemberListBackLink } from "@/components/members/MemberListBackLink";
 import { memberRepository, visitRepository, interventionRepository } from "@/lib/repositories";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
@@ -55,12 +56,9 @@ export default async function MemberDetailPage({
   if (!member) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <Link
-          href="/members"
-          className="text-blue-400 hover:text-blue-300 hover:underline mb-4 inline-block"
-        >
+        <MemberListBackLink className="text-blue-400 hover:text-blue-300 hover:underline mb-4 inline-block">
           ← 会員一覧に戻る
-        </Link>
+        </MemberListBackLink>
         <h1 className="text-4xl font-bold mb-8">Member Not Found</h1>
         <p className="text-zinc-400">The member with ID "{id}" could not be found.</p>
       </div>
@@ -69,12 +67,9 @@ export default async function MemberDetailPage({
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <Link
-        href="/members"
-        className="text-blue-400 hover:text-blue-300 hover:underline mb-6 inline-block"
-      >
+      <MemberListBackLink className="text-blue-400 hover:text-blue-300 hover:underline mb-6 inline-block">
         ← Back to Members
-      </Link>
+      </MemberListBackLink>
 
       <h1 className="text-4xl font-bold mb-8">{member.name}</h1>
 

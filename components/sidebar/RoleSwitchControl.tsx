@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 
-type Role = "hq" | "owner" | "store";
+type Role = "hq" | "owner" | "store" | "trainer";
 
 function roleFromPathname(pathname: string): Role {
   if (pathname.startsWith("/hq")) return "hq";
   if (pathname.startsWith("/owner")) return "owner";
   if (pathname.startsWith("/stores") || pathname.startsWith("/store/")) return "store";
-  return "store";
+  return "trainer";
 }
 
 export function RoleSwitchControl() {

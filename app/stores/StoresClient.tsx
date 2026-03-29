@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAppRouteSegment } from "@/components/navigation/AppRouteContext";
+import { dashboardHref, storeDetailHref } from "@/lib/routeContext";
 import type { Member, StorePerformanceSummary } from "@/types";
 import { getStoreSummaries } from "@/lib/storeSummary";
 import { loadImportedMembers, mergeBaseAndImported } from "@/lib/importStore";
@@ -13,6 +15,7 @@ type Props = {
 };
 
 export default function StoresClient({ initialMembers }: Props) {
+  const seg = useAppRouteSegment();
   const [stores, setStores] = useState<StorePerformanceSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<RankingTab>("retention");
@@ -39,7 +42,10 @@ export default function StoresClient({ initialMembers }: Props) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
-        <Link href="/" className="text-blue-400 hover:text-blue-300 hover:underline text-sm">
+        <Link
+          href={dashboardHref(seg)}
+          className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+        >
           ← ダッシュボードに戻る
         </Link>
       </div>
@@ -92,7 +98,10 @@ export default function StoresClient({ initialMembers }: Props) {
                     <tr key={store.storeName} className="hover:bg-zinc-800/50 transition-colors">
                       <td className="px-6 py-4">
                         <span className="text-zinc-500 text-xs mr-2">#{index + 1}</span>
-                        <Link href={`/store/${encodeURIComponent(store.storeName)}`} className="text-blue-400 hover:text-blue-300 hover:underline font-medium">
+                        <Link
+                          href={storeDetailHref(seg, store.storeName)}
+                          className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                        >
                           {store.storeName}
                         </Link>
                       </td>

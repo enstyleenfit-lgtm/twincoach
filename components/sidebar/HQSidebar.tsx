@@ -1,10 +1,20 @@
- "use client";
+"use client";
 
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import { RoleSwitchControl } from "@/components/sidebar/RoleSwitchControl";
+import { HQ_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
 
 export function HQSidebar() {
+  const {
+    dashboard,
+    stores,
+    trainers,
+    reports,
+    priceRevision,
+    pocSummary,
+  } = HQ_SIDEBAR_LINKS;
+
   return (
     <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex-shrink-0 flex flex-col">
       <div className="p-6 border-b border-zinc-800">
@@ -15,7 +25,7 @@ export function HQSidebar() {
         <ul className="space-y-2">
           <li>
             <Link
-              href="/hq"
+              href={dashboard}
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
               ダッシュボード
@@ -23,7 +33,7 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href="/stores"
+              href={stores}
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
               店舗一覧
@@ -31,7 +41,7 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href="/trainers"
+              href={trainers}
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
               トレーナー一覧
@@ -39,7 +49,7 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href="/reports"
+              href={reports}
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
               レポート
@@ -47,7 +57,7 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href="/price-revision"
+              href={priceRevision}
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
               価格改定
@@ -55,7 +65,7 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href="/poc-summary"
+              href={pocSummary}
               className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
             >
               PoCサマリー
@@ -69,5 +79,3 @@ export function HQSidebar() {
     </aside>
   );
 }
-
-
