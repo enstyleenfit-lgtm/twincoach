@@ -7,6 +7,6 @@ export const sidebarTitle = "text-lg font-bold text-slate-900";
 export const sidebarNavLinkBase =
   "group flex items-center rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-200";
 export const sidebarNavLinkActive =
-  "bg-emerald-100/70 text-slate-900 ring-1 ring-emerald-300/70 shadow-sm shadow-emerald-900/5";
+  "bg-slate-200 text-slate-900 ring-1 ring-slate-400/60 shadow-sm shadow-slate-900/5";
 export const sidebarNavLinkInactive =
   "text-slate-700 hover:bg-slate-200 hover:text-slate-900";

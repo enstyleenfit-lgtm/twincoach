@@ -110,7 +110,7 @@ export function MobileTrainerTabBar() {
             key={href}
             href={href}
             className={`flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 transition-colors [touch-action:manipulation] ${
-              isActive ? "text-emerald-700" : "text-slate-500 hover:text-slate-800"
+              isActive ? "text-slate-900" : "text-slate-500 hover:text-slate-800"
             }`}
           >
             <Icon className="h-6 w-6 shrink-0" />
