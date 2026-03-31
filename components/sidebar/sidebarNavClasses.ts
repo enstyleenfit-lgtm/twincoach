@@ -1,8 +1,12 @@
 /** ライトテーマ左ナビ共通クラス */
 export const sidebarAside =
   "w-64 flex-shrink-0 flex flex-col border-r border-slate-200 bg-white shadow-sm";
-export const sidebarHeader = "border-b border-slate-200 p-6";
+export const sidebarHeader = "border-b border-slate-200/80 p-6 bg-slate-50/60";
 export const sidebarFooter = "border-t border-slate-200 p-4";
 export const sidebarTitle = "text-lg font-bold text-slate-900";
-export const sidebarNavLink =
-  "flex items-center rounded-lg px-4 py-3 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900";
+export const sidebarNavLinkBase =
+  "group flex items-center rounded-lg px-4 py-3 text-sm font-semibold transition-colors";
+export const sidebarNavLinkActive =
+  "bg-emerald-50 text-emerald-950 ring-1 ring-emerald-200/60 shadow-sm shadow-emerald-900/5";
+export const sidebarNavLinkInactive =
+  "text-slate-700 hover:bg-slate-100 hover:text-slate-900";
