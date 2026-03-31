@@ -18,11 +18,11 @@ export function RoleSwitchControl() {
   const currentRole = useMemo(() => roleFromPathname(pathname), [pathname]);
 
   const btn =
-    "flex-1 text-center rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors";
+    "flex-1 text-center rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors duration-200";
   const on =
-    "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm";
+    "border-emerald-600 bg-emerald-50 text-emerald-950 shadow-sm hover:bg-emerald-100";
   const off =
-    "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300";
+    "border-slate-200 bg-white text-slate-700 hover:bg-slate-200 hover:border-slate-300 hover:text-slate-900";
 
   return (
     <div className="mb-4">

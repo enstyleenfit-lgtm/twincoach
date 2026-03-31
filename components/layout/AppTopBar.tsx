@@ -98,7 +98,7 @@ export function AppTopBar() {
             type="button"
             onClick={() => setOpen((v) => !v)}
             disabled={loading || stores.length === 0}
-            className="flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-800 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-800 shadow-sm transition-colors duration-200 hover:bg-slate-200 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="max-w-[14rem] truncate">{displayName}</span>
             <span className={`rounded-full border px-2 py-0.5 text-[11px] ${statusBadgeClass(displayStatus)}`}>
@@ -117,10 +117,10 @@ export function AppTopBar() {
                       key={s.store.id}
                       type="button"
                       onClick={() => switchStore(s.store.id)}
-                      className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${
+                      className={`w-full rounded-lg px-3 py-2 text-left transition-colors duration-200 ${
                         active
                           ? "bg-slate-100 text-slate-900"
-                          : "text-slate-700 hover:bg-slate-50"
+                          : "text-slate-700 hover:bg-slate-200 hover:text-slate-900"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">

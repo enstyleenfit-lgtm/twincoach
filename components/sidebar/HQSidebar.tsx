@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/components/LogoutButton";
 import { RoleSwitchControl } from "@/components/sidebar/RoleSwitchControl";
 import { HQ_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
@@ -8,11 +9,14 @@ import {
   sidebarAside,
   sidebarFooter,
   sidebarHeader,
-  sidebarNavLink,
+  sidebarNavLinkActive,
+  sidebarNavLinkBase,
+  sidebarNavLinkInactive,
   sidebarTitle,
 } from "@/components/sidebar/sidebarNavClasses";
 
 export function HQSidebar() {
+  const pathname = usePathname();
   const {
     dashboard,
     stores,
@@ -21,6 +25,15 @@ export function HQSidebar() {
     priceRevision,
     pocSummary,
   } = HQ_SIDEBAR_LINKS;
+
+  const linkClass = (href: string) => {
+    const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+    return `${sidebarNavLinkBase} ${
+      active
+        ? `${sidebarNavLinkActive} hover:bg-emerald-100`
+        : `${sidebarNavLinkInactive} hover:bg-slate-200`
+    }`;
+  };
 
   return (
     <aside className={sidebarAside}>
@@ -31,32 +44,32 @@ export function HQSidebar() {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <Link href={dashboard} className={sidebarNavLink}>
+            <Link href={dashboard} className={linkClass(dashboard)}>
               ダッシュボード
             </Link>
           </li>
           <li>
-            <Link href={stores} className={sidebarNavLink}>
+            <Link href={stores} className={linkClass(stores)}>
               店舗一覧
             </Link>
           </li>
           <li>
-            <Link href={trainers} className={sidebarNavLink}>
+            <Link href={trainers} className={linkClass(trainers)}>
               トレーナー一覧
             </Link>
           </li>
           <li>
-            <Link href={reports} className={sidebarNavLink}>
+            <Link href={reports} className={linkClass(reports)}>
               レポート
             </Link>
           </li>
           <li>
-            <Link href={priceRevision} className={sidebarNavLink}>
+            <Link href={priceRevision} className={linkClass(priceRevision)}>
               価格改定
             </Link>
           </li>
           <li>
-            <Link href={pocSummary} className={sidebarNavLink}>
+            <Link href={pocSummary} className={linkClass(pocSummary)}>
               PoCサマリー
             </Link>
           </li>
