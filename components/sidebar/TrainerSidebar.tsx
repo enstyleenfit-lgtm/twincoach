@@ -4,55 +4,48 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import { TRAINER_APP_BRANDING_TITLE } from "@/lib/trainerBranding";
 import { RoleSwitchControl } from "@/components/sidebar/RoleSwitchControl";
+import {
+  sidebarAside,
+  sidebarFooter,
+  sidebarHeader,
+  sidebarNavLink,
+  sidebarTitle,
+} from "@/components/sidebar/sidebarNavClasses";
 
 export function TrainerSidebar() {
   return (
-    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex-shrink-0 flex flex-col">
-      <div className="p-6 border-b border-zinc-800">
-        <h1 className="text-xl font-bold text-white">{TRAINER_APP_BRANDING_TITLE}</h1>
+    <aside className={sidebarAside}>
+      <div className={sidebarHeader}>
+        <h1 className={sidebarTitle}>{TRAINER_APP_BRANDING_TITLE}</h1>
         <RoleSwitchControl />
       </div>
-      <nav className="p-4 flex-1">
+      <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <Link
-              href="/trainer"
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href="/trainer" className={sidebarNavLink}>
               今日の予約
             </Link>
           </li>
           <li>
-            <Link
-              href="/members"
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href="/members" className={sidebarNavLink}>
               会員一覧
             </Link>
           </li>
           <li>
-            <Link
-              href="/tasks"
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href="/tasks" className={sidebarNavLink}>
               介入タスク
             </Link>
           </li>
           <li>
-            <Link
-              href="/session-input"
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href="/session-input" className={sidebarNavLink}>
               セッション入力
             </Link>
           </li>
         </ul>
       </nav>
-      <div className="p-4 border-t border-zinc-800">
+      <div className={sidebarFooter}>
         <LogoutButton />
       </div>
     </aside>
   );
 }
-
-

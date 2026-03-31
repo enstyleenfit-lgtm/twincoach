@@ -9,26 +9,26 @@ import { Task, Member } from "@/types";
 function getStatusColor(status: string): string {
   switch (status) {
     case "pending":
-      return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
+      return "text-yellow-700 bg-yellow-400/10 border-yellow-400/20";
     case "in progress":
-      return "text-blue-400 bg-blue-400/10 border-blue-400/20";
+      return "text-blue-700 bg-blue-400/10 border-blue-400/20";
     case "done":
-      return "text-green-400 bg-green-400/10 border-green-400/20";
+      return "text-green-700 bg-green-400/10 border-green-400/20";
     default:
-      return "text-zinc-400 bg-zinc-400/10 border-zinc-400/20";
+      return "text-slate-600 bg-slate-100 border-slate-200";
   }
 }
 
 function getPriorityColor(priority: "low" | "medium" | "high" | undefined): string {
   switch (priority) {
     case "high":
-      return "text-red-400 bg-red-400/10 border-red-400/20";
+      return "text-red-600 bg-red-400/10 border-red-400/20";
     case "medium":
-      return "text-orange-400 bg-orange-400/10 border-orange-400/20";
+      return "text-orange-700 bg-orange-400/10 border-orange-400/20";
     case "low":
-      return "text-zinc-400 bg-zinc-400/10 border-zinc-400/20";
+      return "text-slate-600 bg-slate-100 border-slate-200";
     default:
-      return "text-zinc-400 bg-zinc-400/10 border-zinc-400/20";
+      return "text-slate-600 bg-slate-100 border-slate-200";
   }
 }
 
@@ -105,13 +105,13 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-6">
-          <DashboardBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm">
+          <DashboardBackLink className="text-blue-700 hover:text-blue-800 hover:underline text-sm">
             ← Back to Dashboard
           </DashboardBackLink>
         </div>
         <h1 className="text-4xl font-bold mb-8">介入タスク</h1>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-          <p className="text-zinc-400">表示するタスクがありません</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+          <p className="text-slate-600">表示するタスクがありません</p>
         </div>
       </div>
     );
@@ -124,26 +124,26 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
-        <DashboardBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm">
+        <DashboardBackLink className="text-blue-700 hover:text-blue-800 hover:underline text-sm">
           ← Back to Dashboard
         </DashboardBackLink>
       </div>
       <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8">タスク一覧</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">未対応タスク</h2>
-          <p className="text-3xl font-bold text-yellow-400">{pendingCount}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">未対応タスク</h2>
+          <p className="text-3xl font-bold text-yellow-700">{pendingCount}</p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">対応中タスク</h2>
-          <p className="text-3xl font-bold text-blue-400">{inProgressCount}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">対応中タスク</h2>
+          <p className="text-3xl font-bold text-blue-700">{inProgressCount}</p>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">完了タスク</h2>
-          <p className="text-3xl font-bold text-green-400">{doneCount}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">完了タスク</h2>
+          <p className="text-3xl font-bold text-green-700">{doneCount}</p>
         </div>
       </div>
 
@@ -152,22 +152,22 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
         {currentTasks.map((task) => (
           <div
             key={task.id}
-            className="rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-2"
+            className="rounded-md border border-slate-200 bg-white px-2.5 py-2"
           >
             <div className="flex items-start justify-between gap-3">
-              <p className="text-sm font-semibold text-white leading-5 [word-break:normal] break-normal whitespace-normal">
+              <p className="text-sm font-semibold text-slate-900 leading-5 [word-break:normal] break-normal whitespace-normal">
                 {task.memberName}
               </p>
             </div>
 
-            <p className="mt-1 text-[11px] leading-4 text-zinc-200">
-              <span className="text-zinc-500">アクション：</span>
+            <p className="mt-1 text-[11px] leading-4 text-slate-800">
+              <span className="text-slate-500">アクション：</span>
               <span className="line-clamp-2 break-words">{toTwoLineText(task.action, 48)}</span>
             </p>
 
             <div className="mt-1 text-[11px] leading-4">
-              <p className="text-zinc-200">
-                <span className="text-zinc-500">優先度：</span>
+              <p className="text-slate-800">
+                <span className="text-slate-500">優先度：</span>
                 {task.priority ? (
                   <span
                     className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium ${getPriorityColor(
@@ -177,7 +177,7 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
                     {task.priority === "high" ? "高" : task.priority === "medium" ? "中" : "低"}
                   </span>
                 ) : (
-                  <span className="text-zinc-400 text-xs">-</span>
+                  <span className="text-slate-600 text-xs">-</span>
                 )}
               </p>
             </div>
@@ -187,7 +187,7 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
                 <button
                   type="button"
                   onClick={() => handleStartTask(task.id)}
-                  className="rounded px-2 py-1 text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 transition-colors"
+                  className="rounded px-2 py-1 text-[10px] bg-blue-500/20 text-blue-700 border border-blue-500/30 hover:bg-blue-500/30 transition-colors"
                 >
                   タスク開始
                 </button>
@@ -196,64 +196,64 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
                 <button
                   type="button"
                   onClick={() => handleMarkAsDone(task.id)}
-                  className="rounded px-2 py-1 text-[10px] bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/30 transition-colors"
+                  className="rounded px-2 py-1 text-[10px] bg-green-500/20 text-green-700 border border-green-500/30 hover:bg-green-500/30 transition-colors"
                 >
                   完了にする
                 </button>
               )}
               {task.status === "done" && (
-                <span className="px-1 py-1 text-[10px] text-zinc-500">完了済み</span>
+                <span className="px-1 py-1 text-[10px] text-slate-500">完了済み</span>
               )}
             </div>
           </div>
         ))}
       </div>
       ) : (
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-zinc-800 border-b border-zinc-700">
+            <thead className="bg-slate-100 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                   会員
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                   アクション
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                   優先度
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                   ステータス
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                   担当トレーナー
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                   期限
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                   操作
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-slate-200">
               {currentTasks.map((task) => (
                 <tr
                   key={task.id}
-                  className="hover:bg-zinc-800/50 transition-colors"
+                  className="hover:bg-slate-100/80 transition-colors"
                 >
-                  <td className="px-6 py-4 text-zinc-300 font-medium">
+                  <td className="px-6 py-4 text-slate-700 font-medium">
                     <div className="flex items-center gap-2">
                       {task.memberName}
                       {task.isAutoGenerated && (
-                        <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                        <span className="text-xs px-2 py-0.5 rounded bg-blue-500/20 text-blue-700 border border-blue-500/30">
                           自動生成
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-zinc-300">{task.action}</td>
+                  <td className="px-6 py-4 text-slate-700">{task.action}</td>
                   <td className="px-6 py-4">
                     {task.priority ? (
                       <span
@@ -264,7 +264,7 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
                         {task.priority === "high" ? "高" : task.priority === "medium" ? "中" : "低"}
                       </span>
                     ) : (
-                      <span className="text-zinc-500 text-xs">-</span>
+                      <span className="text-slate-500 text-xs">-</span>
                     )}
                   </td>
                   <td className="px-6 py-4">
@@ -276,17 +276,17 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
                       {getStatusLabel(task.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-zinc-300">
+                  <td className="px-6 py-4 text-slate-700">
                     {task.assignedTrainer}
                   </td>
-                  <td className="px-6 py-4 text-zinc-300">{task.dueDate}</td>
+                  <td className="px-6 py-4 text-slate-700">{task.dueDate}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
                       {task.status === "pending" && (
                         <button
                           type="button"
                           onClick={() => handleStartTask(task.id)}
-                          className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors"
+                          className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-700 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors"
                         >
                           タスク開始
                         </button>
@@ -295,13 +295,13 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
                         <button
                           type="button"
                           onClick={() => handleMarkAsDone(task.id)}
-                          className="px-3 py-1.5 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors"
+                          className="px-3 py-1.5 text-xs bg-green-500/20 text-green-700 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors"
                         >
                           完了にする
                         </button>
                       )}
                       {task.status === "done" && (
-                        <span className="px-3 py-1.5 text-xs text-zinc-500">
+                        <span className="px-3 py-1.5 text-xs text-slate-500">
                           完了済み
                         </span>
                       )}

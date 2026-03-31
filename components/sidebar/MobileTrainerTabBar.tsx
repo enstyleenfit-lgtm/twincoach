@@ -100,7 +100,7 @@ export function MobileTrainerTabBar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex min-h-0 w-full max-w-full flex-row items-stretch justify-around border-t border-zinc-800 bg-black/95 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 text-[10px] font-medium leading-tight backdrop-blur-md supports-[backdrop-filter]:bg-black/80 lg:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 flex min-h-0 w-full max-w-full flex-row items-stretch justify-around border-t border-slate-200 bg-white/95 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 text-[10px] font-medium leading-tight shadow-[0_-4px_12px_rgba(15,23,42,0.06)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 lg:hidden"
       aria-label="店舗向けメインメニュー"
     >
       {TABS.map(({ href, label, Icon, active }) => {
@@ -110,7 +110,7 @@ export function MobileTrainerTabBar() {
             key={href}
             href={href}
             className={`flex min-h-[48px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 transition-colors [touch-action:manipulation] ${
-              isActive ? "text-emerald-400" : "text-zinc-500 hover:text-zinc-300"
+              isActive ? "text-emerald-700" : "text-slate-500 hover:text-slate-800"
             }`}
           >
             <Icon className="h-6 w-6 shrink-0" />

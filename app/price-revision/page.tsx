@@ -240,11 +240,11 @@ export default async function PriceRevisionPage() {
       {/* ヘッダー */}
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <DashboardBackLink className="text-blue-400 hover:text-blue-300 hover:underline text-sm mb-2 inline-block">
+          <DashboardBackLink className="text-blue-700 hover:text-blue-800 hover:underline text-sm mb-2 inline-block">
             ← ダッシュボードに戻る
           </DashboardBackLink>
           <h1 className="text-4xl font-bold mb-2">価格改定影響分析</h1>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             価格改定後の離脱リスクを管理し、守るべき売上を可視化します
           </p>
         </div>
@@ -252,84 +252,84 @@ export default async function PriceRevisionPage() {
 
       {/* KPIカード - 経営陣向けに大きめの数字 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8">
-          <div className="text-zinc-400 text-sm mb-2">改定対象会員数</div>
-          <div className="text-5xl font-bold text-white">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8">
+          <div className="text-slate-600 text-sm mb-2">改定対象会員数</div>
+          <div className="text-5xl font-bold text-slate-900">
             {priceRevisionImpact.targetMembers.length}
           </div>
-          <div className="text-zinc-500 text-sm mt-2">人</div>
+          <div className="text-slate-500 text-sm mt-2">人</div>
         </div>
 
-        <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-8">
-          <div className="text-zinc-400 text-sm mb-2">改定後高リスク会員数</div>
-          <div className="text-5xl font-bold text-red-400">
+        <div className="bg-white border border-red-500/40 rounded-lg p-8">
+          <div className="text-slate-600 text-sm mb-2">改定後高リスク会員数</div>
+          <div className="text-5xl font-bold text-red-600">
             {priceRevisionImpact.highRiskTargetMembers.length}
           </div>
-          <div className="text-zinc-500 text-sm mt-2">人</div>
+          <div className="text-slate-500 text-sm mt-2">人</div>
         </div>
 
-        <div className="bg-zinc-900 border border-green-500/40 rounded-lg p-8">
-          <div className="text-zinc-400 text-sm mb-2">月間増収見込み</div>
-          <div className="text-5xl font-bold text-green-400">
+        <div className="bg-white border border-green-500/40 rounded-lg p-8">
+          <div className="text-slate-600 text-sm mb-2">月間増収見込み</div>
+          <div className="text-5xl font-bold text-green-700">
             ¥{priceRevisionImpact.monthlyRevenueIncrease.toLocaleString()}
           </div>
-          <div className="text-zinc-500 text-sm mt-2">/月</div>
+          <div className="text-slate-500 text-sm mt-2">/月</div>
         </div>
 
-        <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-8">
-          <div className="text-zinc-400 text-sm mb-2">月間リスク売上</div>
-          <div className="text-5xl font-bold text-red-400">
+        <div className="bg-white border border-red-500/40 rounded-lg p-8">
+          <div className="text-slate-600 text-sm mb-2">月間リスク売上</div>
+          <div className="text-5xl font-bold text-red-600">
             ¥{priceRevisionImpact.monthlyRevenueAtRiskAfterRevision.toLocaleString()}
           </div>
-          <div className="text-zinc-500 text-sm mt-2">/月</div>
+          <div className="text-slate-500 text-sm mt-2">/月</div>
         </div>
 
-        <div className="bg-zinc-900 border border-green-500/40 rounded-lg p-8">
-          <div className="text-zinc-400 text-sm mb-2">守れる売上見込み</div>
-          <div className="text-5xl font-bold text-green-400">
+        <div className="bg-white border border-green-500/40 rounded-lg p-8">
+          <div className="text-slate-600 text-sm mb-2">守れる売上見込み</div>
+          <div className="text-5xl font-bold text-green-700">
             ¥{priceRevisionImpact.estimatedProtectedRevenue.toLocaleString()}
           </div>
-          <div className="text-zinc-500 text-sm mt-2">/月</div>
+          <div className="text-slate-500 text-sm mt-2">/月</div>
         </div>
       </div>
 
       {/* 改定前後比較グラフ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* 高リスク人数比較 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">高リスク人数</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">改定前</div>
-              <div className="text-3xl font-bold text-red-400">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">改定前</div>
+              <div className="text-3xl font-bold text-red-600">
                 {beforeData.highRiskMembers}
               </div>
-              <div className="text-zinc-500 text-xs mt-1">人</div>
+              <div className="text-slate-500 text-xs mt-1">人</div>
             </div>
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">改定後</div>
-              <div className="text-3xl font-bold text-orange-400">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">改定後</div>
+              <div className="text-3xl font-bold text-orange-700">
                 {afterData.highRiskMembers}
               </div>
-              <div className="text-zinc-500 text-xs mt-1">人</div>
+              <div className="text-slate-500 text-xs mt-1">人</div>
             </div>
           </div>
           <PriceRevisionChart data={highRiskChartData} />
         </div>
 
         {/* 推定継続率比較 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">推定継続率</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">改定前</div>
-              <div className="text-3xl font-bold text-green-400">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">改定前</div>
+              <div className="text-3xl font-bold text-green-700">
                 {beforeData.retentionRate.toFixed(1)}%
               </div>
             </div>
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">改定後</div>
-              <div className="text-3xl font-bold text-blue-400">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">改定後</div>
+              <div className="text-3xl font-bold text-blue-700">
                 {afterData.retentionRate.toFixed(1)}%
               </div>
             </div>
@@ -338,18 +338,18 @@ export default async function PriceRevisionPage() {
         </div>
 
         {/* リスク売上比較 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">リスク売上</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">改定前</div>
-              <div className="text-2xl font-bold text-red-400">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">改定前</div>
+              <div className="text-2xl font-bold text-red-600">
                 ¥{beforeData.monthlyRevenueAtRisk.toLocaleString()}
               </div>
             </div>
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">改定後</div>
-              <div className="text-2xl font-bold text-orange-400">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">改定後</div>
+              <div className="text-2xl font-bold text-orange-700">
                 ¥{afterData.monthlyRevenueAtRisk.toLocaleString()}
               </div>
             </div>
@@ -361,12 +361,12 @@ export default async function PriceRevisionPage() {
       {/* 退会予測ランキングと介入優先キュー */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* 退会予測ランキング */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">
             改定対象会員の退会予測ランキング（上位5名）
           </h2>
           {churnPredictions.length === 0 ? (
-            <p className="text-zinc-400 text-sm">
+            <p className="text-slate-600 text-sm">
               退会予測データがありません
             </p>
           ) : (
@@ -375,43 +375,43 @@ export default async function PriceRevisionPage() {
                 <ContextualMemberLink
                   key={item.member.id}
                   memberId={item.member.id}
-                  className="block bg-zinc-950 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
+                  className="block bg-slate-50 border border-slate-200 rounded-lg p-4 hover:bg-slate-100/80 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-zinc-500 text-xs font-semibold">
+                        <span className="text-slate-500 text-xs font-semibold">
                           #{index + 1}
                         </span>
-                        <div className="font-semibold text-white">
+                        <div className="font-semibold text-slate-900">
                           {item.member.name}
                         </div>
                       </div>
-                      <div className="text-zinc-400 text-xs mt-1">
+                      <div className="text-slate-600 text-xs mt-1">
                         {item.member.plan} | {item.member.storeName}
                       </div>
                     </div>
                     <div className="text-right ml-4">
-                      <div className="text-sm font-bold text-red-400">
+                      <div className="text-sm font-bold text-red-600">
                         {item.prediction.probability30Days}%
                       </div>
-                      <div className="text-xs text-zinc-500 mt-1">
+                      <div className="text-xs text-slate-500 mt-1">
                         30日退会確率
                       </div>
                     </div>
                   </div>
                   <div className="mt-2 space-y-1">
                     <div className="flex gap-2 text-xs">
-                      <span className="text-zinc-500">
+                      <span className="text-slate-500">
                         60日退会確率: {item.prediction.probability60Days}%
                       </span>
                       <span
                         className={`px-2 py-1 rounded ${
                           item.riskLevel === "high"
-                            ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                            ? "text-red-600 bg-red-400/10 border border-red-400/20"
                             : item.riskLevel === "medium"
-                            ? "text-yellow-400 bg-yellow-400/10 border border-yellow-400/20"
-                            : "text-green-400 bg-green-400/10 border border-green-400/20"
+                            ? "text-yellow-700 bg-yellow-400/10 border border-yellow-400/20"
+                            : "text-green-700 bg-green-400/10 border border-green-400/20"
                         }`}
                       >
                         {item.riskLevel === "high"
@@ -422,12 +422,12 @@ export default async function PriceRevisionPage() {
                       </span>
                     </div>
                     {item.prediction.reasons.length > 0 && (
-                      <div className="text-zinc-400 text-xs">
+                      <div className="text-slate-600 text-xs">
                         <span className="font-semibold">予測理由:</span>{" "}
                         {item.prediction.reasons.slice(0, 2).join(", ")}
                       </div>
                     )}
-                    <div className="text-zinc-400 text-xs">
+                    <div className="text-slate-600 text-xs">
                       <span className="font-semibold">推奨介入:</span>{" "}
                       {item.intervention.title}
                     </div>
@@ -439,12 +439,12 @@ export default async function PriceRevisionPage() {
         </div>
 
         {/* 介入優先キュー */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">
             改定対象会員の介入優先キュー
           </h2>
           {priorityQueue.length === 0 ? (
-            <p className="text-zinc-400 text-sm">
+            <p className="text-slate-600 text-sm">
               優先対応が必要な会員はありません
             </p>
           ) : (
@@ -455,23 +455,23 @@ export default async function PriceRevisionPage() {
                   <ContextualMemberLink
                     key={item.id}
                     memberId={item.id}
-                    className={`block border rounded-lg p-4 hover:bg-zinc-800/50 transition-colors ${
+                    className={`block border rounded-lg p-4 hover:bg-slate-100/80 transition-colors ${
                       isHighRisk
                         ? "bg-red-950/30 border-red-800/50"
-                        : "bg-zinc-950 border-zinc-800"
+                        : "bg-slate-50 border-slate-200"
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-zinc-500 text-xs font-semibold">
+                          <span className="text-slate-500 text-xs font-semibold">
                             #{index + 1}
                           </span>
-                          <div className="font-semibold text-white">
+                          <div className="font-semibold text-slate-900">
                             {item.name}
                           </div>
                         </div>
-                        <div className="text-zinc-400 text-xs mt-1">
+                        <div className="text-slate-600 text-xs mt-1">
                           {item.member.plan} | {item.member.storeName}
                         </div>
                       </div>
@@ -479,10 +479,10 @@ export default async function PriceRevisionPage() {
                         <div
                           className={`text-lg font-bold ${
                             item.riskScore >= 80
-                              ? "text-red-400"
+                              ? "text-red-600"
                               : item.riskScore >= 50
-                              ? "text-yellow-400"
-                              : "text-green-400"
+                              ? "text-yellow-700"
+                              : "text-green-700"
                           }`}
                         >
                           {item.riskScore}
@@ -491,10 +491,10 @@ export default async function PriceRevisionPage() {
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               item.priority === "high"
-                                ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                ? "text-red-600 bg-red-400/10 border border-red-400/20"
                                 : item.priority === "medium"
-                                ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                                : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                                ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                                : "text-slate-600 bg-slate-100 border border-slate-200"
                             }`}
                           >
                             {item.priority === "high"
@@ -507,10 +507,10 @@ export default async function PriceRevisionPage() {
                       </div>
                     </div>
                     <div className="mt-2 space-y-1">
-                      <div className="text-zinc-500 text-xs">
+                      <div className="text-slate-500 text-xs">
                         30日退会確率: {item.probability30Days}%
                       </div>
-                      <div className="text-zinc-400 text-xs">
+                      <div className="text-slate-600 text-xs">
                         <span className="font-semibold">推奨アクション:</span>{" "}
                         {item.suggestedAction}
                       </div>
@@ -524,55 +524,55 @@ export default async function PriceRevisionPage() {
       </div>
 
       {/* 詳細比較テーブル */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">改定前後の比較</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-zinc-800 border-b border-zinc-700">
+            <thead className="bg-slate-100 border-b border-slate-200">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">
                   指標
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">
                   改定前
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">
                   改定後
                 </th>
-                <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                <th className="px-4 py-3 text-left font-semibold text-slate-700">
                   差分
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
-              <tr className="hover:bg-zinc-800/60 transition-colors">
-                <td className="px-4 py-3 text-zinc-200">会員数</td>
-                <td className="px-4 py-3 text-white">
+            <tbody className="divide-y divide-slate-200">
+              <tr className="hover:bg-slate-100/60 transition-colors">
+                <td className="px-4 py-3 text-slate-800">会員数</td>
+                <td className="px-4 py-3 text-slate-900">
                   {beforeData.totalMembers}人
                 </td>
-                <td className="px-4 py-3 text-white">
+                <td className="px-4 py-3 text-slate-900">
                   {afterData.totalMembers}人
                 </td>
-                <td className="px-4 py-3 text-zinc-400">
+                <td className="px-4 py-3 text-slate-600">
                   {afterData.totalMembers - beforeData.totalMembers > 0
                     ? "+"
                     : ""}
                   {afterData.totalMembers - beforeData.totalMembers}人
                 </td>
               </tr>
-              <tr className="hover:bg-zinc-800/60 transition-colors">
-                <td className="px-4 py-3 text-zinc-200">高リスク会員数</td>
-                <td className="px-4 py-3 text-red-400">
+              <tr className="hover:bg-slate-100/60 transition-colors">
+                <td className="px-4 py-3 text-slate-800">高リスク会員数</td>
+                <td className="px-4 py-3 text-red-600">
                   {beforeData.highRiskMembers}人
                 </td>
-                <td className="px-4 py-3 text-red-400">
+                <td className="px-4 py-3 text-red-600">
                   {afterData.highRiskMembers}人
                 </td>
                 <td
                   className={`px-4 py-3 ${
                     afterData.highRiskMembers - beforeData.highRiskMembers > 0
-                      ? "text-red-400"
-                      : "text-green-400"
+                      ? "text-red-600"
+                      : "text-green-700"
                   }`}
                 >
                   {afterData.highRiskMembers - beforeData.highRiskMembers > 0
@@ -581,19 +581,19 @@ export default async function PriceRevisionPage() {
                   {afterData.highRiskMembers - beforeData.highRiskMembers}人
                 </td>
               </tr>
-              <tr className="hover:bg-zinc-800/60 transition-colors">
-                <td className="px-4 py-3 text-zinc-200">推定継続率</td>
-                <td className="px-4 py-3 text-green-400">
+              <tr className="hover:bg-slate-100/60 transition-colors">
+                <td className="px-4 py-3 text-slate-800">推定継続率</td>
+                <td className="px-4 py-3 text-green-700">
                   {beforeData.retentionRate.toFixed(1)}%
                 </td>
-                <td className="px-4 py-3 text-blue-400">
+                <td className="px-4 py-3 text-blue-700">
                   {afterData.retentionRate.toFixed(1)}%
                 </td>
                 <td
                   className={`px-4 py-3 ${
                     afterData.retentionRate - beforeData.retentionRate < 0
-                      ? "text-red-400"
-                      : "text-green-400"
+                      ? "text-red-600"
+                      : "text-green-700"
                   }`}
                 >
                   {afterData.retentionRate - beforeData.retentionRate > 0
@@ -602,27 +602,27 @@ export default async function PriceRevisionPage() {
                   {(afterData.retentionRate - beforeData.retentionRate).toFixed(1)}%
                 </td>
               </tr>
-              <tr className="hover:bg-zinc-800/60 transition-colors">
-                <td className="px-4 py-3 text-zinc-200">月間売上</td>
-                <td className="px-4 py-3 text-white">
+              <tr className="hover:bg-slate-100/60 transition-colors">
+                <td className="px-4 py-3 text-slate-800">月間売上</td>
+                <td className="px-4 py-3 text-slate-900">
                   ¥{beforeData.monthlyRevenue.toLocaleString()}
                 </td>
-                <td className="px-4 py-3 text-white">
+                <td className="px-4 py-3 text-slate-900">
                   ¥{afterData.monthlyRevenue.toLocaleString()}
                 </td>
-                <td className="px-4 py-3 text-green-400">
+                <td className="px-4 py-3 text-green-700">
                   +
                   ¥{(
                     afterData.monthlyRevenue - beforeData.monthlyRevenue
                   ).toLocaleString()}
                 </td>
               </tr>
-              <tr className="hover:bg-zinc-800/60 transition-colors">
-                <td className="px-4 py-3 text-zinc-200">月間リスク売上</td>
-                <td className="px-4 py-3 text-red-400">
+              <tr className="hover:bg-slate-100/60 transition-colors">
+                <td className="px-4 py-3 text-slate-800">月間リスク売上</td>
+                <td className="px-4 py-3 text-red-600">
                   ¥{beforeData.monthlyRevenueAtRisk.toLocaleString()}
                 </td>
-                <td className="px-4 py-3 text-orange-400">
+                <td className="px-4 py-3 text-orange-700">
                   ¥{afterData.monthlyRevenueAtRisk.toLocaleString()}
                 </td>
                 <td
@@ -630,8 +630,8 @@ export default async function PriceRevisionPage() {
                     afterData.monthlyRevenueAtRisk -
                       beforeData.monthlyRevenueAtRisk >
                     0
-                      ? "text-red-400"
-                      : "text-green-400"
+                      ? "text-red-600"
+                      : "text-green-700"
                   }`}
                 >
                   {afterData.monthlyRevenueAtRisk -
@@ -651,115 +651,115 @@ export default async function PriceRevisionPage() {
       </div>
 
       {/* 価格改定後30日モニター */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 mt-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-8 mt-8">
         <h2 className="text-3xl font-bold mb-4">価格改定後30日モニター</h2>
-        <p className="text-zinc-400 text-sm mb-6">
+        <p className="text-slate-600 text-sm mb-6">
           価格改定後30日間のリスク変化と、優先的に守るべき会員を表示しています
         </p>
 
         {/* KPIカード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-2">改定対象会員数</div>
-            <div className="text-4xl font-bold text-white">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-2">改定対象会員数</div>
+            <div className="text-4xl font-bold text-slate-900">
               {priceRevision30Days.targetMembers}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">人</div>
+            <div className="text-slate-500 text-xs mt-1">人</div>
           </div>
 
-          <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-2">改定後高リスク会員数</div>
-            <div className="text-4xl font-bold text-red-400">
+          <div className="bg-slate-50 border border-red-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-2">改定後高リスク会員数</div>
+            <div className="text-4xl font-bold text-red-600">
               {priceRevision30Days.highRiskMembersAfterRevision}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">人</div>
+            <div className="text-slate-500 text-xs mt-1">人</div>
           </div>
 
-          <div className="bg-zinc-950 border border-orange-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-2">リスク上昇会員数</div>
-            <div className="text-4xl font-bold text-orange-400">
+          <div className="bg-slate-50 border border-orange-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-2">リスク上昇会員数</div>
+            <div className="text-4xl font-bold text-orange-700">
               {priceRevision30Days.increasedRiskMembers}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">人</div>
+            <div className="text-slate-500 text-xs mt-1">人</div>
           </div>
 
-          <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-2">来店減少会員数</div>
-            <div className="text-4xl font-bold text-yellow-400">
+          <div className="bg-slate-50 border border-yellow-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-2">来店減少会員数</div>
+            <div className="text-4xl font-bold text-yellow-700">
               {priceRevision30Days.visitDropMembers}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">人</div>
+            <div className="text-slate-500 text-xs mt-1">人</div>
           </div>
 
-          <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-2">30日損失予測</div>
-            <div className="text-4xl font-bold text-red-400">
+          <div className="bg-slate-50 border border-red-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-2">30日損失予測</div>
+            <div className="text-4xl font-bold text-red-600">
               ¥{Math.round(priceRevision30Days.expectedLoss30Days).toLocaleString()}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">期待損失額</div>
+            <div className="text-slate-500 text-xs mt-1">期待損失額</div>
           </div>
 
-          <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-2">守れた売上見込み</div>
-            <div className="text-4xl font-bold text-green-400">
+          <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-2">守れた売上見込み</div>
+            <div className="text-4xl font-bold text-green-700">
               ¥{Math.round(priceRevision30Days.protectedRevenueEstimate).toLocaleString()}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">/月</div>
+            <div className="text-slate-500 text-xs mt-1">/月</div>
           </div>
         </div>
 
         {/* 退会予測ランキングと介入優先キュー */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 改定対象会員の退会予測ランキング */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-4">
               改定対象会員の退会予測ランキング（上位5名）
             </h3>
             {priceRevisionChurnRanking.length === 0 ? (
-              <p className="text-zinc-400 text-sm">退会予測データがありません</p>
+              <p className="text-slate-600 text-sm">退会予測データがありません</p>
             ) : (
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {priceRevisionChurnRanking.map((item, index) => (
                   <ContextualMemberLink
                     key={item.member.id}
                     memberId={item.member.id}
-                    className="block bg-zinc-900 border border-zinc-800 rounded-lg p-4 hover:bg-zinc-800/50 transition-colors"
+                    className="block bg-white border border-slate-200 shadow-sm rounded-lg p-4 hover:bg-slate-100/80 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-zinc-500 text-xs font-semibold">
+                          <span className="text-slate-500 text-xs font-semibold">
                             #{index + 1}
                           </span>
-                          <div className="font-semibold text-white">
+                          <div className="font-semibold text-slate-900">
                             {item.member.name}
                           </div>
                         </div>
-                        <div className="text-zinc-400 text-xs mt-1">
+                        <div className="text-slate-600 text-xs mt-1">
                           {item.member.plan} | {item.member.storeName}
                         </div>
                       </div>
                       <div className="text-right ml-4">
-                        <div className="text-sm font-bold text-red-400">
+                        <div className="text-sm font-bold text-red-600">
                           {item.prediction.probability30Days}%
                         </div>
-                        <div className="text-xs text-zinc-500 mt-1">
+                        <div className="text-xs text-slate-500 mt-1">
                           30日退会確率
                         </div>
                       </div>
                     </div>
                     <div className="mt-2 space-y-1">
                       <div className="flex gap-2 text-xs">
-                        <span className="text-zinc-500">
+                        <span className="text-slate-500">
                           60日退会確率: {item.prediction.probability60Days}%
                         </span>
                         <span
                           className={`px-2 py-1 rounded ${
                             item.riskLevel === "high"
-                              ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                              ? "text-red-600 bg-red-400/10 border border-red-400/20"
                               : item.riskLevel === "medium"
-                              ? "text-yellow-400 bg-yellow-400/10 border border-yellow-400/20"
-                              : "text-green-400 bg-green-400/10 border border-green-400/20"
+                              ? "text-yellow-700 bg-yellow-400/10 border border-yellow-400/20"
+                              : "text-green-700 bg-green-400/10 border border-green-400/20"
                           }`}
                         >
                           {item.riskLevel === "high"
@@ -770,12 +770,12 @@ export default async function PriceRevisionPage() {
                         </span>
                       </div>
                       {item.prediction.reasons.length > 0 && (
-                        <div className="text-zinc-400 text-xs">
+                        <div className="text-slate-600 text-xs">
                           <span className="font-semibold">リスク理由:</span>{" "}
                           {item.prediction.reasons.slice(0, 2).join(", ")}
                         </div>
                       )}
-                      <div className="text-zinc-400 text-xs">
+                      <div className="text-slate-600 text-xs">
                         <span className="font-semibold">推奨介入:</span>{" "}
                         {item.intervention.title}
                       </div>
@@ -787,12 +787,12 @@ export default async function PriceRevisionPage() {
           </div>
 
           {/* 改定対象会員の介入優先キュー */}
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
             <h3 className="text-xl font-semibold mb-4">
               改定対象会員の介入優先キュー（上位5名）
             </h3>
             {priceRevisionPriorityQueue.length === 0 ? (
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 優先対応が必要な会員はありません
               </p>
             ) : (
@@ -803,23 +803,23 @@ export default async function PriceRevisionPage() {
                     <ContextualMemberLink
                       key={item.id}
                       memberId={item.id}
-                      className={`block border rounded-lg p-4 hover:bg-zinc-800/50 transition-colors ${
+                      className={`block border rounded-lg p-4 hover:bg-slate-100/80 transition-colors ${
                         isHighRisk
                           ? "bg-red-950/30 border-red-800/50"
-                          : "bg-zinc-900 border-zinc-800"
+                          : "bg-white border-slate-200"
                       }`}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-zinc-500 text-xs font-semibold">
+                            <span className="text-slate-500 text-xs font-semibold">
                               #{index + 1}
                             </span>
-                            <div className="font-semibold text-white">
+                            <div className="font-semibold text-slate-900">
                               {item.name}
                             </div>
                           </div>
-                          <div className="text-zinc-400 text-xs mt-1">
+                          <div className="text-slate-600 text-xs mt-1">
                             {item.member.plan} | {item.member.storeName}
                           </div>
                         </div>
@@ -827,10 +827,10 @@ export default async function PriceRevisionPage() {
                           <div
                             className={`text-lg font-bold ${
                               item.riskScore >= 80
-                                ? "text-red-400"
+                                ? "text-red-600"
                                 : item.riskScore >= 50
-                                ? "text-yellow-400"
-                                : "text-green-400"
+                                ? "text-yellow-700"
+                                : "text-green-700"
                             }`}
                           >
                             {item.riskScore}
@@ -839,10 +839,10 @@ export default async function PriceRevisionPage() {
                             <span
                               className={`text-xs px-2 py-1 rounded ${
                                 item.priority === "high"
-                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  ? "text-red-600 bg-red-400/10 border border-red-400/20"
                                   : item.priority === "medium"
-                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                                  ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-slate-600 bg-slate-100 border border-slate-200"
                               }`}
                             >
                               {item.priority === "high"
@@ -855,10 +855,10 @@ export default async function PriceRevisionPage() {
                         </div>
                       </div>
                       <div className="mt-2 space-y-1">
-                        <div className="text-zinc-500 text-xs">
+                        <div className="text-slate-500 text-xs">
                           30日退会確率: {item.probability30Days}%
                         </div>
-                        <div className="text-zinc-400 text-xs">
+                        <div className="text-slate-600 text-xs">
                           <span className="font-semibold">推奨アクション:</span>{" "}
                           {item.suggestedAction}
                         </div>

@@ -44,7 +44,7 @@ export default function StoresClient({ initialMembers }: Props) {
       <div className="mb-6">
         <Link
           href={dashboardHref(seg)}
-          className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+          className="text-blue-700 hover:text-blue-800 hover:underline text-sm"
         >
           ← ダッシュボードに戻る
         </Link>
@@ -52,12 +52,12 @@ export default function StoresClient({ initialMembers }: Props) {
       <h1 className="text-4xl font-bold mb-8">店舗一覧</h1>
 
       {isLoading ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-          <p className="text-zinc-400">店舗データを読み込み中...</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+          <p className="text-slate-600">店舗データを読み込み中...</p>
         </div>
       ) : stores.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-          <p className="text-zinc-400">店舗データがありません</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+          <p className="text-slate-600">店舗データがありません</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -70,48 +70,48 @@ export default function StoresClient({ initialMembers }: Props) {
                 className={`px-3 py-1.5 rounded border text-xs transition-colors ${
                   activeTab === tab
                     ? "text-green-300 bg-green-500/10 border-green-500/30"
-                    : "text-zinc-400 bg-zinc-900 border-zinc-700 hover:border-zinc-600"
+                    : "text-slate-600 bg-white border-slate-200 hover:border-slate-300"
                 }`}
               >
                 {rankers[tab].label}
               </button>
             ))}
           </div>
-          <p className="text-zinc-400 text-xs">{rankers[activeTab].description}</p>
+          <p className="text-slate-600 text-xs">{rankers[activeTab].description}</p>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">店舗名</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">会員数</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">推定継続率</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">月間売上</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">来月損失予測</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">高リスク会員数</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">成功度スコア</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">店舗名</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">会員数</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">推定継続率</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">月間売上</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">来月損失予測</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">高リスク会員数</th>
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">成功度スコア</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {rankedStores.map((store, index) => (
-                    <tr key={store.storeName} className="hover:bg-zinc-800/50 transition-colors">
+                    <tr key={store.storeName} className="hover:bg-slate-100/80 transition-colors">
                       <td className="px-6 py-4">
-                        <span className="text-zinc-500 text-xs mr-2">#{index + 1}</span>
+                        <span className="text-slate-500 text-xs mr-2">#{index + 1}</span>
                         <Link
                           href={storeDetailHref(seg, store.storeName)}
-                          className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                          className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                         >
                           {store.storeName}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">{store.totalMembers}人</td>
-                      <td className="px-6 py-4 text-zinc-300">{store.estimatedRetentionRate.toFixed(1)}%</td>
-                      <td className="px-6 py-4 text-zinc-100">¥{store.monthlyRevenue.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-red-300 font-semibold">¥{store.expectedLoss30Days.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-red-300">{store.highRiskMembers}人</td>
+                      <td className="px-6 py-4 text-slate-700">{store.totalMembers}人</td>
+                      <td className="px-6 py-4 text-slate-700">{store.estimatedRetentionRate.toFixed(1)}%</td>
+                      <td className="px-6 py-4 text-slate-900">¥{store.monthlyRevenue.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-red-700 font-semibold">¥{store.expectedLoss30Days.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-red-700">{store.highRiskMembers}人</td>
                       <td className="px-6 py-4">
-                        <span className={`font-bold ${store.successScore >= 80 ? "text-green-400" : store.successScore >= 60 ? "text-emerald-300" : store.successScore >= 40 ? "text-yellow-300" : "text-red-300"}`}>
+                        <span className={`font-bold ${store.successScore >= 80 ? "text-green-700" : store.successScore >= 60 ? "text-emerald-800" : store.successScore >= 40 ? "text-yellow-300" : "text-red-700"}`}>
                           {store.successScore}
                         </span>
                       </td>

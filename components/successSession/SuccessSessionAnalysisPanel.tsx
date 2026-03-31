@@ -22,12 +22,12 @@ export function SuccessSessionAnalysisPanel({
   const inner = (
     <>
       {sessionEnhanced && (
-        <p className="text-xs text-emerald-400/90 mb-4">
+        <p className="text-xs text-emerald-700/90 mb-4">
           /import で取り込んだセッション履歴を加えて再計算しています
         </p>
       )}
       {analysis.commonPatterns.length === 0 ? (
-        <p className="text-zinc-400 text-sm">分析対象データが不足しています</p>
+        <p className="text-slate-600 text-sm">分析対象データが不足しています</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className={`lg:col-span-2 ${embedInCard ? "space-y-2" : "space-y-3"}`}>
@@ -35,32 +35,32 @@ export function SuccessSessionAnalysisPanel({
             {analysis.commonPatterns.map((pattern) => (
               <div
                 key={pattern.title}
-                className="bg-zinc-950 border border-green-500/25 rounded-lg p-3"
+                className="bg-slate-50 border border-green-500/25 rounded-lg p-3"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-zinc-100 font-medium text-sm">{pattern.title}</span>
+                  <span className="text-slate-900 font-medium text-sm">{pattern.title}</span>
                   <span className="text-green-300 text-xs font-semibold">{pattern.impactScore}</span>
                 </div>
-                <p className="mt-1 text-zinc-400 text-xs">{pattern.description}</p>
+                <p className="mt-1 text-slate-600 text-xs">{pattern.description}</p>
               </div>
             ))}
           </div>
           <div className={embedInCard ? "space-y-2" : "space-y-3"}>
-            <h3 className="text-sm font-semibold text-emerald-300">{traitsHeading}</h3>
+            <h3 className="text-sm font-semibold text-emerald-800">{traitsHeading}</h3>
             {analysis.highPerformingSessionTraits.map((trait) => (
               <div
                 key={trait.trait}
-                className="bg-zinc-950 border border-emerald-500/25 rounded-lg p-3"
+                className="bg-slate-50 border border-emerald-500/25 rounded-lg p-3"
               >
-                <div className="text-zinc-100 text-sm font-medium">{trait.trait}</div>
-                <p className="mt-1 text-zinc-400 text-xs">{trait.description}</p>
+                <div className="text-slate-900 text-sm font-medium">{trait.trait}</div>
+                <p className="mt-1 text-slate-600 text-xs">{trait.description}</p>
               </div>
             ))}
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
-              <div className="text-zinc-300 text-xs font-semibold mb-2">{actionsHeading}</div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-700 text-xs font-semibold mb-2">{actionsHeading}</div>
               <ul className="space-y-1">
                 {analysis.recommendedActions.map((item, idx) => (
-                  <li key={idx} className="text-zinc-400 text-xs">
+                  <li key={idx} className="text-slate-600 text-xs">
                     ・{item}
                   </li>
                 ))}
@@ -76,5 +76,5 @@ export function SuccessSessionAnalysisPanel({
     return inner;
   }
 
-  return <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">{inner}</div>;
+  return <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">{inner}</div>;
 }

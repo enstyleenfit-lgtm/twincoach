@@ -537,19 +537,19 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       <div className="w-full max-w-3xl mx-auto min-w-0">
         <header className="mb-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-balance">セッション入力</h1>
-          <p className="text-zinc-400 text-base mt-1">
+          <p className="text-slate-600 text-base mt-1">
             タップで完了。1種目は10秒目標で入力できます。
           </p>
         </header>
 
-        <div className="mb-4 bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+        <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
-              <div className="text-zinc-500 text-xs mb-1">会員</div>
+              <div className="text-slate-500 text-xs mb-1">会員</div>
               <select
                 value={selectedMemberId}
                 onChange={(e) => setSelectedMemberId(e.target.value)}
-                className="w-full min-w-0 rounded-lg bg-zinc-950 border border-zinc-800 px-3 py-3 text-base text-white"
+                className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
               >
                 {assignedMembers.length === 0 ? (
                   <option value="">担当会員がありません</option>
@@ -566,7 +566,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
               <button
                 type="button"
                 onClick={handleCopyLast}
-                className="h-12 w-full sm:w-auto px-4 rounded-lg border border-zinc-700 bg-black/30 text-zinc-200 text-base font-semibold hover:bg-zinc-800 transition-colors"
+                className="h-12 w-full sm:w-auto px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
               >
                 前回コピー
               </button>
@@ -575,7 +575,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </div>
 
         <div className="mb-4">
-          <div className="text-zinc-500 text-xs uppercase tracking-wider font-semibold mb-2">
+          <div className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-2">
             よく使うメニュー
           </div>
           <div className="flex flex-wrap gap-2">
@@ -602,7 +602,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                     });
                   });
                 }}
-                className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-100 transition-colors"
               >
                 {x}
               </button>
@@ -614,14 +614,14 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           {drafts.map((d, idx) => (
             <div
               key={d.localId}
-              className={`bg-zinc-900 border rounded-2xl p-4 ${
+              className={`bg-white border rounded-2xl p-4 ${
                 d.weight > 0 || d.reps > 0
                   ? "border-emerald-500/40"
-                  : "border-zinc-800"
+                  : "border-slate-200"
               }`}
             >
               <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="text-white font-semibold">
+                <div className="text-slate-900 font-semibold">
                   {idx + 1}種目
                 </div>
                 {drafts.length > 1 ? (
@@ -630,18 +630,18 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                     onClick={() => {
                       setDrafts((prev) => prev.filter((x) => x.localId !== d.localId));
                     }}
-                    className="text-zinc-400 text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-700 hover:bg-zinc-800 transition-colors"
+                    className="text-slate-600 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
                   >
                     削除
                   </button>
                 ) : (
-                  <span className="text-zinc-500 text-xs">タップ入力</span>
+                  <span className="text-slate-500 text-xs">タップ入力</span>
                 )}
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <div className="text-zinc-500 text-xs mb-1">種目</div>
+                  <div className="text-slate-500 text-xs mb-1">種目</div>
                   <select
                     value={d.exerciseBase}
                     onChange={(e) => {
@@ -651,7 +651,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                         customExercise: base === "その他" ? d.customExercise : "",
                       });
                     }}
-                    className="w-full min-w-0 rounded-lg bg-zinc-950 border border-zinc-800 px-3 py-3 text-base text-white"
+                    className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
                   >
                     <option value="ベンチプレス">ベンチプレス</option>
                     <option value="スクワット">スクワット</option>
@@ -663,33 +663,33 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                       value={d.customExercise}
                       onChange={(e) => setDraftAt(d.localId, { customExercise: e.target.value })}
                       placeholder="例）ベンチプレス（フォーム改善）"
-                      className="mt-2 w-full min-w-0 rounded-lg bg-zinc-950 border border-zinc-800 px-3 py-3 text-base text-white placeholder:text-zinc-600"
+                      className="mt-2 w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600"
                     />
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <div className="text-zinc-500 text-xs mb-1">重量（kg）</div>
+                    <div className="text-slate-500 text-xs mb-1">重量（kg）</div>
                     <input
                       type="number"
                       inputMode="decimal"
                       value={d.weight}
                       onChange={(e) => setDraftAt(d.localId, { weight: normalizeNumber(e.target.value, 0) })}
-                      className={`w-full min-w-0 rounded-lg bg-zinc-950 border px-3 py-3 text-base text-white ${
-                        d.weight > 0 ? "border-emerald-500/50" : "border-zinc-800"
+                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
+                        d.weight > 0 ? "border-emerald-500/50" : "border-slate-200"
                       }`}
                     />
                   </div>
                   <div>
-                    <div className="text-zinc-500 text-xs mb-1">回数</div>
+                    <div className="text-slate-500 text-xs mb-1">回数</div>
                     <input
                       type="number"
                       inputMode="numeric"
                       value={d.reps}
                       onChange={(e) => setDraftAt(d.localId, { reps: normalizeNumber(e.target.value, 0) })}
-                      className={`w-full min-w-0 rounded-lg bg-zinc-950 border px-3 py-3 text-base text-white ${
-                        d.reps > 0 ? "border-emerald-500/50" : "border-zinc-800"
+                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
+                        d.reps > 0 ? "border-emerald-500/50" : "border-slate-200"
                       }`}
                     />
                   </div>
@@ -697,28 +697,28 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <div className="text-zinc-500 text-xs mb-1">セット数</div>
+                    <div className="text-slate-500 text-xs mb-1">セット数</div>
                     <input
                       type="number"
                       inputMode="numeric"
                       value={d.sets}
                       onChange={(e) => setDraftAt(d.localId, { sets: normalizeNumber(e.target.value, 1) })}
-                      className={`w-full min-w-0 rounded-lg bg-zinc-950 border px-3 py-3 text-base text-white ${
+                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
                         d.sets > 0 && (d.weight > 0 || d.reps > 0)
                           ? "border-emerald-500/50"
-                          : "border-zinc-800"
+                          : "border-slate-200"
                       }`}
                     />
                   </div>
                   <div className="col-span-2">
-                    <div className="text-zinc-500 text-xs mb-1">休憩時間</div>
+                    <div className="text-slate-500 text-xs mb-1">休憩時間</div>
                     <select
                       value={d.rest}
                       onChange={(e) => setDraftAt(d.localId, { rest: normalizeNumber(e.target.value, 90) })}
-                      className={`w-full min-w-0 rounded-lg bg-zinc-950 border px-3 py-3 text-base text-white ${
+                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
                         d.weight > 0 || d.reps > 0
                           ? "border-emerald-500/50"
-                          : "border-zinc-800"
+                          : "border-slate-200"
                       }`}
                     >
                       {REST_OPTIONS.map((r) => (
@@ -731,7 +731,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                 </div>
 
                 <div>
-                  <div className="text-zinc-500 text-xs mb-1">動作評価</div>
+                  <div className="text-slate-500 text-xs mb-1">動作評価</div>
                   <div className="grid grid-cols-3 gap-2">
                     {(
                       [
@@ -746,8 +746,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                         onClick={() => setDraftAt(d.localId, { formRating: opt.key })}
                         className={`rounded-lg border px-2 py-3 text-sm font-semibold transition-colors ${
                           d.formRating === opt.key
-                            ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300"
-                            : "border-zinc-700 bg-zinc-950/40 text-zinc-200 hover:bg-zinc-800"
+                            ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-800"
+                            : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
                         }`}
                       >
                         {opt.label}
@@ -757,7 +757,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                 </div>
 
                 <div>
-                  <div className="text-zinc-500 text-xs mb-1">フォームの癖（複数選択）</div>
+                  <div className="text-slate-500 text-xs mb-1">フォームの癖（複数選択）</div>
                   <div className="grid grid-cols-2 gap-2">
                     {FORM_ISSUES.map((issue) => {
                       const checked = d.formIssues.includes(issue);
@@ -774,8 +774,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                           }}
                           className={`rounded-lg border px-2 py-2.5 text-sm font-semibold transition-colors ${
                             checked
-                              ? "border-red-500/40 bg-red-500/10 text-red-300"
-                              : "border-zinc-700 bg-zinc-950/40 text-zinc-200 hover:bg-zinc-800"
+                              ? "border-red-500/40 bg-red-500/10 text-red-700"
+                              : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
                           }`}
                         >
                           {issue}
@@ -795,12 +795,12 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                           [d.localId]: !prev[d.localId],
                         }))
                       }
-                      className="text-zinc-500 text-xs hover:text-zinc-300"
+                      className="text-slate-500 text-xs hover:text-slate-700"
                     >
                       メモ（任意） {memoOpen[d.localId] ? "閉じる" : "開く"}
                     </button>
                     {d.note.trim() ? (
-                      <span className="text-[11px] text-emerald-300">入力あり</span>
+                      <span className="text-[11px] text-emerald-800">入力あり</span>
                     ) : null}
                   </div>
 
@@ -810,18 +810,18 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                         value={d.note}
                         onChange={(e) => setDraftAt(d.localId, { note: e.target.value })}
                         placeholder="例）次回はフォーム意識"
-                        className={`w-full min-w-0 rounded-lg bg-zinc-950 border px-3 py-3 text-base text-white placeholder:text-zinc-600 ${
+                        className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 ${
                           d.note.trim()
                             ? "border-emerald-500/40"
-                            : "border-zinc-800"
+                            : "border-slate-200"
                         }`}
                       />
-                      <div className="mt-2 text-[11px] text-zinc-500">
+                      <div className="mt-2 text-[11px] text-slate-500">
                         将来：音声入力に対応する前提の構造です。
                       </div>
                     </div>
                   ) : (
-                    <div className="text-[11px] text-zinc-600">
+                    <div className="text-[11px] text-slate-600">
                       タップでメモ入力
                     </div>
                   )}
@@ -834,20 +834,20 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
             <button
               type="button"
               onClick={addExercise}
-              className="flex-1 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-4 text-sm font-semibold text-zinc-200 hover:bg-zinc-800 transition-colors"
+              className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors"
             >
               ＋種目追加
             </button>
           </div>
         </div>
 
-        <div className="fixed bottom-20 left-0 right-0 z-30 max-w-full overflow-x-hidden border-t border-zinc-800 bg-black/70 py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] backdrop-blur sm:px-6 sm:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:bottom-0">
+        <div className="fixed bottom-20 left-0 right-0 z-30 max-w-full overflow-x-hidden border-t border-slate-200 bg-slate-50/70 py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] backdrop-blur sm:px-6 sm:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:bottom-0">
           <div className="w-full max-w-3xl mx-auto min-w-0 px-0">
             {lastSessionForSelectedMember && lastSessionForSelectedMember.records.length > 0 ? (
               <button
                 type="button"
                 onClick={handleSaveSameAsLast}
-                className="w-full rounded-2xl border border-zinc-700 bg-zinc-900/60 hover:bg-zinc-900 px-4 py-4 text-sm font-bold text-zinc-200 mb-3"
+                className="w-full rounded-2xl border border-slate-200 bg-white/60 hover:bg-white px-4 py-4 text-sm font-bold text-slate-800 mb-3"
               >
                 前回と同じで保存
               </button>
@@ -855,14 +855,14 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
             <button
               type="button"
               onClick={handleSave}
-              className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-white py-4 text-sm font-bold"
+              className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-slate-900 py-4 text-sm font-bold"
             >
               保存
             </button>
             {status ? (
-              <div className="mt-2 text-center text-xs text-zinc-300">{status}</div>
+              <div className="mt-2 text-center text-xs text-slate-700">{status}</div>
             ) : (
-              <div className="mt-2 text-center text-xs text-zinc-500">保存はローカルのみ（ローカル完結）</div>
+              <div className="mt-2 text-center text-xs text-slate-500">保存はローカルのみ（ローカル完結）</div>
             )}
           </div>
         </div>

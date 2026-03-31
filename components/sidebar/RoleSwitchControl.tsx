@@ -20,16 +20,14 @@ export function RoleSwitchControl() {
   const btn =
     "flex-1 text-center rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors";
   const on =
-    "border-emerald-500/40 bg-emerald-500/15 text-emerald-300";
-  const off = "border-zinc-800 bg-zinc-900/30 text-zinc-300 hover:bg-zinc-800/40";
+    "border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm";
+  const off =
+    "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300";
 
   return (
     <div className="mb-4">
       <div className="flex gap-2">
-        <Link
-          href="/hq"
-          className={`${btn} ${currentRole === "hq" ? on : off}`}
-        >
+        <Link href="/hq" className={`${btn} ${currentRole === "hq" ? on : off}`}>
           本部
         </Link>
         <Link
@@ -48,4 +46,3 @@ export function RoleSwitchControl() {
     </div>
   );
 }
-

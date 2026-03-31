@@ -78,11 +78,11 @@ export function getLTVLevel(ltv: number): "high" | "medium" | "low" {
 export function getLTVLevelColor(level: "high" | "medium" | "low"): string {
   switch (level) {
     case "high":
-      return "text-green-400";
+      return "text-green-700";
     case "medium":
-      return "text-yellow-400";
+      return "text-yellow-700";
     case "low":
-      return "text-red-400";
+      return "text-red-600";
   }
 }
 
@@ -94,11 +94,11 @@ export function getLTVLevelColor(level: "high" | "medium" | "low"): string {
 export function getLTVLevelBadgeColor(level: "high" | "medium" | "low"): string {
   switch (level) {
     case "high":
-      return "text-green-400 bg-green-400/10 border-green-400/20";
+      return "text-green-700 bg-green-400/10 border-green-400/20";
     case "medium":
-      return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
+      return "text-yellow-700 bg-yellow-400/10 border-yellow-400/20";
     case "low":
-      return "text-red-400 bg-red-400/10 border-red-400/20";
+      return "text-red-600 bg-red-400/10 border-red-400/20";
   }
 }
 

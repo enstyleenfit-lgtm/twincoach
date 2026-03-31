@@ -54,30 +54,30 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black text-white">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-900">
       <div className="w-full max-w-md px-6">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight mb-2">TwinCoach</h1>
-          <p className="text-zinc-400 text-sm">継続率改善と経営判断を支援するジム管理OS</p>
+          <p className="text-slate-600 text-sm">継続率改善と経営判断を支援するジム管理OS</p>
         </div>
 
-        <div className="bg-zinc-950 border border-zinc-800 rounded-2xl px-6 py-8 shadow-xl shadow-black/40">
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-8 shadow-md shadow-slate-900/10">
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-1">TwinCoachへログイン</h2>
-            <p className="text-zinc-500 text-xs">
+            <p className="text-slate-500 text-xs">
               本部、店舗責任者、トレーナーの方は、こちらからログインしてください。
             </p>
           </div>
 
           {error && (
             <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md">
-              <p className="text-red-400 text-sm">{error}</p>
+              <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-zinc-400 text-xs mb-2">
+              <label className="block text-slate-600 text-xs mb-2">
                 メールアドレス
               </label>
               <input
@@ -87,13 +87,13 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 disabled={loading}
-                className="w-full bg-black border border-zinc-800 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 text-sm text-slate-900 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label className="block text-zinc-400 text-xs mb-2">
+              <label className="block text-slate-600 text-xs mb-2">
                 パスワード
               </label>
               <input
@@ -103,7 +103,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 disabled={loading}
-                className="w-full bg-black border border-zinc-800 rounded-md px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-slate-50 border border-slate-200 rounded-md px-3 py-2 text-sm text-slate-900 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="••••••••"
               />
             </div>
@@ -111,7 +111,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 px-4 py-2.5 text-sm font-medium rounded-md bg-blue-500 text-white hover:bg-blue-400 transition-colors border border-blue-400/70 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-2 px-4 py-2.5 text-sm font-medium rounded-md bg-blue-500 text-slate-900 hover:bg-blue-400 transition-colors border border-blue-400/70 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "ログイン中..." : "ログイン"}
             </button>

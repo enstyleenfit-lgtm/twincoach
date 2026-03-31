@@ -124,62 +124,62 @@ export default async function TrainerPage() {
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8">TwinCoach 店舗</h1>
-      <p className="text-zinc-400 mb-8">担当: {trainerName}</p>
+      <p className="text-slate-600 mb-8">担当: {trainerName}</p>
 
       {/* 2カラムレイアウト */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* 今日の予約 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-bold mb-4">今日の予約</h2>
           {todayReservations.length > 0 ? (
             <div className="space-y-3">
               {todayReservations.map((reservation) => (
                 <div
                   key={reservation.id}
-                  className="bg-zinc-800 border border-zinc-700 rounded-lg p-4"
+                  className="bg-slate-100 border border-slate-200 rounded-lg p-4"
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <p className="text-white font-semibold">{reservation.memberName}</p>
-                      <p className="text-zinc-400 text-sm">{reservation.type}</p>
+                      <p className="text-slate-900 font-semibold">{reservation.memberName}</p>
+                      <p className="text-slate-600 text-sm">{reservation.type}</p>
                     </div>
-                    <p className="text-blue-400 font-bold">{reservation.time}</p>
+                    <p className="text-blue-700 font-bold">{reservation.time}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-zinc-400 text-center py-8">今日の予約はありません</p>
+            <p className="text-slate-600 text-center py-8">今日の予約はありません</p>
           )}
         </div>
 
         {/* 介入タスク */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-bold mb-4">介入タスク</h2>
           {todayTasks.length > 0 ? (
             <div className="space-y-3">
               {todayTasks.map((task: Task) => (
                 <div
                   key={task.id}
-                  className="bg-zinc-800 border border-zinc-700 rounded-lg p-4"
+                  className="bg-slate-100 border border-slate-200 rounded-lg p-4"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <Link
                         href={`/members/${task.memberId}`}
-                        className="text-blue-400 hover:text-blue-300 font-semibold"
+                        className="text-blue-700 hover:text-blue-800 font-semibold"
                       >
                         {task.memberName}
                       </Link>
-                      <p className="text-zinc-300 text-sm mt-1">{task.action}</p>
+                      <p className="text-slate-700 text-sm mt-1">{task.action}</p>
                     </div>
                     <span
                       className={`px-2 py-1 rounded text-xs ${
                         task.priority === "high"
-                          ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                          ? "text-red-600 bg-red-400/10 border border-red-400/20"
                           : task.priority === "medium"
-                          ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                          : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                          ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                          : "text-slate-600 bg-slate-100 border border-slate-200"
                       }`}
                     >
                       {task.priority === "high"
@@ -190,16 +190,16 @@ export default async function TrainerPage() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center mt-2">
-                    <span className="text-zinc-400 text-xs">
+                    <span className="text-slate-600 text-xs">
                       期限: {task.dueDate}
                     </span>
                     <span
                       className={`px-2 py-1 rounded text-xs ${
                         task.status === "done"
-                          ? "text-green-400 bg-green-400/10"
+                          ? "text-green-700 bg-green-400/10"
                           : task.status === "in progress"
-                          ? "text-blue-400 bg-blue-400/10"
-                          : "text-yellow-400 bg-yellow-400/10"
+                          ? "text-blue-700 bg-blue-400/10"
+                          : "text-yellow-700 bg-yellow-400/10"
                       }`}
                     >
                       {task.status === "done"
@@ -213,16 +213,16 @@ export default async function TrainerPage() {
               ))}
             </div>
           ) : (
-            <p className="text-zinc-400 text-center py-8">介入タスクはありません</p>
+            <p className="text-slate-600 text-center py-8">介入タスクはありません</p>
           )}
         </div>
       </div>
 
       {/* 今日の優先対応 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">今日の優先対応</h2>
         {priorityQueue.length === 0 ? (
-          <p className="text-zinc-400">優先対応の対象会員はいません</p>
+          <p className="text-slate-600">優先対応の対象会員はいません</p>
         ) : (
           <div className="space-y-3">
             {priorityQueue.map((item) => {
@@ -233,18 +233,18 @@ export default async function TrainerPage() {
               return (
                 <div
                   key={item.id}
-                  className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 flex items-start justify-between gap-4"
+                  className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex items-start justify-between gap-4"
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/members/${item.id}`}
-                      className="text-white font-semibold hover:text-blue-400"
+                      className="text-slate-900 font-semibold hover:text-blue-700"
                     >
                       {item.name}
                     </Link>
                     <div className="mt-2 flex items-center gap-3">
-                      <span className="text-zinc-500 text-xs">30日</span>
-                      <span className="text-red-400 font-bold tabular-nums">
+                      <span className="text-slate-500 text-xs">30日</span>
+                      <span className="text-red-600 font-bold tabular-nums">
                         {item.probability30Days}%
                       </span>
                     </div>
@@ -253,7 +253,7 @@ export default async function TrainerPage() {
                         {tags.map((t) => (
                           <span
                             key={t}
-                            className="rounded border border-zinc-700 bg-black/30 px-2 py-0.5 text-[11px] text-zinc-300"
+                            className="rounded border border-slate-200 bg-slate-100/80 px-2 py-0.5 text-[11px] text-slate-700"
                           >
                             {t}
                           </span>
@@ -262,12 +262,12 @@ export default async function TrainerPage() {
                     )}
                   </div>
                   <div className="text-right min-w-[160px]">
-                    <div className="text-zinc-500 text-xs mb-1">次回提案AI</div>
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-slate-500 text-xs mb-1">次回提案AI</div>
+                    <div className="text-sm font-medium text-slate-900">
                       {first?.title ?? "—"}
                     </div>
                     {first?.description ? (
-                      <div className="text-xs text-zinc-400 mt-1 line-clamp-2">
+                      <div className="text-xs text-slate-600 mt-1 line-clamp-2">
                         {first.description}
                       </div>
                     ) : null}
@@ -280,114 +280,114 @@ export default async function TrainerPage() {
       </div>
 
       {/* 次回提案AI（優先1名） */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">次回提案AI</h2>
         {!topPriorityMember ? (
-          <p className="text-zinc-400">対象会員がいません</p>
+          <p className="text-slate-600">対象会員がいません</p>
         ) : nextProposalAI ? (
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-zinc-500 text-xs mb-1">最優先会員</p>
+                <p className="text-slate-500 text-xs mb-1">最優先会員</p>
                 <Link
                   href={`/members/${topPriorityMember.id}`}
-                  className="text-white font-semibold hover:text-blue-400"
+                  className="text-slate-900 font-semibold hover:text-blue-700"
                 >
                   {topPriorityMember.name}
                 </Link>
               </div>
               <div className="text-right">
-                <p className="text-zinc-500 text-xs mb-1">優先度</p>
-                <p className="text-white font-semibold">{nextProposalAI.priority.toUpperCase()}</p>
+                <p className="text-slate-500 text-xs mb-1">優先度</p>
+                <p className="text-slate-900 font-semibold">{nextProposalAI.priority.toUpperCase()}</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {nextProposalAI.actions.slice(0, 3).map((a, idx) => (
-                <div key={`${a.title}-${idx}`} className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                  <div className="text-xs text-zinc-500">{a.type}</div>
-                  <div className="text-sm font-medium text-white mt-1">{a.title}</div>
-                  <div className="text-xs text-zinc-400 mt-2 line-clamp-3">{a.description}</div>
+                <div key={`${a.title}-${idx}`} className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <div className="text-xs text-slate-500">{a.type}</div>
+                  <div className="text-sm font-medium text-slate-900 mt-1">{a.title}</div>
+                  <div className="text-xs text-slate-600 mt-2 line-clamp-3">{a.description}</div>
                 </div>
               ))}
             </div>
           </div>
         ) : (
-          <p className="text-zinc-400">提案を生成できませんでした</p>
+          <p className="text-slate-600">提案を生成できませんでした</p>
         )}
       </div>
 
       {/* 高リスク会員 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">高リスク会員</h2>
         {highRiskMembers.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-zinc-800">
-                  <th className="text-left py-3 px-4 text-zinc-400">会員名</th>
-                  <th className="text-left py-3 px-4 text-zinc-400">プラン</th>
-                  <th className="text-right py-3 px-4 text-zinc-400">リスクスコア</th>
-                  <th className="text-right py-3 px-4 text-zinc-400">月間売上</th>
-                  <th className="text-left py-3 px-4 text-zinc-400">最終来店日</th>
-                  <th className="text-left py-3 px-4 text-zinc-400">来店間隔</th>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 text-slate-600">会員名</th>
+                  <th className="text-left py-3 px-4 text-slate-600">プラン</th>
+                  <th className="text-right py-3 px-4 text-slate-600">リスクスコア</th>
+                  <th className="text-right py-3 px-4 text-slate-600">月間売上</th>
+                  <th className="text-left py-3 px-4 text-slate-600">最終来店日</th>
+                  <th className="text-left py-3 px-4 text-slate-600">来店間隔</th>
                 </tr>
               </thead>
               <tbody>
                 {highRiskMembers.map(({ member, risk, revenue }) => (
-                  <tr key={member.id} className="border-b border-zinc-800 hover:bg-zinc-800/50">
+                  <tr key={member.id} className="border-b border-slate-200 hover:bg-slate-100/80">
                     <td className="py-3 px-4">
                       <Link
                         href={`/members/${member.id}`}
-                        className="text-blue-400 hover:text-blue-300"
+                        className="text-blue-700 hover:text-blue-800"
                       >
                         {member.name}
                       </Link>
                     </td>
-                    <td className="py-3 px-4 text-white">{member.plan}</td>
+                    <td className="py-3 px-4 text-slate-900">{member.plan}</td>
                     <td className="py-3 px-4 text-right">
-                      <span className="text-red-400 font-bold">{risk.score}</span>
+                      <span className="text-red-600 font-bold">{risk.score}</span>
                     </td>
-                    <td className="py-3 px-4 text-right text-white">
+                    <td className="py-3 px-4 text-right text-slate-900">
                       ¥{revenue.monthlyRevenue.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4 text-white">{member.lastVisitDate}</td>
-                    <td className="py-3 px-4 text-white">{member.visitInterval}</td>
+                    <td className="py-3 px-4 text-slate-900">{member.lastVisitDate}</td>
+                    <td className="py-3 px-4 text-slate-900">{member.visitInterval}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
-          <p className="text-zinc-400 text-center py-8">高リスク会員はありません</p>
+          <p className="text-slate-600 text-center py-8">高リスク会員はありません</p>
         )}
       </div>
 
       {/* 会員一覧 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">会員一覧</h2>
         {memberList.length === 0 ? (
-          <p className="text-zinc-400">担当会員がいません</p>
+          <p className="text-slate-600">担当会員がいません</p>
         ) : (
           <div className="space-y-2">
             {memberList.map(({ member, risk }) => (
               <div
                 key={member.id}
-                className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 flex items-center justify-between gap-4"
+                className="bg-slate-50 border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4"
               >
                 <div className="min-w-0">
                   <Link
                     href={`/members/${member.id}`}
-                    className="text-white font-semibold hover:text-blue-400"
+                    className="text-slate-900 font-semibold hover:text-blue-700"
                   >
                     {member.name}
                   </Link>
-                  <div className="text-zinc-500 text-xs mt-1">
+                  <div className="text-slate-500 text-xs mt-1">
                     リスク {risk.level.toUpperCase()}（{risk.score}）
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-zinc-500 text-xs mb-1">来店間隔</div>
-                  <div className="text-white text-sm font-medium">{member.visitInterval}</div>
+                  <div className="text-slate-500 text-xs mb-1">来店間隔</div>
+                  <div className="text-slate-900 text-sm font-medium">{member.visitInterval}</div>
                 </div>
               </div>
             ))}
@@ -396,29 +396,29 @@ export default async function TrainerPage() {
       </div>
 
       {/* セッション履歴への導線 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">セッション履歴への導線</h2>
         {memberList[0] ? (
           <div className="space-y-3">
-            <p className="text-zinc-400 text-sm">
+            <p className="text-slate-600 text-sm">
               セッション履歴（過去5回）は会員詳細画面に表示されます。今日の優先会員から確認してください。
             </p>
             <Link
               href={`/members/${memberList[0].member.id}`}
-              className="inline-flex items-center text-blue-400 hover:text-blue-300 hover:underline text-sm"
+              className="inline-flex items-center text-blue-700 hover:text-blue-800 hover:underline text-sm"
             >
               例：{memberList[0].member.name} の履歴を見る →
             </Link>
-            <div className="pt-2 border-t border-zinc-800" />
+            <div className="pt-2 border-t border-slate-200" />
             <Link
               href="/session-input"
-              className="inline-flex items-center text-blue-400 hover:text-blue-300 hover:underline text-sm"
+              className="inline-flex items-center text-blue-700 hover:text-blue-800 hover:underline text-sm"
             >
               セッション入力（記録）へ →
             </Link>
           </div>
         ) : (
-          <p className="text-zinc-400 text-sm">担当会員がいないため表示できません</p>
+          <p className="text-slate-600 text-sm">担当会員がいないため表示できません</p>
         )}
       </div>
     </div>

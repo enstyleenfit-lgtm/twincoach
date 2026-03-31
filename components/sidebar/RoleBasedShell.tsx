@@ -38,7 +38,7 @@ export function RoleBasedShell({ children }: Props) {
     );
 
   return (
-    <div className="flex min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden bg-black text-white">
+    <div className="flex min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden bg-slate-50 text-slate-900">
       <div
         data-app-sidebar-slot
         className="max-lg:hidden lg:flex lg:w-64 lg:flex-shrink-0"

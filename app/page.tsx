@@ -45,44 +45,44 @@ import { memberRepository, taskRepository } from "@/lib/repositories";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
-    return "text-red-400";
+    return "text-red-600";
   } else if (score >= 50) {
-    return "text-yellow-400";
+    return "text-yellow-700";
   } else {
-    return "text-green-400";
+    return "text-green-700";
   }
 }
 
 function getRiskLevelBadgeColor(level: "low" | "medium" | "high"): string {
   switch (level) {
     case "low":
-      return "text-green-400 bg-green-400/10 border-green-400/20";
+      return "text-green-700 bg-green-400/10 border-green-400/20";
     case "medium":
-      return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
+      return "text-yellow-700 bg-yellow-400/10 border-yellow-400/20";
     case "high":
-      return "text-red-400 bg-red-400/10 border-red-400/20";
+      return "text-red-600 bg-red-400/10 border-red-400/20";
   }
 }
 
 function getPriorityColor(priority: "low" | "medium" | "high"): string {
   switch (priority) {
     case "low":
-      return "text-green-400";
+      return "text-green-700";
     case "medium":
-      return "text-yellow-400";
+      return "text-yellow-700";
     case "high":
-      return "text-red-400";
+      return "text-red-600";
   }
 }
 
 function getPriorityBadgeColor(priority: "low" | "medium" | "high"): string {
   switch (priority) {
     case "high":
-      return "text-red-400 bg-red-400/10 border-red-400/20";
+      return "text-red-600 bg-red-400/10 border-red-400/20";
     case "medium":
-      return "text-orange-400 bg-orange-400/10 border-orange-400/20";
+      return "text-orange-700 bg-orange-400/10 border-orange-400/20";
     case "low":
-      return "text-zinc-400 bg-zinc-400/10 border-zinc-400/20";
+      return "text-slate-600 bg-slate-100 border-slate-200";
   }
 }
 
@@ -437,7 +437,7 @@ export default async function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
         <NegotiationDashboard
           memberCount={members.length}
@@ -456,15 +456,15 @@ export default async function Home() {
           hqPlan={hqActionPlan}
         />
 
-        <div className="my-16 border-t border-zinc-800/80" aria-hidden />
+        <div className="my-16 border-t border-slate-200/80" aria-hidden />
 
-        <div className="mb-10 rounded-xl border border-zinc-800/80 bg-zinc-900/30 p-4 sm:p-5">
+        <div className="mb-10 rounded-xl border border-slate-200/80 bg-white/30 p-4 sm:p-5">
           <ImportedDashboardReflection baseMembersFromServer={members} />
         </div>
 
-        <header className="mb-10 border-b border-zinc-800 pb-6">
-          <h2 className="text-xl font-semibold text-zinc-200">詳細ダッシュボード</h2>
-          <p className="mt-1 text-sm text-zinc-500">
+        <header className="mb-10 border-b border-slate-200 pb-6">
+          <h2 className="text-xl font-semibold text-slate-800">詳細ダッシュボード</h2>
+          <p className="mt-1 text-sm text-slate-500">
             {getRoleDescription(currentRole)}（表示ロール: {getRoleDisplayName(currentRole)}）
           </p>
         </header>
@@ -473,56 +473,56 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">収益防衛シミュレーション</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             優先度の高い会員から守った場合に防衛できる売上を試算しています
           </p>
         </div>
 
         {/* KPIカード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">来月失う可能性のある売上</div>
-            <div className="text-4xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-1">来月失う可能性のある売上</div>
+            <div className="text-4xl font-bold text-red-600">
               ¥{revenueDefenseSimulation.monthlyLossForecast30Days.toLocaleString()}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">30日期待損失額</div>
+            <div className="text-slate-500 text-xs mt-1">30日期待損失額</div>
           </div>
 
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">60日以内に失う可能性のある売上</div>
-            <div className="text-4xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-1">60日以内に失う可能性のある売上</div>
+            <div className="text-4xl font-bold text-red-600">
               ¥{revenueDefenseSimulation.monthlyLossForecast60Days.toLocaleString()}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">60日期待損失額</div>
+            <div className="text-slate-500 text-xs mt-1">60日期待損失額</div>
           </div>
 
-          <div className="bg-zinc-900 border border-yellow-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">あと何円守ればよいか</div>
-            <div className="text-4xl font-bold text-yellow-400">
+          <div className="bg-white border border-yellow-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-1">あと何円守ればよいか</div>
+            <div className="text-4xl font-bold text-yellow-700">
               ¥{revenueDefenseSimulation.revenueGap.toLocaleString()}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">目標防衛額のギャップ</div>
+            <div className="text-slate-500 text-xs mt-1">目標防衛額のギャップ</div>
           </div>
 
-          <div className="bg-zinc-900 border border-yellow-500/40 rounded-lg p-6">
-            <div className="text-zinc-400 text-sm mb-1">あと何人守ればよいか</div>
-            <div className="text-4xl font-bold text-yellow-400">
+          <div className="bg-white border border-yellow-500/40 rounded-lg p-6">
+            <div className="text-slate-600 text-sm mb-1">あと何人守ればよいか</div>
+            <div className="text-4xl font-bold text-yellow-700">
               {revenueDefenseSimulation.membersToSaveForGoal}
             </div>
-            <div className="text-zinc-500 text-xs mt-1">人</div>
+            <div className="text-slate-500 text-xs mt-1">人</div>
           </div>
         </div>
 
         {/* 防衛シナリオ比較 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h3 className="text-xl font-semibold mb-4">防衛シナリオ比較</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-6">
-              <div className="text-zinc-400 text-sm mb-2">上位3人を守った場合</div>
-              <div className="text-3xl font-bold text-green-400">
+            <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
+              <div className="text-slate-600 text-sm mb-2">上位3人を守った場合</div>
+              <div className="text-3xl font-bold text-green-700">
                 ¥{revenueDefenseSimulation.protectedRevenueIfTop3Saved.toLocaleString()}
               </div>
-              <div className="text-zinc-500 text-xs mt-2">
+              <div className="text-slate-500 text-xs mt-2">
                 防衛率:{" "}
                 {revenueDefenseSimulation.monthlyLossForecast30Days > 0
                   ? (
@@ -535,12 +535,12 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-6">
-              <div className="text-zinc-400 text-sm mb-2">上位5人を守った場合</div>
-              <div className="text-3xl font-bold text-green-400">
+            <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
+              <div className="text-slate-600 text-sm mb-2">上位5人を守った場合</div>
+              <div className="text-3xl font-bold text-green-700">
                 ¥{revenueDefenseSimulation.protectedRevenueIfTop5Saved.toLocaleString()}
               </div>
-              <div className="text-zinc-500 text-xs mt-2">
+              <div className="text-slate-500 text-xs mt-2">
                 防衛率:{" "}
                 {revenueDefenseSimulation.monthlyLossForecast30Days > 0
                   ? (
@@ -553,12 +553,12 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="bg-zinc-950 border border-green-500/40 rounded-lg p-6">
-              <div className="text-zinc-400 text-sm mb-2">高リスク全体を守った場合</div>
-              <div className="text-3xl font-bold text-green-400">
+            <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
+              <div className="text-slate-600 text-sm mb-2">高リスク全体を守った場合</div>
+              <div className="text-3xl font-bold text-green-700">
                 ¥{revenueDefenseSimulation.protectedRevenueIfHighRiskSaved.toLocaleString()}
               </div>
-              <div className="text-zinc-500 text-xs mt-2">
+              <div className="text-slate-500 text-xs mt-2">
                 防衛率:{" "}
                 {revenueDefenseSimulation.monthlyLossForecast30Days > 0
                   ? (
@@ -578,71 +578,71 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">収益改善AI</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             継続率・LTV・収益リスク・防衛シミュレーションから、優先して取り組むテーマを提案します
           </p>
         </div>
-        <div className="bg-zinc-950 border border-emerald-500/35 rounded-xl p-8 shadow-xl shadow-black/40 ring-1 ring-emerald-500/10">
+        <div className="bg-slate-50 border border-emerald-500/35 rounded-xl p-8 shadow-xl shadow-slate-900/10 ring-1 ring-emerald-500/10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <div>
-                <div className="text-xs uppercase tracking-wider text-emerald-400/90 font-semibold mb-2">
+                <div className="text-xs uppercase tracking-wider text-emerald-700/90 font-semibold mb-2">
                   最優先の改善テーマ
                 </div>
-                <p className="text-2xl md:text-3xl font-bold text-white leading-tight">
+                <p className="text-2xl md:text-3xl font-bold text-slate-900 leading-tight">
                   {revenueImprovementPlan.topPriority}
                 </p>
               </div>
               <div>
-                <div className="text-xs uppercase tracking-wider text-zinc-500 font-semibold mb-2">
+                <div className="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-2">
                   想定改善インパクト
                 </div>
-                <p className="text-xl md:text-2xl font-bold text-emerald-400 leading-snug">
+                <p className="text-xl md:text-2xl font-bold text-emerald-700 leading-snug">
                   {revenueImprovementPlan.expectedImpact}
                 </p>
               </div>
               <div className="flex flex-wrap gap-3 text-xs">
-                <span className="rounded-md bg-zinc-900 border border-zinc-800 px-3 py-1.5 text-zinc-300">
+                <span className="rounded-md bg-white border border-slate-200 shadow-sm px-3 py-1.5 text-slate-700">
                   月間売上{" "}
-                  <span className="text-white font-semibold">
+                  <span className="text-slate-900 font-semibold">
                     ¥{revenueImprovementPlan.metrics.monthlyRevenue.toLocaleString()}
                   </span>
                 </span>
-                <span className="rounded-md bg-zinc-900 border border-zinc-800 px-3 py-1.5 text-zinc-300">
+                <span className="rounded-md bg-white border border-slate-200 shadow-sm px-3 py-1.5 text-slate-700">
                   平均リスク調整LTV{" "}
-                  <span className="text-white font-semibold">
+                  <span className="text-slate-900 font-semibold">
                     ¥{revenueImprovementPlan.metrics.avgRiskAdjustedLTV.toLocaleString()}
                   </span>
                 </span>
-                <span className="rounded-md bg-zinc-900 border border-red-500/30 px-3 py-1.5 text-zinc-300">
+                <span className="rounded-md bg-white border border-red-500/30 px-3 py-1.5 text-slate-700">
                   30日期待損失{" "}
-                  <span className="text-red-400 font-semibold">
+                  <span className="text-red-600 font-semibold">
                     ¥{revenueImprovementPlan.metrics.expectedLoss30Days.toLocaleString()}
                   </span>
                 </span>
-                <span className="rounded-md bg-zinc-900 border border-red-500/25 px-3 py-1.5 text-zinc-300">
+                <span className="rounded-md bg-white border border-red-500/25 px-3 py-1.5 text-slate-700">
                   60日期待損失{" "}
-                  <span className="text-red-400 font-semibold">
+                  <span className="text-red-600 font-semibold">
                     ¥{revenueImprovementPlan.metrics.expectedLoss60Days.toLocaleString()}
                   </span>
                 </span>
               </div>
             </div>
-            <div className="rounded-lg bg-zinc-900/80 border border-zinc-800 p-6">
-              <div className="text-sm font-semibold text-zinc-300 mb-4">
+            <div className="rounded-lg bg-white/80 border border-slate-200 p-6">
+              <div className="text-sm font-semibold text-slate-700 mb-4">
                 今やること（Top 3）
               </div>
               <ul className="space-y-4">
                 {revenueImprovementPlan.actions.map((action, idx) => (
                   <li key={`${action.title}-${idx}`} className="flex gap-3">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400 text-sm font-bold border border-emerald-500/30">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-700 text-sm font-bold border border-emerald-500/30">
                       {idx + 1}
                     </span>
                     <div>
-                      <div className="text-white font-medium text-sm leading-snug">
+                      <div className="text-slate-900 font-medium text-sm leading-snug">
                         {action.title}
                       </div>
-                      <div className="text-emerald-400/90 text-xs mt-1 font-medium">
+                      <div className="text-emerald-700/90 text-xs mt-1 font-medium">
                         {action.impact}
                       </div>
                     </div>
@@ -657,24 +657,24 @@ export default async function Home() {
       {/* 退会リスク売上 */}
       {shouldShow("revenueAtRisk") && (
       <div className="mb-12">
-        <div className="bg-zinc-900 border-2 border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+        <div className="bg-white border-2 border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
             <div>
               <h2 className="text-2xl font-semibold mb-2">退会リスク売上</h2>
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 高リスク会員が退会した場合に失う可能性のある売上です
               </p>
             </div>
             <div className="flex gap-8 flex-wrap lg:justify-end">
               <div className="text-right">
-                <p className="text-zinc-400 text-xs mb-1">月間リスク売上</p>
-                <p className="text-2xl font-extrabold text-red-400">
+                <p className="text-slate-600 text-xs mb-1">月間リスク売上</p>
+                <p className="text-2xl font-extrabold text-red-600">
                   {formatter.format(totalMonthlyRevenueAtRisk)}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-zinc-400 text-xs mb-1">年間リスク売上</p>
-                <p className="text-2xl font-extrabold text-red-300">
+                <p className="text-slate-600 text-xs mb-1">年間リスク売上</p>
+                <p className="text-2xl font-extrabold text-red-700">
                   {formatter.format(totalAnnualRevenueAtRisk)}
                 </p>
               </div>
@@ -687,48 +687,48 @@ export default async function Home() {
             {dangerousRevenueRanking.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-zinc-800 border-b border-zinc-700">
+                  <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                         順位
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                         名前
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                         プラン
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                         月額売上
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                         年間リスク売上
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                         リスクスコア
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                         操作
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800">
+                  <tbody className="divide-y divide-slate-200">
                     {dangerousRevenueRanking.map(({ member, revenue, riskResult }: { member: Member; revenue: ReturnType<typeof getRevenueAtRisk>; riskResult: RiskScoreResult }, index: number) => (
-                      <tr key={member.id} className="hover:bg-zinc-800/50 transition-colors">
-                        <td className="px-4 py-3 text-sm text-zinc-300">#{index + 1}</td>
+                      <tr key={member.id} className="hover:bg-slate-100/80 transition-colors">
+                        <td className="px-4 py-3 text-sm text-slate-700">#{index + 1}</td>
                         <td className="px-4 py-3 text-sm">
                           <Link
                             href={`/members/${member.id}`}
-                            className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                            className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                           >
                             {member.name}
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-sm text-zinc-300">{member.plan}</td>
-                        <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                        <td className="px-4 py-3 text-sm text-slate-700">{member.plan}</td>
+                        <td className="px-4 py-3 text-sm text-right text-slate-900">
                           {formatter.format(revenue.monthlyRevenue)}
                         </td>
-                        <td className="px-4 py-3 text-sm text-right text-red-300 font-semibold">
+                        <td className="px-4 py-3 text-sm text-right text-red-700 font-semibold">
                           {formatter.format(revenue.annualRevenueAtRisk)}
                         </td>
                         <td className="px-4 py-3 text-sm text-right">
@@ -743,7 +743,7 @@ export default async function Home() {
                         <td className="px-4 py-3 text-sm text-right">
                           <Link
                             href={`/members/${member.id}`}
-                            className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block"
+                            className="px-3 py-1.5 text-xs bg-blue-500/20 text-blue-700 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block"
                           >
                             詳細を見る
                           </Link>
@@ -754,7 +754,7 @@ export default async function Home() {
                 </table>
               </div>
             ) : (
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 現在、高リスク会員による売上リスクはありません
               </p>
             )}
@@ -766,71 +766,71 @@ export default async function Home() {
       {/* 店舗別サマリー */}
       {shouldShow("storeSummary") && (
       <div className="mb-12">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
           <div className="flex items-start justify-between mb-4 gap-6">
             <div>
               <h2 className="text-2xl font-semibold mb-2">店舗別サマリー</h2>
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 店舗ごとの継続率と危険売上を一覧で確認できます
               </p>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-zinc-800 border-b border-zinc-700">
+              <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                     店舗名
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     会員数
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     高リスク会員数
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     推定継続率
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     月間売上
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     月間リスク売上
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     年間リスク売上
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-slate-200">
                 {storeSummaries.map((store) => (
-                  <tr key={store.storeName} className="hover:bg-zinc-800/50 transition-colors">
-                    <td className="px-4 py-3 text-sm text-zinc-100">
+                  <tr key={store.storeName} className="hover:bg-slate-100/80 transition-colors">
+                    <td className="px-4 py-3 text-sm text-slate-900">
                       <Link
                         href={`/store/${encodeURIComponent(store.storeName)}`}
-                        className="text-blue-400 hover:text-blue-300 hover:underline"
+                        className="text-blue-700 hover:text-blue-800 hover:underline"
                       >
                         {store.storeName}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                    <td className="px-4 py-3 text-sm text-right text-slate-900">
                       {store.totalMembers}
                     </td>
                     <td className="px-4 py-3 text-sm text-right">
-                      <span className="font-semibold text-red-400">
+                      <span className="font-semibold text-red-600">
                         {store.highRiskMembers}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                    <td className="px-4 py-3 text-sm text-right text-slate-900">
                       {store.estimatedRetentionRate.toFixed(1)}%
                     </td>
-                    <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                    <td className="px-4 py-3 text-sm text-right text-slate-900">
                       {formatter.format(store.monthlyRevenue)}
                     </td>
                     <td className="px-4 py-3 text-sm text-right text-yellow-300">
                       {formatter.format(store.monthlyRevenueAtRisk)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-right text-red-300 font-semibold">
+                    <td className="px-4 py-3 text-sm text-right text-red-700 font-semibold">
                       {formatter.format(store.annualRevenueAtRisk)}
                     </td>
                   </tr>
@@ -845,24 +845,24 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-2xl font-semibold mb-2">店舗ランキング</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             継続・収益・損失リスクを並べて、優先改善が必要な店舗を一目で判断できます
           </p>
         </div>
         {storeSummaries.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-            <p className="text-zinc-400 text-sm">店舗ランキング対象データがありません</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+            <p className="text-slate-600 text-sm">店舗ランキング対象データがありません</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-4">
               <h3 className="text-green-300 text-sm font-semibold mb-1">継続率上位3店舗</h3>
-              <p className="text-zinc-500 text-xs mb-2">継続率が高い順に並べています</p>
+              <p className="text-slate-500 text-xs mb-2">継続率が高い順に並べています</p>
               <div className="space-y-2">
                 {retentionTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-green-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-slate-50 border border-green-500/20 rounded px-3 py-2 hover:bg-slate-100/80 transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-slate-900 text-sm">{idx + 1}. {store.storeName}</span>
                       <span className="text-green-300 text-xs font-semibold">{store.estimatedRetentionRate.toFixed(1)}%</span>
                     </div>
                   </Link>
@@ -870,44 +870,44 @@ export default async function Home() {
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <h3 className="text-red-300 text-sm font-semibold mb-1">来月損失予測上位3店舗</h3>
-              <p className="text-zinc-500 text-xs mb-2">来月失う可能性のある売上が大きい順です</p>
+            <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-4">
+              <h3 className="text-red-700 text-sm font-semibold mb-1">来月損失予測上位3店舗</h3>
+              <p className="text-slate-500 text-xs mb-2">来月失う可能性のある売上が大きい順です</p>
               <div className="space-y-2">
                 {lossTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-red-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-slate-50 border border-red-500/20 rounded px-3 py-2 hover:bg-slate-100/80 transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
-                      <span className="text-red-300 text-xs font-semibold">{formatter.format(store.expectedLoss30Days)}</span>
+                      <span className="text-slate-900 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-red-700 text-xs font-semibold">{formatter.format(store.expectedLoss30Days)}</span>
                     </div>
                   </Link>
                 ))}
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
-              <h3 className="text-emerald-300 text-sm font-semibold mb-1">成功店舗上位3店舗</h3>
-              <p className="text-zinc-500 text-xs mb-2">成功度スコアが高い順です</p>
+            <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-4">
+              <h3 className="text-emerald-800 text-sm font-semibold mb-1">成功店舗上位3店舗</h3>
+              <p className="text-slate-500 text-xs mb-2">成功度スコアが高い順です</p>
               <div className="space-y-2">
                 {successTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-emerald-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-slate-50 border border-emerald-500/20 rounded px-3 py-2 hover:bg-slate-100/80 transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
-                      <span className="text-emerald-300 text-xs font-semibold">Score {store.successScore}</span>
+                      <span className="text-slate-900 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-emerald-800 text-xs font-semibold">Score {store.successScore}</span>
                     </div>
                   </Link>
                 ))}
               </div>
             </div>
 
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-4">
               <h3 className="text-orange-300 text-sm font-semibold mb-1">問題店舗上位3店舗</h3>
-              <p className="text-zinc-500 text-xs mb-2">リスクスコアが高い順です</p>
+              <p className="text-slate-500 text-xs mb-2">リスクスコアが高い順です</p>
               <div className="space-y-2">
                 {problemTopStores.map((store, idx) => (
-                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-zinc-950 border border-orange-500/20 rounded px-3 py-2 hover:bg-zinc-800/50 transition-colors">
+                  <Link key={store.storeName} href={`/store/${encodeURIComponent(store.storeName)}`} className="block bg-slate-50 border border-orange-500/20 rounded px-3 py-2 hover:bg-slate-100/80 transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-100 text-sm">{idx + 1}. {store.storeName}</span>
+                      <span className="text-slate-900 text-sm">{idx + 1}. {store.storeName}</span>
                       <span className="text-orange-300 text-xs font-semibold">Risk {store.riskScore}</span>
                     </div>
                   </Link>
@@ -921,87 +921,87 @@ export default async function Home() {
       {/* KPI緊張感モード */}
       {shouldShow("kpiGap") && (
       <div className="mb-12">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
           <div className="flex items-start justify-between mb-4 gap-6">
             <div>
               <h2 className="text-2xl font-semibold mb-2">KPI緊張感モード</h2>
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 目標達成までに守るべき人数と売上差分を表示しています
               </p>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-zinc-800 border-b border-zinc-700">
+              <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                     店舗名
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     今月売上目標
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     現在売上
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     売上差分
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     継続率目標
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     現在継続率
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     継続率差分
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     あと何人守ればよいか
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-zinc-300">
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-slate-700">
                     あと何円守ればよいか
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-slate-200">
                 {storeKpiRows.map(({ summary, target, gap }) => {
                   const revenueNegative = gap.revenueGap > 0; // 目標に届いていない
                   const retentionNegative = gap.retentionGap > 0; // 目標に届いていない
                   return (
-                    <tr key={summary.storeName} className="hover:bg-zinc-800/50 transition-colors">
-                      <td className="px-4 py-3 text-sm text-zinc-100">
+                    <tr key={summary.storeName} className="hover:bg-slate-100/80 transition-colors">
+                      <td className="px-4 py-3 text-sm text-slate-900">
                         {summary.storeName}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                      <td className="px-4 py-3 text-sm text-right text-slate-900">
                         {formatter.format(target.targetMonthlyRevenue)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                      <td className="px-4 py-3 text-sm text-right text-slate-900">
                         {formatter.format(summary.monthlyRevenue)}
                       </td>
                       <td
                         className={`px-4 py-3 text-sm text-right font-semibold ${
-                          revenueNegative ? "text-red-400" : "text-green-400"
+                          revenueNegative ? "text-red-600" : "text-green-700"
                         }`}
                       >
                         {formatter.format(gap.revenueGap)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                      <td className="px-4 py-3 text-sm text-right text-slate-900">
                         {target.targetRetentionRate.toFixed(1)}%
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                      <td className="px-4 py-3 text-sm text-right text-slate-900">
                         {summary.estimatedRetentionRate.toFixed(1)}%
                       </td>
                       <td
                         className={`px-4 py-3 text-sm text-right font-semibold ${
-                          retentionNegative ? "text-red-400" : "text-green-400"
+                          retentionNegative ? "text-red-600" : "text-green-700"
                         }`}
                       >
                         {gap.retentionGap.toFixed(1)}%
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                      <td className="px-4 py-3 text-sm text-right text-slate-900">
                         {gap.membersToSave}
                       </td>
-                      <td className="px-4 py-3 text-sm text-right text-zinc-100">
+                      <td className="px-4 py-3 text-sm text-right text-slate-900">
                         {formatter.format(gap.revenueToProtect)}
                       </td>
                     </tr>
@@ -1017,30 +1017,30 @@ export default async function Home() {
       {/* 退会リスク分布 */}
       {shouldShow("riskTrendChart") && (
       <div className="mb-12">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
           <div className="flex items-start justify-between gap-6 mb-6">
             <div>
               <h2 className="text-2xl font-semibold mb-2">退会リスク分布</h2>
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 現在の会員リスク状況を表示しています
               </p>
             </div>
             <div className="flex gap-4 flex-wrap justify-end">
               <div className="text-right">
-                <p className="text-zinc-400 text-xs">低リスク</p>
-                <p className="text-lg font-bold text-green-400">
+                <p className="text-slate-600 text-xs">低リスク</p>
+                <p className="text-lg font-bold text-green-700">
                   {riskDistribution.low}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-zinc-400 text-xs">中リスク</p>
-                <p className="text-lg font-bold text-yellow-400">
+                <p className="text-slate-600 text-xs">中リスク</p>
+                <p className="text-lg font-bold text-yellow-700">
                   {riskDistribution.medium}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-zinc-400 text-xs">高リスク</p>
-                <p className="text-lg font-bold text-red-400">
+                <p className="text-slate-600 text-xs">高リスク</p>
+                <p className="text-lg font-bold text-red-600">
                   {riskDistribution.high}
                 </p>
               </div>
@@ -1055,19 +1055,19 @@ export default async function Home() {
       {/* First Row: Original Summary Cards */}
       {shouldShow("summaryCards") && (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">退会リスク高</h2>
-          <p className="text-3xl font-bold text-white">{highRiskMembers}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">退会リスク高</h2>
+          <p className="text-3xl font-bold text-slate-900">{highRiskMembers}</p>
         </div>
         
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">介入必要</h2>
-          <p className="text-3xl font-bold text-white">{needIntervention}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">介入必要</h2>
+          <p className="text-3xl font-bold text-slate-900">{needIntervention}</p>
         </div>
         
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">本日のタスク</h2>
-          <p className="text-3xl font-bold text-white">{todaysTasks}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">本日のタスク</h2>
+          <p className="text-3xl font-bold text-slate-900">{todaysTasks}</p>
         </div>
       </div>
       )}
@@ -1075,19 +1075,19 @@ export default async function Home() {
       {/* Second Row: Intervention Type Cards */}
       {shouldShow("interventionTypeCards") && (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">予約問題リスク</h2>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">予約問題リスク</h2>
           <p className="text-3xl font-bold text-purple-400">{reservationRiskMembers}</p>
         </div>
         
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">モチベーション低下リスク</h2>
-          <p className="text-3xl font-bold text-orange-400">{motivationRiskMembers}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">モチベーション低下リスク</h2>
+          <p className="text-3xl font-bold text-orange-700">{motivationRiskMembers}</p>
         </div>
         
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-          <h2 className="text-zinc-400 text-sm font-medium mb-2">生活変化リスク</h2>
-          <p className="text-3xl font-bold text-blue-400">{lifestyleRiskMembers}</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+          <h2 className="text-slate-600 text-sm font-medium mb-2">生活変化リスク</h2>
+          <p className="text-3xl font-bold text-blue-700">{lifestyleRiskMembers}</p>
         </div>
       </div>
       )}
@@ -1097,29 +1097,29 @@ export default async function Home() {
       <div className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">継続率サマリー</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h2 className="text-zinc-400 text-sm font-medium mb-2">アクティブ会員</h2>
-            <p className="text-3xl font-bold text-green-400">{retentionMetrics.activeMembers}</p>
-            <p className="text-zinc-500 text-xs mt-2">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h2 className="text-slate-600 text-sm font-medium mb-2">アクティブ会員</h2>
+            <p className="text-3xl font-bold text-green-700">{retentionMetrics.activeMembers}</p>
+            <p className="text-slate-500 text-xs mt-2">
               低・中リスク会員
             </p>
           </div>
           
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h2 className="text-zinc-400 text-sm font-medium mb-2">退会リスク高</h2>
-            <p className="text-3xl font-bold text-red-400">{retentionMetrics.highRiskMembers}</p>
-            <p className="text-zinc-500 text-xs mt-2">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h2 className="text-slate-600 text-sm font-medium mb-2">退会リスク高</h2>
+            <p className="text-3xl font-bold text-red-600">{retentionMetrics.highRiskMembers}</p>
+            <p className="text-slate-500 text-xs mt-2">
               要対応
             </p>
           </div>
           
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h2 className="text-zinc-400 text-sm font-medium mb-2">推定継続率</h2>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h2 className="text-slate-600 text-sm font-medium mb-2">推定継続率</h2>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-blue-400">{retentionMetrics.estimatedRetentionRate}</p>
-              <span className="text-xl text-zinc-400">%</span>
+              <p className="text-3xl font-bold text-blue-700">{retentionMetrics.estimatedRetentionRate}</p>
+              <span className="text-xl text-slate-600">%</span>
             </div>
-            <p className="text-zinc-500 text-xs mt-2">
+            <p className="text-slate-500 text-xs mt-2">
               リスクレベル分布に基づく
             </p>
           </div>
@@ -1132,49 +1132,49 @@ export default async function Home() {
       <div className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">退会リスク会員一覧</h2>
         {highRiskMembersList.length > 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       名前
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       Plan
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       リスクスコア
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       リスクレベル
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       提案タイトル
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       推定退会理由
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       クイックアクション
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {highRiskMembersList.map(({ member, riskResult, suggestion }: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }) => (
                     <tr
                       key={member.id}
-                      className="hover:bg-zinc-800/50 transition-colors"
+                      className="hover:bg-slate-100/80 transition-colors"
                     >
                       <td className="px-6 py-4">
                         <Link
                           href={`/members/${member.id}`}
-                          className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                          className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                         >
                           {member.name}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">{member.plan}</td>
+                      <td className="px-6 py-4 text-slate-700">{member.plan}</td>
                       <td className="px-6 py-4">
                         <span
                           className={`font-semibold ${getRiskScoreColor(
@@ -1194,7 +1194,7 @@ export default async function Home() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-zinc-300 text-sm">{suggestion.title}</span>
+                        <span className="text-slate-700 text-sm">{suggestion.title}</span>
                       </td>
                       <td className="px-6 py-4">
                         {(() => {
@@ -1206,8 +1206,8 @@ export default async function Home() {
                                   key={idx}
                                   className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
                                     reason.severity === "high"
-                                      ? "text-red-400 bg-red-400/10 border-red-400/20"
-                                      : "text-yellow-400 bg-yellow-400/10 border-yellow-400/20"
+                                      ? "text-red-600 bg-red-400/10 border-red-400/20"
+                                      : "text-yellow-700 bg-yellow-400/10 border-yellow-400/20"
                                   }`}
                                   title={reason.description}
                                 >
@@ -1216,7 +1216,7 @@ export default async function Home() {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-zinc-500 text-xs">-</span>
+                            <span className="text-slate-500 text-xs">-</span>
                           );
                         })()}
                       </td>
@@ -1224,10 +1224,10 @@ export default async function Home() {
                         <div className="flex gap-2 flex-wrap">
                           {suggestion.type === "reservation" && (
                             <>
-                              <button className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-blue-500/20 text-blue-700 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors">
                                 電話
                               </button>
-                              <button className="px-3 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-green-500/20 text-green-700 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors">
                                 メッセージ
                               </button>
                               <button className="px-3 py-1 text-xs bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded hover:bg-purple-500/30 transition-colors">
@@ -1237,26 +1237,26 @@ export default async function Home() {
                           )}
                           {suggestion.type === "motivation" && (
                             <>
-                              <button className="px-3 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-green-500/20 text-green-700 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors">
                                 メッセージ
                               </button>
-                              <button className="px-3 py-1 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded hover:bg-yellow-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-yellow-500/20 text-yellow-700 border border-yellow-500/30 rounded hover:bg-yellow-500/30 transition-colors">
                                 プラン確認
                               </button>
-                              <button className="px-3 py-1 text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded hover:bg-orange-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-orange-500/20 text-orange-700 border border-orange-500/30 rounded hover:bg-orange-500/30 transition-colors">
                                 目標設定
                               </button>
                             </>
                           )}
                           {suggestion.type === "lifestyle" && (
                             <>
-                              <button className="px-3 py-1 text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-blue-500/20 text-blue-700 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors">
                                 電話
                               </button>
-                              <button className="px-3 py-1 text-xs bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-green-500/20 text-green-700 border border-green-500/30 rounded hover:bg-green-500/30 transition-colors">
                                 メッセージ
                               </button>
-                              <button className="px-3 py-1 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded hover:bg-yellow-500/30 transition-colors">
+                              <button className="px-3 py-1 text-xs bg-yellow-500/20 text-yellow-700 border border-yellow-500/30 rounded hover:bg-yellow-500/30 transition-colors">
                                 プラン調整
                               </button>
                             </>
@@ -1270,8 +1270,8 @@ export default async function Home() {
             </div>
           </div>
         ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">現在リスクの高い会員はいません</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+            <p className="text-slate-600">現在リスクの高い会員はいません</p>
           </div>
         )}
       </div>
@@ -1282,32 +1282,32 @@ export default async function Home() {
       <div className="mb-12">
         <h2 className="text-2xl font-semibold mb-4">介入推奨会員</h2>
         {needInterventionMembers.length > 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       名前
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       優先度
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       推奨アクション
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {needInterventionMembers.map(({ member, suggestion }: { member: Member; riskResult: RiskScoreResult; suggestion: ReturnType<typeof getInterventionSuggestion> }) => (
                     <tr
                       key={member.id}
-                      className="hover:bg-zinc-800/50 transition-colors"
+                      className="hover:bg-slate-100/80 transition-colors"
                     >
                       <td className="px-6 py-4">
                         <Link
                           href={`/members/${member.id}`}
-                          className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                          className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                         >
                           {member.name}
                         </Link>
@@ -1329,10 +1329,10 @@ export default async function Home() {
                       </td>
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-white text-sm font-medium mb-1">
+                          <p className="text-slate-900 text-sm font-medium mb-1">
                             {suggestion.title}
                           </p>
-                          <p className="text-zinc-400 text-xs">{suggestion.action}</p>
+                          <p className="text-slate-600 text-xs">{suggestion.action}</p>
                         </div>
                       </td>
                     </tr>
@@ -1342,8 +1342,8 @@ export default async function Home() {
             </div>
           </div>
         ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">現在介入が必要な会員はいません</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+            <p className="text-slate-600">現在介入が必要な会員はいません</p>
           </div>
         )}
       </div>
@@ -1354,30 +1354,30 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">予約詰まり分析</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             予約の取りづらさは継続率に直結する重要指標です
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* 予約問題リスク会員数 */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
             <h3 className="text-lg font-semibold mb-4">予約問題リスク会員数</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">予約問題リスク会員</span>
-                <span className="text-2xl font-bold text-orange-400">
+                <span className="text-slate-600">予約問題リスク会員</span>
+                <span className="text-2xl font-bold text-orange-700">
                   {reservationAnalysis.reservationRiskMembers.length}人
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">予約困難会員</span>
-                <span className="text-xl font-bold text-red-400">
+                <span className="text-slate-600">予約困難会員</span>
+                <span className="text-xl font-bold text-red-600">
                   {reservationAnalysis.difficultReservationMembers.length}人
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-zinc-400">予約問題による高リスク会員</span>
+                <span className="text-slate-600">予約問題による高リスク会員</span>
                 <span className="text-xl font-bold text-red-500">
                   {reservationAnalysis.storePressures.reduce(
                     (sum, store) => sum + store.highRiskDueToReservation,
@@ -1390,21 +1390,21 @@ export default async function Home() {
           </div>
 
           {/* 時間帯別の詰まり */}
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
             <h3 className="text-lg font-semibold mb-4">予約が集中している時間帯</h3>
             <div className="space-y-2">
               {reservationAnalysis.busyTimeSlots.slice(0, 5).map((slot) => (
                 <div key={slot.timeSlot} className="flex items-center justify-between">
-                  <span className="text-zinc-300">{slot.timeSlot}</span>
+                  <span className="text-slate-700">{slot.timeSlot}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-zinc-400 text-sm">{slot.count}人</span>
+                    <span className="text-slate-600 text-sm">{slot.count}人</span>
                     <span
                       className={`text-xs font-medium px-2 py-1 rounded ${
                         slot.difficultyLevel === "difficult"
-                          ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                          ? "text-red-600 bg-red-400/10 border border-red-400/20"
                           : slot.difficultyLevel === "medium"
-                          ? "text-yellow-400 bg-yellow-400/10 border border-yellow-400/20"
-                          : "text-green-400 bg-green-400/10 border border-green-400/20"
+                          ? "text-yellow-700 bg-yellow-400/10 border border-yellow-400/20"
+                          : "text-green-700 bg-green-400/10 border border-green-400/20"
                       }`}
                     >
                       {slot.difficultyLevel === "difficult"
@@ -1417,66 +1417,66 @@ export default async function Home() {
                 </div>
               ))}
               {reservationAnalysis.busyTimeSlots.length === 0 && (
-                <p className="text-zinc-400 text-sm">データがありません</p>
+                <p className="text-slate-600 text-sm">データがありません</p>
               )}
             </div>
           </div>
         </div>
 
         {/* 予約が取りづらい店舗ランキング */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-          <div className="p-6 border-b border-zinc-800">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-slate-200">
             <h3 className="text-lg font-semibold">予約が取りづらい店舗ランキング</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-zinc-800 border-b border-zinc-700">
+              <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     順位
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     店舗名
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     全会員数
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     予約困難会員
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     予約問題リスク会員
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     高リスク会員（予約問題）
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     プレッシャースコア
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-slate-200">
                 {reservationAnalysis.storePressures.map((store, index) => {
                   const rank = index + 1;
                   return (
                     <tr
                       key={store.storeName}
-                      className="hover:bg-zinc-800/50 transition-colors"
+                      className="hover:bg-slate-100/80 transition-colors"
                     >
                       <td className="px-6 py-4">
-                        <span className="text-lg font-bold text-zinc-400">#{rank}</span>
+                        <span className="text-lg font-bold text-slate-600">#{rank}</span>
                       </td>
-                      <td className="px-6 py-4 text-white font-medium">
+                      <td className="px-6 py-4 text-slate-900 font-medium">
                         {store.storeName}
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">{store.totalMembers}人</td>
+                      <td className="px-6 py-4 text-slate-700">{store.totalMembers}人</td>
                       <td className="px-6 py-4">
-                        <span className="text-red-400 font-semibold">
+                        <span className="text-red-600 font-semibold">
                           {store.difficultReservationMembers}人
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-orange-400 font-semibold">
+                        <span className="text-orange-700 font-semibold">
                           {store.reservationRiskMembers}人
                         </span>
                       </td>
@@ -1491,8 +1491,8 @@ export default async function Home() {
                             store.pressureScore >= 70
                               ? "text-red-500"
                               : store.pressureScore >= 40
-                              ? "text-yellow-400"
-                              : "text-green-400"
+                              ? "text-yellow-700"
+                              : "text-green-700"
                           }`}
                         >
                           {store.pressureScore}
@@ -1507,37 +1507,37 @@ export default async function Home() {
         </div>
 
         {/* 予約詰まり時間帯ヒートマップ */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8 mb-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-8 mb-6">
           <h3 className="text-2xl font-semibold mb-4">
             予約詰まり時間帯ヒートマップ
           </h3>
-          <p className="text-zinc-400 text-sm mb-6">
+          <p className="text-slate-600 text-sm mb-6">
             予約が集中している曜日・時間帯を可視化しています
           </p>
 
           <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">予約問題リスク会員数</div>
-              <div className="text-2xl font-bold text-orange-400">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">予約問題リスク会員数</div>
+              <div className="text-2xl font-bold text-orange-700">
                 {reservationHeatmap.reservationRiskMembersCount}
               </div>
-              <div className="text-zinc-500 text-xs mt-1">人</div>
+              <div className="text-slate-500 text-xs mt-1">人</div>
             </div>
 
-            <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">最も詰まっている時間帯</div>
-              <div className="text-lg font-bold text-red-400">
+            <div className="bg-slate-50 border border-red-500/40 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">最も詰まっている時間帯</div>
+              <div className="text-lg font-bold text-red-600">
                 {reservationHeatmap.busiestTimeSlot || "なし"}
               </div>
             </div>
 
-            <div className="bg-zinc-950 border border-yellow-500/40 rounded-lg p-4">
-              <div className="text-zinc-400 text-sm mb-1">分散提案が必要な時間帯</div>
-              <div className="text-lg font-bold text-yellow-400">
+            <div className="bg-slate-50 border border-yellow-500/40 rounded-lg p-4">
+              <div className="text-slate-600 text-sm mb-1">分散提案が必要な時間帯</div>
+              <div className="text-lg font-bold text-yellow-700">
                 {reservationHeatmap.needsDiversionTimeSlots.length}箇所
               </div>
               {reservationHeatmap.needsDiversionTimeSlots.length > 0 && (
-                <div className="text-zinc-500 text-xs mt-1">
+                <div className="text-slate-500 text-xs mt-1">
                   {reservationHeatmap.needsDiversionTimeSlots.slice(0, 2).join(", ")}
                   {reservationHeatmap.needsDiversionTimeSlots.length > 2 && "..."}
                 </div>
@@ -1545,7 +1545,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-6">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
             <ReservationHeatmap
               cells={reservationHeatmap.cells}
               maxPressure={reservationHeatmap.maxPressure}
@@ -1560,96 +1560,96 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">入会後90日モニター</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             入会後90日は継続率を左右する最重要期間です
           </p>
         </div>
 
         {/* 経過日数ごとのカード */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">0〜30日会員</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">0〜30日会員</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {first90DaysSummary.membersInFirst30Days.length}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">入会直後の重要期間</p>
+            <p className="text-slate-500 text-xs mt-2">入会直後の重要期間</p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">31〜60日会員</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">31〜60日会員</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {first90DaysSummary.membersIn31to60Days.length}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">習慣化の転換期</p>
+            <p className="text-slate-500 text-xs mt-2">習慣化の転換期</p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">61〜90日会員</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">61〜90日会員</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {first90DaysSummary.membersIn61to90Days.length}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">継続率の分岐点</p>
+            <p className="text-slate-500 text-xs mt-2">継続率の分岐点</p>
           </div>
         </div>
 
         {/* 高リスク会員数カード */}
-        <div className="bg-zinc-900 border-2 border-red-500/40 rounded-lg p-6 mb-6 hover:border-red-400/60 transition-colors">
+        <div className="bg-white border-2 border-red-500/40 rounded-lg p-6 mb-6 hover:border-red-400/60 transition-colors">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xl font-semibold mb-2">90日以内高リスク会員数</h3>
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 要対応会員: {first90DaysSummary.first90DaysRetentionAlertCount}人
               </p>
             </div>
             <div className="text-right">
-              <p className="text-4xl font-bold text-red-400">
+              <p className="text-4xl font-bold text-red-600">
                 {first90DaysSummary.highRiskFirst90DaysMembers.length}
               </p>
-              <span className="text-zinc-400 text-sm">人</span>
+              <span className="text-slate-600 text-sm">人</span>
             </div>
           </div>
         </div>
 
         {/* 要対応会員一覧 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-          <div className="p-6 border-b border-zinc-800">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-slate-200">
             <h3 className="text-xl font-semibold">要対応会員一覧</h3>
-            <p className="text-zinc-400 text-sm mt-1">
+            <p className="text-slate-600 text-sm mt-1">
               入会後90日以内でリスクが高い会員（最大5名）
             </p>
           </div>
           {urgentFirst90DaysMembers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       名前
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       経過日数
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       リスクスコア
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       会員タイプ
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       推奨アクション
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       操作
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {urgentFirst90DaysMembers.map((item) => {
                     const segmentInfo = getSegmentInfo(item.segment as "short_term_result" | "habit_builder" | "at_risk_dropout");
                     return (
                       <tr
                         key={item.member.id}
-                        className={`hover:bg-zinc-800/50 transition-colors ${
+                        className={`hover:bg-slate-100/80 transition-colors ${
                           item.riskResult.level === "high"
                             ? "bg-red-500/5"
                             : ""
@@ -1658,17 +1658,17 @@ export default async function Home() {
                         <td className="px-6 py-4">
                           <Link
                             href={`/members/${item.member.id}`}
-                            className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                            className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                           >
                             {item.member.name}
                           </Link>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-zinc-300">
+                          <span className="text-slate-700">
                             {item.daysSinceJoin}日
                           </span>
                           {item.daysSinceJoin <= 30 && (
-                            <span className="ml-2 text-xs text-red-400 font-medium">
+                            <span className="ml-2 text-xs text-red-600 font-medium">
                               (重要期間)
                             </span>
                           )}
@@ -1705,20 +1705,20 @@ export default async function Home() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="space-y-1">
-                            <p className="text-white text-sm font-medium">
+                            <p className="text-slate-900 text-sm font-medium">
                               {item.suggestion.title}
                             </p>
-                            <p className="text-zinc-400 text-xs">
+                            <p className="text-slate-600 text-xs">
                               {item.suggestion.action}
                             </p>
                             <div className="flex items-center gap-2">
                               <span
                                 className={`text-xs font-medium ${
                                   item.suggestion.priority === "high"
-                                    ? "text-red-400"
+                                    ? "text-red-600"
                                     : item.suggestion.priority === "medium"
-                                    ? "text-yellow-400"
-                                    : "text-green-400"
+                                    ? "text-yellow-700"
+                                    : "text-green-700"
                                 }`}
                               >
                                 優先度:{" "}
@@ -1734,7 +1734,7 @@ export default async function Home() {
                         <td className="px-6 py-4">
                           <Link
                             href={`/members/${item.member.id}`}
-                            className="px-4 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block"
+                            className="px-4 py-2 text-sm bg-blue-500/20 text-blue-700 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block"
                           >
                             詳細を見る
                           </Link>
@@ -1747,7 +1747,7 @@ export default async function Home() {
             </div>
           ) : (
             <div className="p-8 text-center">
-              <p className="text-zinc-400">
+              <p className="text-slate-600">
                 入会後90日以内で要対応の会員はいません
               </p>
             </div>
@@ -1761,83 +1761,83 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">デュアル移行最適化</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             デュアル月8からトレーニングまたはピラティスへの最適な移行先をAIが提案します
           </p>
         </div>
 
         {/* サマリーカード */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">対象会員数</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">対象会員数</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {dualMembers.length}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">デュアル月8会員</p>
+            <p className="text-slate-500 text-xs mt-2">デュアル月8会員</p>
           </div>
 
-          <div className="bg-zinc-900 border border-blue-500/40 rounded-lg p-6 hover:border-blue-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">トレーニング推奨</h3>
-            <p className="text-3xl font-bold text-blue-400">
+          <div className="bg-white border border-blue-500/40 rounded-lg p-6 hover:border-blue-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">トレーニング推奨</h3>
+            <p className="text-3xl font-bold text-blue-700">
               {trainingRecommendedCount}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
 
-          <div className="bg-zinc-900 border border-purple-500/40 rounded-lg p-6 hover:border-purple-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">ピラティス推奨</h3>
+          <div className="bg-white border border-purple-500/40 rounded-lg p-6 hover:border-purple-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">ピラティス推奨</h3>
             <p className="text-3xl font-bold text-purple-400">
               {pilatesRecommendedCount}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
         </div>
 
         {/* 要確認会員一覧 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
-          <div className="p-6 border-b border-zinc-800">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-slate-200">
             <h3 className="text-xl font-semibold">要確認会員一覧</h3>
-            <p className="text-zinc-400 text-sm mt-1">
+            <p className="text-slate-600 text-sm mt-1">
               デュアル月8会員の移行先推奨（最大5名）
             </p>
           </div>
           {urgentDualMembers.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       名前
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       推奨移行先
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       トレーニング適性
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       ピラティス適性
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       推奨理由
                     </th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                       操作
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {urgentDualMembers.map((item) => {
                     const { member, recommendation } = item;
                     return (
                       <tr
                         key={member.id}
-                        className="hover:bg-zinc-800/50 transition-colors"
+                        className="hover:bg-slate-100/80 transition-colors"
                       >
                         <td className="px-6 py-4">
                           <Link
                             href={`/members/${member.id}`}
-                            className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                            className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                           >
                             {member.name}
                           </Link>
@@ -1846,7 +1846,7 @@ export default async function Home() {
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
                               recommendation.recommendedNextPlan === "トレーニング月8"
-                                ? "text-blue-400 bg-blue-400/10 border-blue-400/20"
+                                ? "text-blue-700 bg-blue-400/10 border-blue-400/20"
                                 : "text-purple-400 bg-purple-400/10 border-purple-400/20"
                             }`}
                           >
@@ -1855,48 +1855,48 @@ export default async function Home() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                            <div className="flex-1 bg-slate-100 rounded-full h-2">
                               <div
                                 className={`h-2 rounded-full ${
                                   recommendation.trainingFitScore >= 70
                                     ? "bg-blue-400"
                                     : recommendation.trainingFitScore >= 50
                                     ? "bg-blue-500/60"
-                                    : "bg-zinc-600"
+                                    : "bg-slate-400"
                                 }`}
                                 style={{
                                   width: `${recommendation.trainingFitScore}%`,
                                 }}
                               />
                             </div>
-                            <span className="text-sm font-medium text-zinc-300 w-12 text-right">
+                            <span className="text-sm font-medium text-slate-700 w-12 text-right">
                               {recommendation.trainingFitScore}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                            <div className="flex-1 bg-slate-100 rounded-full h-2">
                               <div
                                 className={`h-2 rounded-full ${
                                   recommendation.pilatesFitScore >= 70
                                     ? "bg-purple-400"
                                     : recommendation.pilatesFitScore >= 50
                                     ? "bg-purple-500/60"
-                                    : "bg-zinc-600"
+                                    : "bg-slate-400"
                                 }`}
                                 style={{
                                   width: `${recommendation.pilatesFitScore}%`,
                                 }}
                               />
                             </div>
-                            <span className="text-sm font-medium text-zinc-300 w-12 text-right">
+                            <span className="text-sm font-medium text-slate-700 w-12 text-right">
                               {recommendation.pilatesFitScore}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <ul className="space-y-1 text-zinc-400 text-xs">
+                          <ul className="space-y-1 text-slate-600 text-xs">
                             {recommendation.reason.slice(0, 2).map((reason, idx) => (
                               <li key={idx} className="flex gap-2">
                                 <span>・</span>
@@ -1908,7 +1908,7 @@ export default async function Home() {
                         <td className="px-6 py-4">
                           <Link
                             href={`/members/${member.id}`}
-                            className="px-4 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block"
+                            className="px-4 py-2 text-sm bg-blue-500/20 text-blue-700 border border-blue-500/30 rounded hover:bg-blue-500/30 transition-colors inline-block"
                           >
                             詳細を見る
                           </Link>
@@ -1921,7 +1921,7 @@ export default async function Home() {
         </div>
           ) : (
             <div className="p-8 text-center">
-              <p className="text-zinc-400">
+              <p className="text-slate-600">
                 デュアル月8会員がいません
               </p>
             </div>
@@ -1935,66 +1935,66 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">トレーナー別継続率</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             担当会員の状況をもとに継続率改善の優先順位を確認できます
           </p>
         </div>
 
         {trainerMetrics.length > 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
                       トレーナー名
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
                       担当会員数
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
                       高リスク会員数
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
                       推定継続率
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
                       月間売上
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
                       年間リスク売上
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {trainerMetrics.map((trainer) => (
                     <tr
                       key={trainer.trainerName}
-                      className="hover:bg-zinc-800/40 transition-colors"
+                      className="hover:bg-slate-100/40 transition-colors"
                     >
-                      <td className="px-6 py-4 text-white font-medium">
+                      <td className="px-6 py-4 text-slate-900 font-medium">
                         <Link
                           href={`/trainers/${encodeURIComponent(trainer.trainerName)}`}
-                          className="text-blue-400 hover:underline"
+                          className="text-blue-700 hover:underline"
                         >
                           {trainer.trainerName}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">
+                      <td className="px-6 py-4 text-slate-700">
                         {trainer.totalMembers}人
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-red-400 font-semibold">
+                        <span className="text-red-600 font-semibold">
                           {trainer.highRiskMembers}人
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">
+                      <td className="px-6 py-4 text-slate-700">
                         {trainer.estimatedRetentionRate.toFixed(1)}%
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">
+                      <td className="px-6 py-4 text-slate-700">
                         {formatter.format(trainer.monthlyRevenue)}
                       </td>
-                      <td className="px-6 py-4 text-red-400 font-semibold">
+                      <td className="px-6 py-4 text-red-600 font-semibold">
                         {formatter.format(trainer.annualRevenueAtRisk)}
                       </td>
                     </tr>
@@ -2004,8 +2004,8 @@ export default async function Home() {
             </div>
           </div>
         ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-            <p className="text-zinc-400">トレーナー別の集計データがありません</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+            <p className="text-slate-600">トレーナー別の集計データがありません</p>
           </div>
         )}
       </div>
@@ -2014,29 +2014,29 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">トレーナー改善提案AI</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             支援優先度の高いトレーナーを可視化し、育成アクションの優先順位を整理します
           </p>
         </div>
         {supportPriorityTrainers.length === 0 ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
-            <p className="text-zinc-400 text-sm">評価対象のトレーナーがいません</p>
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+            <p className="text-slate-600 text-sm">評価対象のトレーナーがいません</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {supportPriorityTrainers.map((trainer) => (
-              <div key={trainer.trainerName} className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
+              <div key={trainer.trainerName} className="bg-white border border-slate-200 shadow-sm rounded-lg p-5">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <Link
                     href={`/trainers/${encodeURIComponent(trainer.trainerName)}`}
-                    className="text-blue-400 hover:text-blue-300 hover:underline font-semibold"
+                    className="text-blue-700 hover:text-blue-800 hover:underline font-semibold"
                   >
                     {trainer.trainerName}
                   </Link>
                   <span
                     className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
                       trainer.level === "support_needed"
-                        ? "text-red-300 bg-red-400/10 border-red-400/25"
+                        ? "text-red-700 bg-red-400/10 border-red-400/25"
                         : trainer.level === "watch"
                         ? "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
                         : trainer.level === "good"
@@ -2047,8 +2047,8 @@ export default async function Home() {
                     {getTrainerEvaluationLevelLabel(trainer.level)}
                   </span>
                 </div>
-                <div className="text-zinc-500 text-xs mb-3">総合スコア {trainer.summaryScore}</div>
-                <div className="text-zinc-200 text-sm">
+                <div className="text-slate-500 text-xs mb-3">総合スコア {trainer.summaryScore}</div>
+                <div className="text-slate-800 text-sm">
                   最優先改善ポイント:
                   <div className="mt-1 text-yellow-300">
                     {trainer.improvementPoints[0]?.title ?? "現状維持の運用を継続"}
@@ -2056,7 +2056,7 @@ export default async function Home() {
                 </div>
                 <Link
                   href={`/trainers/${encodeURIComponent(trainer.trainerName)}`}
-                  className="mt-4 inline-block text-sm text-blue-400 hover:text-blue-300 hover:underline"
+                  className="mt-4 inline-block text-sm text-blue-700 hover:text-blue-800 hover:underline"
                 >
                   詳細を見る →
                 </Link>
@@ -2069,7 +2069,7 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">成功セッション分析AI</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             継続率が高い会員の傾向を抽出し、現場で再現しやすい成功パターンを可視化しています
           </p>
         </div>
@@ -2084,51 +2084,51 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">価格改定影響モニター</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             価格改定後の会員リスクと収益影響を確認できます
           </p>
         </div>
 
         {/* サマリーカード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">改定対象会員数</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">改定対象会員数</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {priceRevisionImpact.targetMembers.length}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
 
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">改定後高リスク会員数</h3>
-            <p className="text-3xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">改定後高リスク会員数</h3>
+            <p className="text-3xl font-bold text-red-600">
               {priceRevisionImpact.highRiskTargetMembers.length}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
 
-          <div className="bg-zinc-900 border border-green-500/40 rounded-lg p-6 hover:border-green-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">月間増収見込み</h3>
-            <p className="text-3xl font-bold text-green-400">
+          <div className="bg-white border border-green-500/40 rounded-lg p-6 hover:border-green-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">月間増収見込み</h3>
+            <p className="text-3xl font-bold text-green-700">
               {formatter.format(priceRevisionImpact.monthlyRevenueIncrease)}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">改定による増収</p>
+            <p className="text-slate-500 text-xs mt-2">改定による増収</p>
           </div>
 
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">月間リスク売上</h3>
-            <p className="text-3xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">月間リスク売上</h3>
+            <p className="text-3xl font-bold text-red-600">
               {formatter.format(priceRevisionImpact.monthlyRevenueAtRiskAfterRevision)}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">高リスク会員の売上</p>
+            <p className="text-slate-500 text-xs mt-2">高リスク会員の売上</p>
           </div>
 
-          <div className="bg-zinc-900 border border-green-500/40 rounded-lg p-6 hover:border-green-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">守れた売上見込み</h3>
-            <p className="text-3xl font-bold text-green-400">
+          <div className="bg-white border border-green-500/40 rounded-lg p-6 hover:border-green-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">守れた売上見込み</h3>
+            <p className="text-3xl font-bold text-green-700">
               {formatter.format(priceRevisionImpact.estimatedProtectedRevenue)}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">継続見込みの売上</p>
+            <p className="text-slate-500 text-xs mt-2">継続見込みの売上</p>
           </div>
         </div>
       </div>
@@ -2137,13 +2137,13 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">退会理由AI分析</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             全会員の推定退会理由を集計し、優先して実行すべき対応を示します
           </p>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           {topChurnReasonAnalysis.length === 0 ? (
-            <p className="text-zinc-400 text-sm">分析対象データがありません</p>
+            <p className="text-slate-600 text-sm">分析対象データがありません</p>
           ) : (
             <div className="space-y-3">
               {topChurnReasonAnalysis.map((item, idx) => {
@@ -2160,16 +2160,16 @@ export default async function Home() {
                 return (
                   <div
                     key={item.tag}
-                    className="bg-zinc-950 border border-zinc-800 rounded-lg p-3"
+                    className="bg-slate-50 border border-slate-200 rounded-lg p-3"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-zinc-500 text-xs font-mono">{idx + 1}.</span>
-                        <span className="text-white font-medium">{item.tag}</span>
+                        <span className="text-slate-500 text-xs font-mono">{idx + 1}.</span>
+                        <span className="text-slate-900 font-medium">{item.tag}</span>
                       </div>
-                      <span className="text-zinc-300 text-sm">{item.count}人</span>
+                      <span className="text-slate-700 text-sm">{item.count}人</span>
                     </div>
-                    <p className="mt-1 text-zinc-400 text-xs">
+                    <p className="mt-1 text-slate-600 text-xs">
                       → {actionMap[item.tag] ?? "対象会員への個別フォローを実施"}
                     </p>
                   </div>
@@ -2185,32 +2185,32 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">未来退会予測</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             今後30日以内・60日以内に退会する可能性を予測
           </p>
         </div>
 
         {/* サマリーカード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日以内 high 予測会員数</h3>
-            <p className="text-3xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">30日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-600">
               {highRisk30Days}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
 
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日以内 high 予測会員数</h3>
-            <p className="text-3xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">60日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-600">
               {highRisk60Days}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日予測平均確率</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">30日予測平均確率</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
@@ -2220,12 +2220,12 @@ export default async function Home() {
                   )
                 : 0}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">%</p>
+            <p className="text-slate-500 text-xs mt-2">%</p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日予測平均確率</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">60日予測平均確率</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
@@ -2235,41 +2235,41 @@ export default async function Home() {
                   )
                 : 0}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">%</p>
+            <p className="text-slate-500 text-xs mt-2">%</p>
           </div>
         </div>
 
         {/* 予測上位5名 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h3 className="text-xl font-semibold mb-4">予測上位5名</h3>
           {topChurnPredictions.length === 0 ? (
-            <p className="text-zinc-400 text-sm">予測データがありません</p>
+            <p className="text-slate-600 text-sm">予測データがありません</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       名前
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       30日退会確率
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       60日退会確率
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       会員タイプ
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       推奨アクション
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       詳細
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {topChurnPredictions.map((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => {
                     const segment = getMemberSegment(item.member);
                     const segmentInfo = getSegmentInfo(segment);
@@ -2277,9 +2277,9 @@ export default async function Home() {
                     return (
                       <tr
                         key={item.member.id}
-                        className="hover:bg-zinc-800/60 transition-colors"
+                        className="hover:bg-slate-100/60 transition-colors"
                       >
-                        <td className="px-4 py-3 text-white font-medium">
+                        <td className="px-4 py-3 text-slate-900 font-medium">
                           {item.member.name}
                         </td>
                         <td className="px-4 py-3">
@@ -2287,10 +2287,10 @@ export default async function Home() {
                             <span
                               className={`text-lg font-bold ${
                                 item.prediction.label30Days === "high"
-                                  ? "text-red-400"
+                                  ? "text-red-600"
                                   : item.prediction.label30Days === "medium"
-                                  ? "text-orange-400"
-                                  : "text-zinc-400"
+                                  ? "text-orange-700"
+                                  : "text-slate-600"
                               }`}
                             >
                               {item.prediction.probability30Days}%
@@ -2298,10 +2298,10 @@ export default async function Home() {
                             <span
                               className={`text-xs px-2 py-1 rounded ${
                                 item.prediction.label30Days === "high"
-                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  ? "text-red-600 bg-red-400/10 border border-red-400/20"
                                   : item.prediction.label30Days === "medium"
-                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                                  ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-slate-600 bg-slate-100 border border-slate-200"
                               }`}
                             >
                               {item.prediction.label30Days === "high"
@@ -2317,10 +2317,10 @@ export default async function Home() {
                             <span
                               className={`text-lg font-bold ${
                                 item.prediction.label60Days === "high"
-                                  ? "text-red-400"
+                                  ? "text-red-600"
                                   : item.prediction.label60Days === "medium"
-                                  ? "text-orange-400"
-                                  : "text-zinc-400"
+                                  ? "text-orange-700"
+                                  : "text-slate-600"
                               }`}
                             >
                               {item.prediction.probability60Days}%
@@ -2328,10 +2328,10 @@ export default async function Home() {
                             <span
                               className={`text-xs px-2 py-1 rounded ${
                                 item.prediction.label60Days === "high"
-                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  ? "text-red-600 bg-red-400/10 border border-red-400/20"
                                   : item.prediction.label60Days === "medium"
-                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                                  ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-slate-600 bg-slate-100 border border-slate-200"
                               }`}
                             >
                               {item.prediction.label60Days === "high"
@@ -2351,7 +2351,7 @@ export default async function Home() {
                             {segmentInfo.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-zinc-300 text-sm">
+                        <td className="px-4 py-3 text-slate-700 text-sm">
                           {item.suggestion.title}
                         </td>
                         <td className="px-4 py-3">
@@ -2362,7 +2362,7 @@ export default async function Home() {
                                   key={`${reason.tag}-${idx}`}
                                   className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${
                                     reason.severity === "high"
-                                      ? "text-red-300 bg-red-400/10 border-red-400/25"
+                                      ? "text-red-700 bg-red-400/10 border-red-400/25"
                                       : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
                                   }`}
                                 >
@@ -2371,13 +2371,13 @@ export default async function Home() {
                               ))}
                             </div>
                           ) : (
-                            <span className="text-zinc-500 text-xs">-</span>
+                            <span className="text-slate-500 text-xs">-</span>
                           )}
                         </td>
                         <td className="px-4 py-3">
                           <Link
                             href={`/members/${item.member.id}`}
-                            className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                            className="text-blue-700 hover:text-blue-800 hover:underline text-sm"
                           >
                             詳細を見る
                           </Link>
@@ -2398,32 +2398,32 @@ export default async function Home() {
       <div className="mb-12">
         <div className="mb-4">
           <h2 className="text-3xl font-bold mb-2">未来退会予測</h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             今後30日以内・60日以内に退会する可能性を予測
           </p>
         </div>
 
         {/* サマリーカード */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日以内 high 予測会員数</h3>
-            <p className="text-3xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">30日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-600">
               {highRisk30Days}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
 
-          <div className="bg-zinc-900 border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日以内 high 予測会員数</h3>
-            <p className="text-3xl font-bold text-red-400">
+          <div className="bg-white border border-red-500/40 rounded-lg p-6 hover:border-red-400/60 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">60日以内 high 予測会員数</h3>
+            <p className="text-3xl font-bold text-red-600">
               {highRisk60Days}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">人</p>
+            <p className="text-slate-500 text-xs mt-2">人</p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">30日予測平均確率</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">30日予測平均確率</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
@@ -2433,12 +2433,12 @@ export default async function Home() {
                   )
                 : 0}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">%</p>
+            <p className="text-slate-500 text-xs mt-2">%</p>
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 hover:border-zinc-700 transition-colors">
-            <h3 className="text-zinc-400 text-sm font-medium mb-2">60日予測平均確率</h3>
-            <p className="text-3xl font-bold text-white">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 hover:border-slate-200 transition-colors">
+            <h3 className="text-slate-600 text-sm font-medium mb-2">60日予測平均確率</h3>
+            <p className="text-3xl font-bold text-slate-900">
               {churnPredictions.length > 0
                 ? Math.round(
                     churnPredictions.reduce(
@@ -2448,50 +2448,50 @@ export default async function Home() {
                   )
                 : 0}
             </p>
-            <p className="text-zinc-500 text-xs mt-2">%</p>
+            <p className="text-slate-500 text-xs mt-2">%</p>
           </div>
         </div>
 
         {/* 予測上位5名 */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h3 className="text-xl font-semibold mb-4">予測上位5名</h3>
           {topChurnPredictions.length === 0 ? (
-            <p className="text-zinc-400 text-sm">予測データがありません</p>
+            <p className="text-slate-600 text-sm">予測データがありません</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       名前
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       30日退会確率
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       60日退会確率
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       会員タイプ
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       推奨アクション
                     </th>
-                    <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left font-semibold text-slate-700">
                       詳細
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {topChurnPredictions.map((item: { member: Member; prediction: ReturnType<typeof getChurnPrediction>; suggestion: ReturnType<typeof getInterventionSuggestion> }) => {
                     const segment = getMemberSegment(item.member);
                     const segmentInfo = getSegmentInfo(segment);
                     return (
                       <tr
                         key={item.member.id}
-                        className="hover:bg-zinc-800/60 transition-colors"
+                        className="hover:bg-slate-100/60 transition-colors"
                       >
-                        <td className="px-4 py-3 text-white font-medium">
+                        <td className="px-4 py-3 text-slate-900 font-medium">
                           {item.member.name}
                         </td>
                         <td className="px-4 py-3">
@@ -2499,10 +2499,10 @@ export default async function Home() {
                             <span
                               className={`text-lg font-bold ${
                                 item.prediction.label30Days === "high"
-                                  ? "text-red-400"
+                                  ? "text-red-600"
                                   : item.prediction.label30Days === "medium"
-                                  ? "text-orange-400"
-                                  : "text-zinc-400"
+                                  ? "text-orange-700"
+                                  : "text-slate-600"
                               }`}
                             >
                               {item.prediction.probability30Days}%
@@ -2510,10 +2510,10 @@ export default async function Home() {
                             <span
                               className={`text-xs px-2 py-1 rounded ${
                                 item.prediction.label30Days === "high"
-                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  ? "text-red-600 bg-red-400/10 border border-red-400/20"
                                   : item.prediction.label30Days === "medium"
-                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                                  ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-slate-600 bg-slate-100 border border-slate-200"
                               }`}
                             >
                               {item.prediction.label30Days === "high"
@@ -2529,10 +2529,10 @@ export default async function Home() {
                             <span
                               className={`text-lg font-bold ${
                                 item.prediction.label60Days === "high"
-                                  ? "text-red-400"
+                                  ? "text-red-600"
                                   : item.prediction.label60Days === "medium"
-                                  ? "text-orange-400"
-                                  : "text-zinc-400"
+                                  ? "text-orange-700"
+                                  : "text-slate-600"
                               }`}
                             >
                               {item.prediction.probability60Days}%
@@ -2540,10 +2540,10 @@ export default async function Home() {
                             <span
                               className={`text-xs px-2 py-1 rounded ${
                                 item.prediction.label60Days === "high"
-                                  ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                                  ? "text-red-600 bg-red-400/10 border border-red-400/20"
                                   : item.prediction.label60Days === "medium"
-                                  ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                                  : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                                  ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                                  : "text-slate-600 bg-slate-100 border border-slate-200"
                               }`}
                             >
                               {item.prediction.label60Days === "high"
@@ -2563,7 +2563,7 @@ export default async function Home() {
                             {segmentInfo.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-zinc-300 text-sm">
+                        <td className="px-4 py-3 text-slate-700 text-sm">
                           {item.suggestion.title}
                         </td>
                         <td className="px-4 py-3">
@@ -2573,20 +2573,20 @@ export default async function Home() {
                             return displayReasons.length > 0 ? (
                               <ul className="space-y-1">
                                 {displayReasons.map((reason, idx) => (
-                                  <li key={idx} className="text-zinc-400 text-xs">
+                                  <li key={idx} className="text-slate-600 text-xs">
                                     {reason}
                                   </li>
                                 ))}
                               </ul>
                             ) : (
-                              <span className="text-zinc-500 text-xs">-</span>
+                              <span className="text-slate-500 text-xs">-</span>
                             );
                           })()}
                         </td>
                         <td className="px-4 py-3">
                           <Link
                             href={`/members/${item.member.id}`}
-                            className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                            className="text-blue-700 hover:text-blue-800 hover:underline text-sm"
                           >
                             詳細を見る
                           </Link>
@@ -2605,43 +2605,43 @@ export default async function Home() {
       {/* 継続率ドライバー分析AI */}
       {shouldShow("retentionDriverAI") && (
         <div className="mb-12">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-8">
             <h2 className="text-2xl font-semibold mb-2">継続率ドライバー分析AI</h2>
-            <p className="text-zinc-400 text-sm mb-6">
+            <p className="text-slate-600 text-sm mb-6">
               継続会員と高リスク会員の差から、継続率に影響する要因を分析しています
             </p>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* 継続率を上げる要因 */}
-              <div className="bg-zinc-950 border border-green-500/20 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4 text-green-400">
+              <div className="bg-slate-50 border border-green-500/20 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-green-700">
                   継続率を上げる要因 Top3
                 </h3>
                 {retentionDriverAnalysis.positiveDrivers.length === 0 ? (
-                  <p className="text-zinc-400 text-sm">データが不足しています</p>
+                  <p className="text-slate-600 text-sm">データが不足しています</p>
                 ) : (
                   <div className="space-y-4">
                     {retentionDriverAnalysis.positiveDrivers.slice(0, 3).map((driver: RetentionDriver, index: number) => (
                       <div
                         key={index}
-                        className="bg-zinc-900 border border-green-500/30 rounded-lg p-4"
+                        className="bg-white border border-green-500/30 rounded-lg p-4"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-green-400 font-semibold text-sm">
+                              <span className="text-green-700 font-semibold text-sm">
                                 #{index + 1}
                               </span>
-                              <h4 className="text-white font-semibold">{driver.factor}</h4>
+                              <h4 className="text-slate-900 font-semibold">{driver.factor}</h4>
                             </div>
-                            <p className="text-zinc-400 text-xs mb-2">{driver.description}</p>
+                            <p className="text-slate-600 text-xs mb-2">{driver.description}</p>
                             <p className="text-green-300 text-xs">{driver.suggestion}</p>
                           </div>
                           <div className="ml-4 text-right">
-                            <div className="text-2xl font-bold text-green-400">
+                            <div className="text-2xl font-bold text-green-700">
                               {driver.impactScore}
                             </div>
-                            <div className="text-zinc-500 text-xs">影響度</div>
+                            <div className="text-slate-500 text-xs">影響度</div>
                           </div>
                         </div>
                       </div>
@@ -2651,35 +2651,35 @@ export default async function Home() {
               </div>
 
               {/* 継続率を下げる要因 */}
-              <div className="bg-zinc-950 border border-red-500/20 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4 text-red-400">
+              <div className="bg-slate-50 border border-red-500/20 rounded-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-red-600">
                   継続率を下げる要因 Top3
                 </h3>
                 {retentionDriverAnalysis.negativeDrivers.length === 0 ? (
-                  <p className="text-zinc-400 text-sm">データが不足しています</p>
+                  <p className="text-slate-600 text-sm">データが不足しています</p>
                 ) : (
                   <div className="space-y-4">
                     {retentionDriverAnalysis.negativeDrivers.slice(0, 3).map((driver: RetentionDriver, index: number) => (
                       <div
                         key={index}
-                        className="bg-zinc-900 border border-red-500/30 rounded-lg p-4"
+                        className="bg-white border border-red-500/30 rounded-lg p-4"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-red-400 font-semibold text-sm">
+                              <span className="text-red-600 font-semibold text-sm">
                                 #{index + 1}
                               </span>
-                              <h4 className="text-white font-semibold">{driver.factor}</h4>
+                              <h4 className="text-slate-900 font-semibold">{driver.factor}</h4>
                             </div>
-                            <p className="text-zinc-400 text-xs mb-2">{driver.description}</p>
-                            <p className="text-red-300 text-xs">{driver.suggestion}</p>
+                            <p className="text-slate-600 text-xs mb-2">{driver.description}</p>
+                            <p className="text-red-700 text-xs">{driver.suggestion}</p>
                           </div>
                           <div className="ml-4 text-right">
-                            <div className="text-2xl font-bold text-red-400">
+                            <div className="text-2xl font-bold text-red-600">
                               {driver.impactScore}
                             </div>
-                            <div className="text-zinc-500 text-xs">影響度</div>
+                            <div className="text-slate-500 text-xs">影響度</div>
                           </div>
                         </div>
                       </div>
@@ -2695,53 +2695,53 @@ export default async function Home() {
       {/* 成功店舗の再現AI */}
       {shouldShow("storeSuccessAI") && (
         <div className="mb-12">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-8">
             <h2 className="text-2xl font-semibold mb-2">成功店舗の再現AI</h2>
-            <p className="text-zinc-400 text-sm mb-6">
+            <p className="text-slate-600 text-sm mb-6">
               成果が出ている店舗の特徴を抽出し、他店舗へ展開できる行動を提案します
             </p>
 
             {storeSuccessAnalysis.topStores.length === 0 ? (
-              <p className="text-zinc-400 text-sm">データが不足しています</p>
+              <p className="text-slate-600 text-sm">データが不足しています</p>
             ) : (
               <div className="space-y-6">
                 {storeSuccessAnalysis.topStores.slice(0, 3).map((store: SuccessfulStore, index: number) => (
                   <div
                     key={store.storeName}
-                    className="bg-zinc-950 border border-green-500/20 rounded-lg p-6"
+                    className="bg-slate-50 border border-green-500/20 rounded-lg p-6"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-green-400 font-semibold text-lg">
+                          <span className="text-green-700 font-semibold text-lg">
                             #{index + 1}
                           </span>
-                          <h3 className="text-xl font-semibold text-white">
+                          <h3 className="text-xl font-semibold text-slate-900">
                             {store.storeName}
                           </h3>
                           <Link
                             href={`/store/${encodeURIComponent(store.storeName)}`}
-                            className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                            className="text-blue-700 hover:text-blue-800 hover:underline text-sm"
                           >
                             詳細を見る →
                           </Link>
                         </div>
                         <div className="flex items-center gap-4 mb-4">
                           <div className="text-sm">
-                            <span className="text-zinc-400">成功スコア: </span>
-                            <span className="text-green-400 font-bold text-lg">
+                            <span className="text-slate-600">成功スコア: </span>
+                            <span className="text-green-700 font-bold text-lg">
                               {store.successScore}
                             </span>
                           </div>
                           <div className="text-sm">
-                            <span className="text-zinc-400">継続率: </span>
-                            <span className="text-green-400 font-semibold">
+                            <span className="text-slate-600">継続率: </span>
+                            <span className="text-green-700 font-semibold">
                               {store.metrics.estimatedRetentionRate.toFixed(1)}%
                             </span>
                           </div>
                           <div className="text-sm">
-                            <span className="text-zinc-400">高リスク会員: </span>
-                            <span className="text-green-400 font-semibold">
+                            <span className="text-slate-600">高リスク会員: </span>
+                            <span className="text-green-700 font-semibold">
                               {store.metrics.highRiskMembers}人
                             </span>
                           </div>
@@ -2752,21 +2752,21 @@ export default async function Home() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* 成功要因 */}
                       <div>
-                        <h4 className="text-lg font-semibold mb-3 text-green-400">
+                        <h4 className="text-lg font-semibold mb-3 text-green-700">
                           成功要因
                         </h4>
                         <ul className="space-y-2">
                           {store.successFactors.map((factor, idx) => (
                             <li
                               key={idx}
-                              className="flex items-start gap-2 text-sm text-zinc-300"
+                              className="flex items-start gap-2 text-sm text-slate-700"
                             >
-                              <span className="text-green-400 mt-1">✓</span>
+                              <span className="text-green-700 mt-1">✓</span>
                               <div>
-                                <div className="font-semibold text-white">
+                                <div className="font-semibold text-slate-900">
                                   {factor.factor}
                                 </div>
-                                <div className="text-zinc-400 text-xs mt-1">
+                                <div className="text-slate-600 text-xs mt-1">
                                   {factor.description}
                                 </div>
                               </div>
@@ -2777,16 +2777,16 @@ export default async function Home() {
 
                       {/* 再現アクション */}
                       <div>
-                        <h4 className="text-lg font-semibold mb-3 text-yellow-400">
+                        <h4 className="text-lg font-semibold mb-3 text-yellow-700">
                           他店舗への再現アクション
                         </h4>
                         <ul className="space-y-2">
                           {store.recommendedReplicationActions.map((action, idx) => (
                             <li
                               key={idx}
-                              className="flex items-start gap-2 text-sm text-zinc-300"
+                              className="flex items-start gap-2 text-sm text-slate-700"
                             >
-                              <span className="text-yellow-400 mt-1">→</span>
+                              <span className="text-yellow-700 mt-1">→</span>
                               <span>{action}</span>
                             </li>
                           ))}
@@ -2804,68 +2804,68 @@ export default async function Home() {
       {/* 顧客LTVランキング */}
       {shouldShow("ltvRanking") && (
         <div className="mb-12">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-8">
             <h2 className="text-2xl font-semibold mb-2">顧客LTVランキング</h2>
-            <p className="text-zinc-400 text-sm mb-6">
+            <p className="text-slate-600 text-sm mb-6">
               TwinCoachが会員行動データから推定した将来売上です
             </p>
 
             {ltvRanking.length === 0 ? (
-              <p className="text-zinc-400 text-sm">データが不足しています</p>
+              <p className="text-slate-600 text-sm">データが不足しています</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-zinc-800 border-b border-zinc-700">
+                  <thead className="bg-slate-100 border-b border-slate-200">
                     <tr>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         順位
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         名前
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         プラン
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         推定LTV
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         リスク調整後LTV
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         月額売上
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         継続予測
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         リスクレベル
                       </th>
-                      <th className="px-4 py-3 text-left font-semibold text-zinc-300">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700">
                         操作
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800">
+                  <tbody className="divide-y divide-slate-200">
                     {ltvRanking.map((item: { member: Member; ltv: ReturnType<typeof estimateMemberLTV>; riskResult: RiskScoreResult }, index: number) => {
                       const ltvLevel = getLTVLevel(item.ltv.riskAdjustedLTV);
                       return (
                         <tr
                           key={item.member.id}
-                          className="hover:bg-zinc-800/50 transition-colors"
+                          className="hover:bg-slate-100/80 transition-colors"
                         >
-                          <td className="px-4 py-3 text-zinc-300">#{index + 1}</td>
+                          <td className="px-4 py-3 text-slate-700">#{index + 1}</td>
                           <td className="px-4 py-3">
                             <Link
                               href={`/members/${item.member.id}`}
-                              className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                              className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                             >
                               {item.member.name}
                             </Link>
                           </td>
-                          <td className="px-4 py-3 text-zinc-300">{item.member.plan}</td>
+                          <td className="px-4 py-3 text-slate-700">{item.member.plan}</td>
                           <td className="px-4 py-3">
-                            <span className="text-white font-semibold">
+                            <span className="text-slate-900 font-semibold">
                               ¥{item.ltv.estimatedLTV.toLocaleString()}
                             </span>
                           </td>
@@ -2879,10 +2879,10 @@ export default async function Home() {
                               </span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-zinc-300">
+                          <td className="px-4 py-3 text-slate-700">
                             ¥{item.ltv.monthlyValue.toLocaleString()}
                           </td>
-                          <td className="px-4 py-3 text-zinc-300">
+                          <td className="px-4 py-3 text-slate-700">
                             {item.ltv.expectedMonths}ヶ月
                           </td>
                           <td className="px-4 py-3">
@@ -2897,7 +2897,7 @@ export default async function Home() {
                           <td className="px-4 py-3">
                             <Link
                               href={`/members/${item.member.id}`}
-                              className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+                              className="text-blue-700 hover:text-blue-800 hover:underline text-sm"
                             >
                               詳細を見る
                             </Link>
@@ -2918,13 +2918,13 @@ export default async function Home() {
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
             href="/members"
-            className="bg-zinc-900 border border-zinc-800 rounded-lg px-6 py-4 hover:border-zinc-700 hover:bg-zinc-800 transition-colors"
+            className="bg-white border border-slate-200 shadow-sm rounded-lg px-6 py-4 hover:border-slate-200 hover:bg-slate-100 transition-colors"
           >
             会員一覧
           </Link>
           <Link
             href="/tasks"
-            className="bg-zinc-900 border border-zinc-800 rounded-lg px-6 py-4 hover:border-zinc-700 hover:bg-zinc-800 transition-colors"
+            className="bg-white border border-slate-200 shadow-sm rounded-lg px-6 py-4 hover:border-slate-200 hover:bg-slate-100 transition-colors"
           >
             介入タスク
           </Link>

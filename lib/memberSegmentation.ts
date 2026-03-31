@@ -91,11 +91,11 @@ export function getSegmentInfo(segment: MemberSegment): MemberSegmentInfo {
 export function getSegmentColor(segment: MemberSegment): string {
   switch (segment) {
     case "short_term_result":
-      return "text-orange-400 bg-orange-400/10 border-orange-400/20";
+      return "text-orange-700 bg-orange-400/10 border-orange-400/20";
     case "habit_builder":
-      return "text-green-400 bg-green-400/10 border-green-400/20";
+      return "text-green-700 bg-green-400/10 border-green-400/20";
     case "at_risk_dropout":
-      return "text-red-400 bg-red-400/10 border-red-400/20";
+      return "text-red-600 bg-red-400/10 border-red-400/20";
   }
 }
 

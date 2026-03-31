@@ -16,22 +16,22 @@ import { MemberNextActionsClient } from "@/components/members/MemberNextActionsC
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
-    return "text-red-400";
+    return "text-red-600";
   } else if (score >= 50) {
-    return "text-yellow-400";
+    return "text-yellow-700";
   } else {
-    return "text-green-400";
+    return "text-green-700";
   }
 }
 
 function getRiskLevelColor(level: "low" | "medium" | "high"): string {
   switch (level) {
     case "low":
-      return "text-green-400";
+      return "text-green-700";
     case "medium":
-      return "text-yellow-400";
+      return "text-yellow-700";
     case "high":
-      return "text-red-400";
+      return "text-red-600";
   }
 }
 
@@ -56,18 +56,18 @@ export default async function MemberDetailPage({
   if (!member) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <MemberListBackLink className="text-blue-400 hover:text-blue-300 hover:underline mb-4 inline-block">
+        <MemberListBackLink className="text-blue-700 hover:text-blue-800 hover:underline mb-4 inline-block">
           ← 会員一覧に戻る
         </MemberListBackLink>
         <h1 className="text-4xl font-bold mb-8">Member Not Found</h1>
-        <p className="text-zinc-400">The member with ID "{id}" could not be found.</p>
+        <p className="text-slate-600">The member with ID "{id}" could not be found.</p>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <MemberListBackLink className="text-blue-400 hover:text-blue-300 hover:underline mb-6 inline-block">
+      <MemberListBackLink className="text-blue-700 hover:text-blue-800 hover:underline mb-6 inline-block">
         ← Back to Members
       </MemberListBackLink>
 
@@ -80,45 +80,45 @@ export default async function MemberDetailPage({
       {(() => {
         const forecast = getRevenueRiskForecast(member);
         return (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
             <h2 className="text-xl font-semibold mb-4">収益リスク</h2>
-            <p className="text-zinc-400 text-xs mb-4">
+            <p className="text-slate-600 text-xs mb-4">
               退会確率をもとに、失う可能性のある売上を試算しています
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">月額売上</div>
-                <div className="text-2xl font-bold text-white">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">月額売上</div>
+                <div className="text-2xl font-bold text-slate-900">
                   ¥{forecast.monthlyRevenue.toLocaleString()}
                 </div>
               </div>
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">年間売上</div>
-                <div className="text-2xl font-bold text-white">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">年間売上</div>
+                <div className="text-2xl font-bold text-slate-900">
                   ¥{forecast.annualRevenue.toLocaleString()}
                 </div>
               </div>
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">30日退会確率</div>
-                <div className="text-2xl font-bold text-red-400">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">30日退会確率</div>
+                <div className="text-2xl font-bold text-red-600">
                   {forecast.probability30Days}%
                 </div>
               </div>
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">60日退会確率</div>
-                <div className="text-2xl font-bold text-red-400">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">60日退会確率</div>
+                <div className="text-2xl font-bold text-red-600">
                   {forecast.probability60Days}%
                 </div>
               </div>
-              <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">30日期待損失額</div>
-                <div className="text-2xl font-bold text-red-400">
+              <div className="bg-slate-50 border border-red-500/40 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">30日期待損失額</div>
+                <div className="text-2xl font-bold text-red-600">
                   ¥{forecast.expectedLoss30Days.toLocaleString()}
                 </div>
               </div>
-              <div className="bg-zinc-950 border border-red-500/40 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">60日期待損失額</div>
-                <div className="text-2xl font-bold text-red-400">
+              <div className="bg-slate-50 border border-red-500/40 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">60日期待損失額</div>
+                <div className="text-2xl font-bold text-red-600">
                   ¥{forecast.expectedLoss60Days.toLocaleString()}
                 </div>
               </div>
@@ -132,49 +132,49 @@ export default async function MemberDetailPage({
         const ltv = estimateMemberLTV(member);
         const ltvLevel = getLTVLevel(ltv.riskAdjustedLTV);
         return (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
             <h2 className="text-xl font-semibold mb-2">会員LTV</h2>
-            <p className="text-zinc-400 text-xs mb-4">
+            <p className="text-slate-600 text-xs mb-4">
               TwinCoachが会員行動データから推定した将来売上です
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">推定LTV</div>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">推定LTV</div>
                 <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
                   ¥{ltv.estimatedLTV.toLocaleString()}
                 </div>
-                <div className="text-zinc-500 text-xs mt-1">
+                <div className="text-slate-500 text-xs mt-1">
                   継続予測: {ltv.expectedMonths}ヶ月
                 </div>
               </div>
-              <div className={`bg-zinc-950 border rounded-lg p-4 ${
+              <div className={`bg-slate-50 border rounded-lg p-4 ${
                 ltvLevel === "high" ? "border-green-500/40" :
                 ltvLevel === "medium" ? "border-yellow-500/40" :
                 "border-red-500/40"
               }`}>
-                <div className="text-zinc-400 text-sm mb-1">リスク調整後LTV</div>
+                <div className="text-slate-600 text-sm mb-1">リスク調整後LTV</div>
                 <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
                   ¥{ltv.riskAdjustedLTV.toLocaleString()}
                 </div>
-                <div className="text-zinc-500 text-xs mt-1">
+                <div className="text-slate-500 text-xs mt-1">
                   <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getLTVLevelBadgeColor(ltvLevel)}`}>
                     {ltvLevel === "high" ? "高LTV" : ltvLevel === "medium" ? "中LTV" : "低LTV"}
                   </span>
                 </div>
               </div>
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">月額売上</div>
-                <div className="text-2xl font-bold text-white">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">月額売上</div>
+                <div className="text-2xl font-bold text-slate-900">
                   ¥{ltv.monthlyValue.toLocaleString()}
                 </div>
-                <div className="text-zinc-500 text-xs mt-1">/月</div>
+                <div className="text-slate-500 text-xs mt-1">/月</div>
               </div>
-              <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-                <div className="text-zinc-400 text-sm mb-1">継続予測月数</div>
-                <div className="text-2xl font-bold text-white">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">継続予測月数</div>
+                <div className="text-2xl font-bold text-slate-900">
                   {ltv.expectedMonths}
                 </div>
-                <div className="text-zinc-500 text-xs mt-1">ヶ月</div>
+                <div className="text-slate-500 text-xs mt-1">ヶ月</div>
               </div>
             </div>
           </div>
@@ -187,45 +187,45 @@ export default async function MemberDetailPage({
         const nextActions = generateNextActions(member, undefined, churnReasons);
         return (
           <>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+            <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
               <h2 className="text-xl font-semibold mb-2">退会理由AI</h2>
-              <p className="text-zinc-400 text-xs mb-4">
+              <p className="text-slate-600 text-xs mb-4">
                 会員の行動データとリスク情報から、想定される退会理由を推定しています
               </p>
               {churnReasons.reasons.length === 0 ? (
-                <p className="text-zinc-400 text-sm">退会要因は見つかりませんでした</p>
+                <p className="text-slate-600 text-sm">退会要因は見つかりませんでした</p>
               ) : (
                 <div className="space-y-3">
                   {churnReasons.primaryReason && (
                     <div className="text-sm">
-                      <span className="text-zinc-400">主因: </span>
-                      <span className="text-white font-semibold">{churnReasons.primaryReason}</span>
+                      <span className="text-slate-600">主因: </span>
+                      <span className="text-slate-900 font-semibold">{churnReasons.primaryReason}</span>
                     </div>
                   )}
                   <div className="space-y-2">
                     {churnReasons.reasons.map((reason, index: number) => (
                       <div
                         key={index}
-                        className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2"
+                        className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
                             <span
                               className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
                                 reason.severity === "high"
-                                  ? "text-red-300 bg-red-400/10 border-red-400/25"
+                                  ? "text-red-700 bg-red-400/10 border-red-400/25"
                                   : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
                               }`}
                             >
                               {reason.tag}
                             </span>
-                            <span className="text-zinc-500 text-xs">{reason.category}</span>
+                            <span className="text-slate-500 text-xs">{reason.category}</span>
                           </div>
-                          <span className="text-zinc-200 text-xs font-semibold">
+                          <span className="text-slate-800 text-xs font-semibold">
                             {Math.round(reason.confidence * 100)}%
                           </span>
                         </div>
-                        <p className="mt-1 text-zinc-400 text-xs">{reason.description}</p>
+                        <p className="mt-1 text-slate-600 text-xs">{reason.description}</p>
                       </div>
                     ))}
                   </div>
@@ -244,27 +244,27 @@ export default async function MemberDetailPage({
       })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">会員情報</h2>
           <div className="space-y-4">
             <div>
-              <label className="text-zinc-400 text-sm">名前</label>
-              <p className="text-white font-medium">{member.name}</p>
+              <label className="text-slate-600 text-sm">名前</label>
+              <p className="text-slate-900 font-medium">{member.name}</p>
             </div>
             <div>
-              <label className="text-zinc-400 text-sm">Plan</label>
-              <p className="text-white">{member.plan}</p>
+              <label className="text-slate-600 text-sm">Plan</label>
+              <p className="text-slate-900">{member.plan}</p>
             </div>
             <div>
-              <label className="text-zinc-400 text-sm">Join Date</label>
-              <p className="text-white">{member.joinDate}</p>
+              <label className="text-slate-600 text-sm">Join Date</label>
+              <p className="text-slate-900">{member.joinDate}</p>
             </div>
             <div>
-              <label className="text-zinc-400 text-sm">Last Visit</label>
-              <p className="text-white">{member.lastVisitDate}</p>
+              <label className="text-slate-600 text-sm">Last Visit</label>
+              <p className="text-slate-900">{member.lastVisitDate}</p>
             </div>
             <div>
-              <label className="text-zinc-400 text-sm">リスクスコア</label>
+              <label className="text-slate-600 text-sm">リスクスコア</label>
               {(() => {
                 const riskResult = calculateRiskScore(member);
                 return (
@@ -280,7 +280,7 @@ export default async function MemberDetailPage({
               })()}
             </div>
             <div>
-              <label className="text-zinc-400 text-sm">会員タイプ</label>
+              <label className="text-slate-600 text-sm">会員タイプ</label>
               {(() => {
                 const segment = getMemberSegment(member);
                 const segmentInfo = getSegmentInfo(segment);
@@ -293,17 +293,17 @@ export default async function MemberDetailPage({
                     >
                       {segmentInfo.label}
                     </span>
-                    <p className="text-zinc-400 text-xs mt-2">{segmentInfo.description}</p>
+                    <p className="text-slate-600 text-xs mt-2">{segmentInfo.description}</p>
                   </div>
                 );
               })()}
             </div>
             <div>
-              <label className="text-zinc-400 text-sm">退会リスクの要因</label>
+              <label className="text-slate-600 text-sm">退会リスクの要因</label>
               {(() => {
                 const reasons = getRiskReasons(member);
                 return reasons.length > 0 ? (
-                  <ul className="mt-2 space-y-1 text-zinc-400 text-sm">
+                  <ul className="mt-2 space-y-1 text-slate-600 text-sm">
                     {reasons.map((reason) => (
                       <li key={reason} className="flex gap-2">
                         <span>・</span>
@@ -312,40 +312,40 @@ export default async function MemberDetailPage({
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-2 text-zinc-500 text-sm">-</p>
+                  <p className="mt-2 text-slate-500 text-sm">-</p>
                 );
               })()}
             </div>
             <div>
-              <label className="text-zinc-400 text-sm mb-2 block">未来退会予測</label>
+              <label className="text-slate-600 text-sm mb-2 block">未来退会予測</label>
               {(() => {
                 const prediction = getChurnPrediction(member);
                 return (
                   <div className="mt-2 space-y-4">
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-zinc-400 text-sm">30日退会確率</span>
+                        <span className="text-slate-600 text-sm">30日退会確率</span>
                         <span
                           className={`text-lg font-bold ${
                             prediction.label30Days === "high"
-                              ? "text-red-400"
+                              ? "text-red-600"
                               : prediction.label30Days === "medium"
-                              ? "text-orange-400"
-                              : "text-zinc-400"
+                              ? "text-orange-700"
+                              : "text-slate-600"
                           }`}
                         >
                           {prediction.probability30Days}%
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                        <div className="flex-1 bg-slate-100 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full ${
                               prediction.label30Days === "high"
                                 ? "bg-red-400"
                                 : prediction.label30Days === "medium"
                                 ? "bg-orange-400"
-                                : "bg-zinc-400"
+                                : "bg-slate-300"
                             }`}
                             style={{ width: `${prediction.probability30Days}%` }}
                           />
@@ -353,10 +353,10 @@ export default async function MemberDetailPage({
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             prediction.label30Days === "high"
-                              ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                              ? "text-red-600 bg-red-400/10 border border-red-400/20"
                               : prediction.label30Days === "medium"
-                              ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                              : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                              ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                              : "text-slate-600 bg-slate-100 border border-slate-200"
                           }`}
                         >
                           {prediction.label30Days === "high"
@@ -369,28 +369,28 @@ export default async function MemberDetailPage({
                     </div>
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-zinc-400 text-sm">60日退会確率</span>
+                        <span className="text-slate-600 text-sm">60日退会確率</span>
                         <span
                           className={`text-lg font-bold ${
                             prediction.label60Days === "high"
-                              ? "text-red-400"
+                              ? "text-red-600"
                               : prediction.label60Days === "medium"
-                              ? "text-orange-400"
-                              : "text-zinc-400"
+                              ? "text-orange-700"
+                              : "text-slate-600"
                           }`}
                         >
                           {prediction.probability60Days}%
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-zinc-800 rounded-full h-2">
+                        <div className="flex-1 bg-slate-100 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full ${
                               prediction.label60Days === "high"
                                 ? "bg-red-400"
                                 : prediction.label60Days === "medium"
                                 ? "bg-orange-400"
-                                : "bg-zinc-400"
+                                : "bg-slate-300"
                             }`}
                             style={{ width: `${prediction.probability60Days}%` }}
                           />
@@ -398,10 +398,10 @@ export default async function MemberDetailPage({
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             prediction.label60Days === "high"
-                              ? "text-red-400 bg-red-400/10 border border-red-400/20"
+                              ? "text-red-600 bg-red-400/10 border border-red-400/20"
                               : prediction.label60Days === "medium"
-                              ? "text-orange-400 bg-orange-400/10 border border-orange-400/20"
-                              : "text-zinc-400 bg-zinc-400/10 border border-zinc-400/20"
+                              ? "text-orange-700 bg-orange-400/10 border border-orange-400/20"
+                              : "text-slate-600 bg-slate-100 border border-slate-200"
                           }`}
                         >
                           {prediction.label60Days === "high"
@@ -413,9 +413,9 @@ export default async function MemberDetailPage({
                       </div>
                     </div>
                     {prediction.reasons.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-zinc-800">
-                        <p className="text-zinc-400 text-xs mb-2">予測理由</p>
-                        <ul className="space-y-1 text-zinc-400 text-xs">
+                      <div className="mt-3 pt-3 border-t border-slate-200">
+                        <p className="text-slate-600 text-xs mb-2">予測理由</p>
+                        <ul className="space-y-1 text-slate-600 text-xs">
                           {prediction.reasons.map((reason, idx) => (
                             <li key={idx} className="flex gap-2">
                               <span>・</span>
@@ -430,11 +430,11 @@ export default async function MemberDetailPage({
               })()}
             </div>
             <div>
-              <label className="text-zinc-400 text-sm mb-2 block">未来退会予測の要因</label>
+              <label className="text-slate-600 text-sm mb-2 block">未来退会予測の要因</label>
               {(() => {
                 const reasons = getChurnPredictionReasons(member);
                 return reasons.length > 0 ? (
-                  <ul className="mt-2 space-y-1 text-zinc-400 text-xs">
+                  <ul className="mt-2 space-y-1 text-slate-600 text-xs">
                     {reasons.map((reason, idx) => (
                       <li key={idx} className="flex gap-2">
                         <span>・</span>
@@ -443,38 +443,38 @@ export default async function MemberDetailPage({
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-2 text-zinc-500 text-xs">-</p>
+                  <p className="mt-2 text-slate-500 text-xs">-</p>
                 );
               })()}
             </div>
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">介入提案とメモ</h2>
           <div className="space-y-4">
             {(() => {
               const suggestion = getInterventionSuggestion(member);
               return (
                 <div>
-                  <label className="text-zinc-400 text-sm">推奨介入</label>
+                  <label className="text-slate-600 text-sm">推奨介入</label>
                   <div className="mt-2 space-y-2">
-                    <p className="text-white font-medium">{suggestion.title}</p>
-                    <p className="text-white text-sm">{suggestion.action}</p>
+                    <p className="text-slate-900 font-medium">{suggestion.title}</p>
+                    <p className="text-slate-900 text-sm">{suggestion.action}</p>
                     <div className="flex items-center gap-2">
-                      <span className="text-zinc-400 text-xs">タイプ:</span>
-                      <span className="text-blue-400 text-xs font-medium capitalize">
+                      <span className="text-slate-600 text-xs">タイプ:</span>
+                      <span className="text-blue-700 text-xs font-medium capitalize">
                         {suggestion.type}
                       </span>
-                      <span className="text-zinc-400 text-xs">•</span>
-                      <span className="text-zinc-400 text-xs">優先度:</span>
+                      <span className="text-slate-600 text-xs">•</span>
+                      <span className="text-slate-600 text-xs">優先度:</span>
                       <span
                         className={`text-xs font-medium capitalize ${
                           suggestion.priority === "high"
-                            ? "text-red-400"
+                            ? "text-red-600"
                             : suggestion.priority === "medium"
-                            ? "text-yellow-400"
-                            : "text-green-400"
+                            ? "text-yellow-700"
+                            : "text-green-700"
                         }`}
                       >
                         {suggestion.priority}
@@ -485,8 +485,8 @@ export default async function MemberDetailPage({
               );
             })()}
             <div>
-              <label className="text-zinc-400 text-sm">メモ</label>
-              <p className="text-white text-sm leading-relaxed">{member.notes}</p>
+              <label className="text-slate-600 text-sm">メモ</label>
+              <p className="text-slate-900 text-sm leading-relaxed">{member.notes}</p>
             </div>
           </div>
         </div>
@@ -495,17 +495,17 @@ export default async function MemberDetailPage({
       {/* デュアル移行最適化 */}
       {isDualMember && planTransitionRecommendation && (
         <div className="mb-8">
-          <div className="bg-zinc-900 border-2 border-blue-500/40 rounded-lg p-6">
+          <div className="bg-white border-2 border-blue-500/40 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">デュアル移行最適化</h2>
             <div className="space-y-6">
               <div>
-                <label className="text-zinc-400 text-sm mb-2 block">
+                <label className="text-slate-600 text-sm mb-2 block">
                   推奨移行先
                 </label>
                 <span
                   className={`inline-flex items-center px-4 py-2 rounded-full text-base font-medium border ${
                     planTransitionRecommendation.recommendedNextPlan === "トレーニング月8"
-                      ? "text-blue-400 bg-blue-400/10 border-blue-400/20"
+                      ? "text-blue-700 bg-blue-400/10 border-blue-400/20"
                       : "text-purple-400 bg-purple-400/10 border-purple-400/20"
                   }`}
                 >
@@ -515,26 +515,26 @@ export default async function MemberDetailPage({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-zinc-400 text-sm mb-2 block">
+                  <label className="text-slate-600 text-sm mb-2 block">
                     トレーニング適性
                   </label>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-zinc-800 rounded-full h-3">
+                      <div className="flex-1 bg-slate-100 rounded-full h-3">
                         <div
                           className={`h-3 rounded-full ${
                             planTransitionRecommendation.trainingFitScore >= 70
                               ? "bg-blue-400"
                               : planTransitionRecommendation.trainingFitScore >= 50
                               ? "bg-blue-500/60"
-                              : "bg-zinc-600"
+                              : "bg-slate-400"
                           }`}
                           style={{
                             width: `${planTransitionRecommendation.trainingFitScore}%`,
                           }}
                         />
                       </div>
-                      <span className="text-lg font-bold text-zinc-300 w-16 text-right">
+                      <span className="text-lg font-bold text-slate-700 w-16 text-right">
                         {planTransitionRecommendation.trainingFitScore}
                       </span>
                     </div>
@@ -542,26 +542,26 @@ export default async function MemberDetailPage({
                 </div>
 
                 <div>
-                  <label className="text-zinc-400 text-sm mb-2 block">
+                  <label className="text-slate-600 text-sm mb-2 block">
                     ピラティス適性
                   </label>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 bg-zinc-800 rounded-full h-3">
+                      <div className="flex-1 bg-slate-100 rounded-full h-3">
                         <div
                           className={`h-3 rounded-full ${
                             planTransitionRecommendation.pilatesFitScore >= 70
                               ? "bg-purple-400"
                               : planTransitionRecommendation.pilatesFitScore >= 50
                               ? "bg-purple-500/60"
-                              : "bg-zinc-600"
+                              : "bg-slate-400"
                           }`}
                           style={{
                             width: `${planTransitionRecommendation.pilatesFitScore}%`,
                           }}
                         />
                       </div>
-                      <span className="text-lg font-bold text-zinc-300 w-16 text-right">
+                      <span className="text-lg font-bold text-slate-700 w-16 text-right">
                         {planTransitionRecommendation.pilatesFitScore}
                       </span>
                     </div>
@@ -570,13 +570,13 @@ export default async function MemberDetailPage({
               </div>
 
               <div>
-                <label className="text-zinc-400 text-sm mb-2 block">
+                <label className="text-slate-600 text-sm mb-2 block">
                   推奨理由
                 </label>
-                <ul className="space-y-2 text-zinc-300 text-sm">
+                <ul className="space-y-2 text-slate-700 text-sm">
                   {planTransitionRecommendation.reason.map((reason, idx) => (
                     <li key={idx} className="flex gap-2">
-                      <span className="text-zinc-500">・</span>
+                      <span className="text-slate-500">・</span>
                       <span>{reason}</span>
                     </li>
                   ))}
@@ -588,72 +588,72 @@ export default async function MemberDetailPage({
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">来店履歴</h2>
           <div className="space-y-4">
             {visitHistory.length > 0 ? (
               visitHistory.map((visit) => (
                 <div
                   key={visit.id}
-                  className="border-b border-zinc-800 pb-4 last:border-0 last:pb-0"
+                  className="border-b border-slate-200 pb-4 last:border-0 last:pb-0"
                 >
                   <div className="flex justify-between items-start">
-                    <span className="text-white font-medium">来店</span>
-                    <span className="text-zinc-400 text-sm">{visit.visitDate}</span>
+                    <span className="text-slate-900 font-medium">来店</span>
+                    <span className="text-slate-600 text-sm">{visit.visitDate}</span>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-zinc-400 text-sm">来店履歴がありません</p>
+              <p className="text-slate-600 text-sm">来店履歴がありません</p>
             )}
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">介入ログ</h2>
           {interventionHistory.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-zinc-800 border-b border-zinc-700">
+                <thead className="bg-slate-100 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                       日付
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                       タイプ
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                       アクション
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                       ステータス
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-zinc-300">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700">
                       トレーナー
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-800">
+                <tbody className="divide-y divide-slate-200">
                   {interventionHistory.map((intervention) => (
                     <tr
                       key={intervention.id}
-                      className="hover:bg-zinc-800/50 transition-colors"
+                      className="hover:bg-slate-100/80 transition-colors"
                     >
-                      <td className="px-4 py-3 text-zinc-300 text-sm">
+                      <td className="px-4 py-3 text-slate-700 text-sm">
                         {intervention.createdAt}
                       </td>
-                      <td className="px-4 py-3 text-white text-sm font-medium">
+                      <td className="px-4 py-3 text-slate-900 text-sm font-medium">
                         {intervention.type}
                       </td>
-                      <td className="px-4 py-3 text-zinc-400 text-sm">
+                      <td className="px-4 py-3 text-slate-600 text-sm">
                         {intervention.action || "-"}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-green-400 text-xs font-medium">
+                        <span className="text-green-700 text-xs font-medium">
                           {intervention.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-zinc-300 text-sm">
+                      <td className="px-4 py-3 text-slate-700 text-sm">
                         {intervention.trainer || "-"}
                       </td>
                     </tr>
@@ -662,7 +662,7 @@ export default async function MemberDetailPage({
               </table>
             </div>
           ) : (
-            <p className="text-zinc-400 text-sm">介入履歴がありません</p>
+            <p className="text-slate-600 text-sm">介入履歴がありません</p>
           )}
         </div>
       </div>

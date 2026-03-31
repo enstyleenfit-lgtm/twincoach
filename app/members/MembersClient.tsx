@@ -11,11 +11,11 @@ import { loadImportedMembers, mergeBaseAndImported } from "@/lib/importStore";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
-    return "text-red-400";
+    return "text-red-600";
   } else if (score >= 50) {
-    return "text-yellow-400";
+    return "text-yellow-700";
   } else {
-    return "text-green-400";
+    return "text-green-700";
   }
 }
 
@@ -47,7 +47,7 @@ export default function MembersClient({ initialMembers }: Props) {
       <div className="mb-6">
         <Link
           href={dashboardHref(seg)}
-          className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+          className="text-blue-700 hover:text-blue-800 hover:underline text-sm"
         >
           ← ダッシュボードに戻る
         </Link>
@@ -55,8 +55,8 @@ export default function MembersClient({ initialMembers }: Props) {
       <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8">会員一覧</h1>
 
       {members.length === 0 ? (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-8 text-center">
-          <p className="text-zinc-400">会員データを読み込み中...</p>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
+          <p className="text-slate-600">会員データを読み込み中...</p>
         </div>
       ) : (
         <>
@@ -70,7 +70,7 @@ export default function MembersClient({ initialMembers }: Props) {
                 <Link
                   key={member.id}
                   href={memberDetailHref(seg, member.id)}
-                  className="block rounded-md border border-zinc-800 bg-zinc-900 px-2.5 py-2 hover:border-zinc-700 transition-colors"
+                  className="block rounded-md border border-slate-200 bg-white px-2.5 py-2 hover:border-slate-200 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-sm font-semibold text-blue-300 leading-5 [word-break:normal] break-normal whitespace-normal">
@@ -79,12 +79,12 @@ export default function MembersClient({ initialMembers }: Props) {
                   </div>
 
                   <div className="mt-1 space-y-0 text-[11px] leading-4">
-                    <p className="text-zinc-200 truncate">
-                      <span className="text-zinc-500">プラン：</span>
+                    <p className="text-slate-800 truncate">
+                      <span className="text-slate-500">プラン：</span>
                       <span className="truncate">{member.plan}</span>
                     </p>
-                    <p className="text-zinc-300">
-                      <span className="text-zinc-500">{primaryVisitLabel}：</span>
+                    <p className="text-slate-700">
+                      <span className="text-slate-500">{primaryVisitLabel}：</span>
                       {primaryVisitInfo || "-"}
                     </p>
                   </div>
@@ -93,38 +93,38 @@ export default function MembersClient({ initialMembers }: Props) {
             })}
             </div>
           ) : (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-zinc-800 border-b border-zinc-700">
+              <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     名前
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     Plan
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     Last Visit
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     Visit Interval
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     リスクスコア
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     Intervention Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     会員タイプ
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-zinc-300">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     リスク理由
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-slate-200">
                 {members.map((member) => {
                   const riskResult = calculateRiskScore(member);
                   const riskReasons = getRiskReasons(member);
@@ -133,21 +133,21 @@ export default function MembersClient({ initialMembers }: Props) {
                   return (
                     <tr
                       key={member.id}
-                      className="hover:bg-zinc-800/50 transition-colors"
+                      className="hover:bg-slate-100/80 transition-colors"
                     >
                       <td className="px-6 py-4">
                         <Link
                           href={memberDetailHref(seg, member.id)}
-                          className="text-blue-400 hover:text-blue-300 hover:underline font-medium"
+                          className="text-blue-700 hover:text-blue-800 hover:underline font-medium"
                         >
                           {member.name}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">{member.plan}</td>
-                      <td className="px-6 py-4 text-zinc-300">
+                      <td className="px-6 py-4 text-slate-700">{member.plan}</td>
+                      <td className="px-6 py-4 text-slate-700">
                         {member.lastVisitDate}
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">
+                      <td className="px-6 py-4 text-slate-700">
                         {member.visitInterval}
                       </td>
                       <td className="px-6 py-4">
@@ -159,7 +159,7 @@ export default function MembersClient({ initialMembers }: Props) {
                           {riskResult.score}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-zinc-300">
+                      <td className="px-6 py-4 text-slate-700">
                         {member.interventionStatus}
                       </td>
                       <td className="px-6 py-4">
@@ -172,7 +172,7 @@ export default function MembersClient({ initialMembers }: Props) {
                           {segmentInfo.label}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-zinc-400 text-sm">
+                      <td className="px-6 py-4 text-slate-600 text-sm">
                         {riskReasons[0] || "-"}
                       </td>
                     </tr>

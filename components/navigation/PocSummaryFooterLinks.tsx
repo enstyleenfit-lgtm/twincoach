@@ -16,31 +16,31 @@ export function PocSummaryFooterLinks() {
     <div className="flex justify-center gap-4 flex-wrap">
       <Link
         href="/demo"
-        className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
+        className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
       >
         Demo画面を見る
       </Link>
       <Link
         href={priceRevisionHref(seg)}
-        className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
+        className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
       >
         価格改定影響分析を見る
       </Link>
       <Link
         href={storesListHref(seg)}
-        className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
+        className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
       >
         店舗一覧を見る
       </Link>
       <Link
         href={membersListHref(seg)}
-        className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
+        className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
       >
         会員一覧を見る
       </Link>
       <Link
         href={dashboardHref(seg)}
-        className="px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-white transition-colors"
+        className="rounded-lg border border-slate-200 bg-white px-6 py-3 text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
       >
         ダッシュボードを見る
       </Link>

@@ -61,14 +61,14 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
 
   return (
     <div className="space-y-6 mb-8">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-2">過去5回セッション</h2>
-        <p className="text-zinc-400 text-xs mb-4">
+        <p className="text-slate-600 text-xs mb-4">
           /import で取り込んだセッション履歴を表示します（新しい順・最大5件）。会話要約からタグを自動付与します。
         </p>
 
         {latest.length === 0 ? (
-          <p className="text-zinc-400 text-sm">セッション履歴がありません</p>
+          <p className="text-slate-600 text-sm">セッション履歴がありません</p>
         ) : (
           <div className="space-y-3">
             {latest.map((s) => {
@@ -76,14 +76,14 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
               return (
                 <div
                   key={s.id}
-                  className="bg-zinc-950 border border-zinc-800 rounded-lg p-4"
+                  className="bg-slate-50 border border-slate-200 rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="min-w-0">
-                      <div className="text-white font-semibold">
+                      <div className="text-slate-900 font-semibold">
                         {formatDate(s.sessionDate)}
                       </div>
-                      <div className="text-zinc-500 text-xs truncate">
+                      <div className="text-slate-500 text-xs truncate">
                         {s.storeName} / {s.trainerName}
                       </div>
                     </div>
@@ -91,24 +91,24 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
 
                   <div className="grid grid-cols-1 gap-3">
                     <div>
-                      <div className="text-zinc-400 text-xs font-semibold mb-1">
+                      <div className="text-slate-600 text-xs font-semibold mb-1">
                         メニュー要約
                       </div>
-                      <div className="text-zinc-200 text-sm whitespace-pre-wrap">
+                      <div className="text-slate-800 text-sm whitespace-pre-wrap">
                         {s.menuSummary || "-"}
                       </div>
                     </div>
 
                     <div>
-                      <div className="text-zinc-400 text-xs font-semibold mb-1">
+                      <div className="text-slate-600 text-xs font-semibold mb-1">
                         会話要約
                       </div>
-                      <div className="text-zinc-200 text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">
+                      <div className="text-slate-800 text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">
                         {s.conversationSummary || "-"}
                       </div>
                       {tags.length > 0 && (
                         <div className="mt-2">
-                          <div className="text-zinc-500 text-[10px] font-semibold uppercase tracking-wide mb-1.5">
+                          <div className="text-slate-500 text-[10px] font-semibold uppercase tracking-wide mb-1.5">
                             会話タグ
                           </div>
                           <div className="flex flex-wrap gap-1.5">
@@ -128,10 +128,10 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
                     </div>
 
                     <div>
-                      <div className="text-zinc-400 text-xs font-semibold mb-1">
+                      <div className="text-slate-600 text-xs font-semibold mb-1">
                         次回アクション
                       </div>
-                      <div className="text-zinc-200 text-sm whitespace-pre-wrap">
+                      <div className="text-slate-800 text-sm whitespace-pre-wrap">
                         {s.nextAction || "-"}
                       </div>
                     </div>
@@ -144,13 +144,13 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
       </div>
 
       {latest.length > 0 && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-2">最近の会話傾向</h2>
-          <p className="text-zinc-400 text-xs mb-4">
+          <p className="text-slate-600 text-xs mb-4">
             直近5回のセッションに基づくタグの出現回数（多い順・最大5件）
           </p>
           {tagRanking.length === 0 ? (
-            <p className="text-zinc-500 text-sm">
+            <p className="text-slate-500 text-sm">
               直近5回の会話からタグを検出できませんでした
             </p>
           ) : (
@@ -158,10 +158,10 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
               {tagRanking.map((row, idx) => (
                 <li
                   key={row.tag}
-                  className="flex items-center justify-between gap-3 rounded-lg bg-zinc-950 border border-zinc-800 px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-zinc-600 text-xs font-mono w-5 shrink-0">
+                    <span className="text-slate-600 text-xs font-mono w-5 shrink-0">
                       {idx + 1}.
                     </span>
                     <span
@@ -172,7 +172,7 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
                       {row.tag}
                     </span>
                   </div>
-                  <span className="text-zinc-300 text-sm font-semibold tabular-nums shrink-0">
+                  <span className="text-slate-700 text-sm font-semibold tabular-nums shrink-0">
                     ×{row.count}
                   </span>
                 </li>

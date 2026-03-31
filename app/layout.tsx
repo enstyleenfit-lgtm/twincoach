@@ -30,9 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className="h-full max-w-full overflow-x-hidden">
+    <html lang="ja" className="h-full max-w-full overflow-x-hidden bg-slate-50 text-slate-900">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh w-full max-w-full overflow-x-hidden text-base`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-dvh w-full max-w-full overflow-x-hidden text-base text-slate-900`}
       >
         <RoleBasedShell>{children}</RoleBasedShell>
       </body>

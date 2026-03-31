@@ -4,70 +4,59 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import { RoleSwitchControl } from "@/components/sidebar/RoleSwitchControl";
 import { OWNER_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
+import {
+  sidebarAside,
+  sidebarFooter,
+  sidebarHeader,
+  sidebarNavLink,
+  sidebarTitle,
+} from "@/components/sidebar/sidebarNavClasses";
 
 export function OwnerSidebar() {
   const { dashboard, stores, trainers, members, tasks, reports } =
     OWNER_SIDEBAR_LINKS;
 
   return (
-    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex-shrink-0 flex flex-col">
-      <div className="p-6 border-b border-zinc-800">
-        <h1 className="text-xl font-bold text-white">TwinCoach オーナー</h1>
+    <aside className={sidebarAside}>
+      <div className={sidebarHeader}>
+        <h1 className={sidebarTitle}>TwinCoach オーナー</h1>
         <RoleSwitchControl />
       </div>
-      <nav className="p-4 flex-1">
+      <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <Link
-              href={dashboard}
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href={dashboard} className={sidebarNavLink}>
               ダッシュボード
             </Link>
           </li>
           <li>
-            <Link
-              href={stores}
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href={stores} className={sidebarNavLink}>
               店舗一覧
             </Link>
           </li>
           <li>
-            <Link
-              href={trainers}
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href={trainers} className={sidebarNavLink}>
               トレーナー
             </Link>
           </li>
           <li>
-            <Link
-              href={members}
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href={members} className={sidebarNavLink}>
               会員一覧
             </Link>
           </li>
           <li>
-            <Link
-              href={tasks}
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href={tasks} className={sidebarNavLink}>
               介入タスク
             </Link>
           </li>
           <li>
-            <Link
-              href={reports}
-              className="flex items-center px-4 py-3 text-zinc-300 rounded-lg hover:bg-zinc-800 hover:text-white transition-colors"
-            >
+            <Link href={reports} className={sidebarNavLink}>
               レポート
             </Link>
           </li>
         </ul>
       </nav>
-      <div className="p-4 border-t border-zinc-800">
+      <div className={sidebarFooter}>
         <LogoutButton />
       </div>
     </aside>

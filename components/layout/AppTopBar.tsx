@@ -20,10 +20,10 @@ type CurrentStore = {
 };
 
 function statusBadgeClass(s: ContractStatus | undefined) {
-  if (s === "active") return "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
-  if (s === "trial") return "border-sky-400/30 bg-sky-500/10 text-sky-200";
-  if (s === "inactive") return "border-amber-500/30 bg-amber-500/10 text-amber-200";
-  return "border-red-500/30 bg-red-500/10 text-red-200";
+  if (s === "active") return "border-emerald-200 bg-emerald-50 text-emerald-800";
+  if (s === "trial") return "border-sky-200 bg-sky-50 text-sky-800";
+  if (s === "inactive") return "border-amber-200 bg-amber-50 text-amber-900";
+  return "border-red-200 bg-red-50 text-red-800";
 }
 
 export function AppTopBar() {
@@ -86,11 +86,11 @@ export function AppTopBar() {
   const isLocked = displayStatus === "inactive" || displayStatus === "suspended";
 
   return (
-    <div className="sticky top-0 z-30 w-full border-b border-zinc-800 bg-black/80 backdrop-blur">
+    <div className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
       <div className="mx-auto flex w-full max-w-full items-center justify-between gap-3 px-4 py-3">
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-zinc-200">TwinCoach</div>
-          <div className="text-xs text-zinc-500">店舗切替</div>
+          <div className="text-sm font-semibold text-slate-900">TwinCoach</div>
+          <div className="text-xs text-slate-500">店舗切替</div>
         </div>
 
         <div className="relative">
@@ -98,17 +98,17 @@ export function AppTopBar() {
             type="button"
             onClick={() => setOpen((v) => !v)}
             disabled={loading || stores.length === 0}
-            className="flex min-h-[44px] items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-950/40 px-3 py-2 text-left text-sm text-zinc-200 hover:bg-zinc-900 disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex min-h-[44px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm text-slate-800 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="max-w-[14rem] truncate">{displayName}</span>
             <span className={`rounded-full border px-2 py-0.5 text-[11px] ${statusBadgeClass(displayStatus)}`}>
               {displayStatus ?? "—"}
             </span>
-            <span className="text-zinc-500">▾</span>
+            <span className="text-slate-400">▾</span>
           </button>
 
           {open ? (
-            <div className="absolute right-0 mt-2 w-[min(22rem,90vw)] overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950 shadow-2xl shadow-black/40">
+            <div className="absolute right-0 z-50 mt-2 w-[min(22rem,90vw)] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-900/10">
               <div className="max-h-[60vh] overflow-y-auto p-1">
                 {stores.map((s) => {
                   const active = s.store.id === current.storeId;
@@ -118,13 +118,15 @@ export function AppTopBar() {
                       type="button"
                       onClick={() => switchStore(s.store.id)}
                       className={`w-full rounded-lg px-3 py-2 text-left transition-colors ${
-                        active ? "bg-zinc-900 text-white" : "hover:bg-zinc-900/60 text-zinc-200"
+                        active
+                          ? "bg-slate-100 text-slate-900"
+                          : "text-slate-700 hover:bg-slate-50"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="truncate text-sm font-semibold">{s.store.name}</div>
-                          <div className="text-[11px] text-zinc-500">role: {s.role}</div>
+                          <div className="text-[11px] text-slate-500">role: {s.role}</div>
                         </div>
                         <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[11px] ${statusBadgeClass(s.store.contractStatus)}`}>
                           {s.store.contractStatus}
@@ -139,7 +141,7 @@ export function AppTopBar() {
         </div>
       </div>
       {isLocked ? (
-        <div className="border-t border-amber-500/20 bg-amber-500/10 px-4 py-2 text-xs text-amber-200">
+        <div className="border-t border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-900">
           この店舗は現在未契約です。契約すると会員ログ、継続率分析、食事管理が利用できます。
         </div>
       ) : null}

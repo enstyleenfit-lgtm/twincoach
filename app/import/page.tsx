@@ -352,24 +352,24 @@ export default function CsvImportPage() {
       <div className="mb-6 flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="text-blue-400 hover:text-blue-300 hover:underline text-sm"
+          className="text-blue-700 hover:text-blue-800 hover:underline text-sm"
         >
           ← ダッシュボードに戻る
         </Link>
       </div>
 
       <h1 className="text-4xl font-bold mb-2">CSVインポート</h1>
-      <p className="text-zinc-400 text-sm mb-8">
+      <p className="text-slate-600 text-sm mb-8">
         hacomono や手元のCSVデータを読み込み、TwinCoachに取り込むための基盤です。
         CSVを読み込んでプレビューを確認後、保存ボタンでSupabaseに保存できます。
       </p>
 
       {/* サンプルCSV形式 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <div className="flex items-start justify-between gap-6 flex-wrap">
           <div className="min-w-[280px]">
             <h2 className="text-xl font-semibold mb-2">サンプルCSV形式（会員）</h2>
-            <p className="text-zinc-400 text-sm">
+            <p className="text-slate-600 text-sm">
               PoCで誰でも迷わず使えるように、取り込み形式を明確化しています。
             </p>
           </div>
@@ -385,27 +385,27 @@ export default function CsvImportPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-            <div className="text-sm font-semibold text-zinc-200 mb-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+            <div className="text-sm font-semibold text-slate-800 mb-2">
               必須カラム
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
               {["name", "plan", "lastVisit", "visitInterval"].map((c) => (
                 <span
                   key={c}
-                  className="px-2 py-1 rounded border border-zinc-800 bg-zinc-900 text-zinc-200"
+                  className="px-2 py-1 rounded border border-slate-200 bg-white text-slate-800"
                 >
                   {c}
                 </span>
               ))}
             </div>
-            <p className="text-xs text-zinc-500 mt-3">
+            <p className="text-xs text-slate-500 mt-3">
               ※ ヘッダーの順番は自由です（必須カラムは必ず含めてください）
             </p>
           </div>
 
-          <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-            <div className="text-sm font-semibold text-zinc-200 mb-2">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+            <div className="text-sm font-semibold text-slate-800 mb-2">
               任意カラム
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
@@ -418,46 +418,46 @@ export default function CsvImportPage() {
               ].map((c) => (
                 <span
                   key={c}
-                  className="px-2 py-1 rounded border border-zinc-800 bg-zinc-900 text-zinc-200"
+                  className="px-2 py-1 rounded border border-slate-200 bg-white text-slate-800"
                 >
                   {c}
                 </span>
               ))}
             </div>
-            <p className="text-xs text-zinc-500 mt-3">
+            <p className="text-xs text-slate-500 mt-3">
               ※ 任意カラムは未指定でもOKです（指定すると精度が上がります）
             </p>
           </div>
         </div>
 
-        <div className="mt-6 bg-zinc-950 border border-zinc-800 rounded-lg p-4">
-          <div className="text-sm font-semibold text-zinc-200 mb-2">
+        <div className="mt-6 bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="text-sm font-semibold text-slate-800 mb-2">
             サンプル行
           </div>
-          <div className="text-xs text-zinc-400 space-y-2">
+          <div className="text-xs text-slate-600 space-y-2">
             <div className="overflow-x-auto">
-              <pre className="min-w-max whitespace-pre text-zinc-300">
+              <pre className="min-w-max whitespace-pre text-slate-700">
 name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHistory,monthlyRevenue,joinDate
 佐藤,月8,2026-03-01,7日,人形町店,田中,false,26000,2025-12-10
               </pre>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-zinc-500">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-500">
               <div>
-                <span className="text-zinc-300 font-semibold">lastVisit</span>
+                <span className="text-slate-700 font-semibold">lastVisit</span>
                 : YYYY-MM-DD（例: 2026-03-01）
               </div>
               <div>
-                <span className="text-zinc-300 font-semibold">visitInterval</span>
+                <span className="text-slate-700 font-semibold">visitInterval</span>
                 : 例「7日」「3 days」など（文字列として保持）
               </div>
               <div>
-                <span className="text-zinc-300 font-semibold">
+                <span className="text-slate-700 font-semibold">
                   hasCancellationHistory
                 </span>
                 : true/false（true, false, 1, 0, yes, no も可）
               </div>
               <div>
-                <span className="text-zinc-300 font-semibold">monthlyRevenue</span>
+                <span className="text-slate-700 font-semibold">monthlyRevenue</span>
                 : 数値（例: 26000）
               </div>
             </div>
@@ -465,10 +465,10 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
         </div>
       </div>
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
           <div>
-            <label className="block text-zinc-400 text-sm mb-2">
+            <label className="block text-slate-600 text-sm mb-2">
               CSVファイル
             </label>
             <input
@@ -476,7 +476,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
               type="file"
               accept=".csv,text/csv"
               onChange={handleFileChange}
-              className="block w-full text-sm text-zinc-300
+              className="block w-full text-sm text-slate-700
                 file:mr-4 file:py-2 file:px-4
                 file:rounded-md file:border-0
                 file:text-sm file:font-semibold
@@ -485,12 +485,12 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
               "
             />
             {fileName && (
-              <p className="text-zinc-500 text-xs mt-1">選択中: {fileName}</p>
+              <p className="text-slate-500 text-xs mt-1">選択中: {fileName}</p>
             )}
           </div>
 
           <div>
-            <label className="block text-zinc-400 text-sm mb-2">
+            <label className="block text-slate-600 text-sm mb-2">
               インポート対象
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -500,7 +500,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                 className={`flex-1 px-3 py-2 rounded-md border text-sm ${
                   target === "members"
                     ? "bg-blue-500/20 border-blue-500/40 text-blue-200"
-                    : "bg-zinc-950 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 会員
@@ -511,7 +511,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                 className={`flex-1 px-3 py-2 rounded-md border text-sm ${
                   target === "visits"
                     ? "bg-blue-500/20 border-blue-500/40 text-blue-200"
-                    : "bg-zinc-950 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 来店履歴
@@ -522,7 +522,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                 className={`flex-1 px-3 py-2 rounded-md border text-sm ${
                   target === "tasks"
                     ? "bg-blue-500/20 border-blue-500/40 text-blue-200"
-                    : "bg-zinc-950 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 タスク
@@ -533,7 +533,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                 className={`flex-1 px-3 py-2 rounded-md border text-sm ${
                   target === "sessions"
                     ? "bg-blue-500/20 border-blue-500/40 text-blue-200"
-                    : "bg-zinc-950 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 セッション履歴
@@ -542,15 +542,15 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
 
             {target === "members" && (
               <div className="mt-3">
-                <div className="text-xs text-zinc-500 mb-2">取り込み種類</div>
+                <div className="text-xs text-slate-500 mb-2">取り込み種類</div>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setMembersFormat("twincoach")}
                     className={`flex-1 px-3 py-2 rounded-md border text-sm ${
                       membersFormat === "twincoach"
-                        ? "bg-zinc-800/60 border-zinc-600 text-white"
-                        : "bg-zinc-950 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                        ? "bg-slate-100/60 border-slate-400 text-slate-900"
+                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     TwinCoach標準CSV
@@ -560,15 +560,15 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                     onClick={() => setMembersFormat("hacomono")}
                     className={`flex-1 px-3 py-2 rounded-md border text-sm ${
                       membersFormat === "hacomono"
-                        ? "bg-zinc-800/60 border-zinc-600 text-white"
-                        : "bg-zinc-950 border-zinc-800 text-zinc-300 hover:bg-zinc-800"
+                        ? "bg-slate-100/60 border-slate-400 text-slate-900"
+                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                     }`}
                   >
                     hacomono想定CSV
                   </button>
                 </div>
                 {membersFormat === "hacomono" && (
-                  <p className="text-xs text-zinc-500 mt-2">
+                  <p className="text-xs text-slate-500 mt-2">
                     必須カラム例: member_name, plan_name, last_visit_date,
                     store_name, trainer_name, join_date, cancellation_flag
                   </p>
@@ -577,7 +577,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
             )}
 
             {target === "sessions" && (
-              <p className="text-xs text-zinc-500 mt-3">
+              <p className="text-xs text-slate-500 mt-3">
                 必須カラム: member_name, session_date, menu_summary, conversation_summary,
                 next_action, trainer_name, store_name
               </p>
@@ -589,7 +589,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
               type="button"
               onClick={handleReadClick}
               disabled={isLoading}
-              className="self-end px-5 py-2 text-sm bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded hover:bg-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="self-end px-5 py-2 text-sm bg-blue-500/20 text-blue-700 border border-blue-500/30 rounded hover:bg-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isLoading ? "読み込み中..." : "読み込み"}
             </button>
@@ -597,20 +597,20 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
         </div>
 
         {error && (
-          <div className="mt-4 text-sm text-red-400 bg-red-500/10 border border-red-500/30 rounded px-3 py-2">
+          <div className="mt-4 text-sm text-red-600 bg-red-500/10 border border-red-500/30 rounded px-3 py-2">
             {error}
           </div>
         )}
 
         {infoMessage && !error && (
-          <div className="mt-4 text-sm text-green-400 bg-green-500/10 border border-green-500/30 rounded px-3 py-2">
+          <div className="mt-4 text-sm text-green-700 bg-green-500/10 border border-green-500/30 rounded px-3 py-2">
             {infoMessage}
           </div>
         )}
 
         {rawHeaders.length > 0 && (
-          <div className="mt-4 text-xs text-zinc-500">
-            <span className="font-semibold text-zinc-400">CSVヘッダー:</span>{" "}
+          <div className="mt-4 text-xs text-slate-500">
+            <span className="font-semibold text-slate-600">CSVヘッダー:</span>{" "}
             {rawHeaders.join(", ")}
           </div>
         )}
@@ -618,11 +618,11 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
 
       {/* 保存ボタン */}
       {previewRows.length > 0 && target === "members" && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-semibold mb-2">データ保存</h2>
-              <p className="text-zinc-400 text-sm">
+              <p className="text-slate-600 text-sm">
                 {parsedMembersData.length}件の会員データをSupabaseに保存します
               </p>
             </div>
@@ -630,7 +630,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
               type="button"
               onClick={handleSaveClick}
               disabled={isSaving || parsedMembersData.length === 0}
-              className="px-6 py-3 text-sm font-medium bg-green-500/20 text-green-400 border border-green-500/30 rounded hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-3 text-sm font-medium bg-green-500/20 text-green-700 border border-green-500/30 rounded hover:bg-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {isSaving ? "保存中..." : "保存する"}
             </button>
@@ -640,12 +640,12 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
 
       {/* インポート結果 */}
       {importResult && (
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-8">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
           <h2 className="text-xl font-semibold mb-4">インポート結果</h2>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-green-500/10 border border-green-500/30 rounded p-4">
-                <div className="text-green-400 text-sm font-semibold mb-1">
+                <div className="text-green-700 text-sm font-semibold mb-1">
                   成功
                 </div>
                 <div className="text-2xl font-bold text-green-300">
@@ -653,10 +653,10 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                 </div>
               </div>
               <div className="bg-red-500/10 border border-red-500/30 rounded p-4">
-                <div className="text-red-400 text-sm font-semibold mb-1">
+                <div className="text-red-600 text-sm font-semibold mb-1">
                   エラー
                 </div>
-                <div className="text-2xl font-bold text-red-300">
+                <div className="text-2xl font-bold text-red-700">
                   {importResult.errorCount}件
                 </div>
               </div>
@@ -664,7 +664,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
 
             {importResult.errors.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-zinc-300 mb-2">
+                <h3 className="text-sm font-semibold text-slate-700 mb-2">
                   エラー詳細
                 </h3>
                 <div className="max-h-60 overflow-y-auto space-y-2">
@@ -673,10 +673,10 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                       key={idx}
                       className="bg-red-500/10 border border-red-500/30 rounded p-3 text-sm"
                     >
-                      <div className="text-red-400 font-semibold mb-1">
+                      <div className="text-red-600 font-semibold mb-1">
                         行 {err.index + 1}: {err.error}
                       </div>
-                      <div className="text-zinc-400 text-xs">
+                      <div className="text-slate-600 text-xs">
                         名前: {err.data.name || "(未入力)"}, プラン:{" "}
                         {err.data.plan || "(未入力)"}, 店舗名:{" "}
                         {err.data.storeName || "(未入力)"}
@@ -691,34 +691,34 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
       )}
 
       {/* プレビュー */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-semibold mb-4">読み込み結果プレビュー</h2>
         {previewRows.length === 0 ? (
-          <p className="text-zinc-400 text-sm">
+          <p className="text-slate-600 text-sm">
             CSVを読み込むとここに最初の数件が表示されます。
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-800 border-b border-zinc-700">
+              <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
                   {previewHeaders.map((header) => (
                     <th
                       key={header}
-                      className="px-4 py-2 text-left font-semibold text-zinc-300"
+                      className="px-4 py-2 text-left font-semibold text-slate-700"
                     >
                       {header}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-slate-200">
                 {previewRows.slice(0, 20).map((row, idx) => (
-                  <tr key={idx} className="hover:bg-zinc-800/60 transition-colors">
+                  <tr key={idx} className="hover:bg-slate-100/60 transition-colors">
                     {previewHeaders.map((header) => (
                       <td
                         key={header}
-                        className="px-4 py-2 text-zinc-200 whitespace-nowrap"
+                        className="px-4 py-2 text-slate-800 whitespace-nowrap"
                       >
                         {row[header] ?? ""}
                       </td>
@@ -728,7 +728,7 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
               </tbody>
             </table>
             {previewRows.length > 20 && (
-              <p className="text-xs text-zinc-500 mt-2">
+              <p className="text-xs text-slate-500 mt-2">
                 {previewRows.length}件中20件を表示しています。
               </p>
             )}
@@ -737,11 +737,11 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
       </div>
 
       {/* インポート履歴 */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mt-8">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mt-8">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div>
             <h2 className="text-xl font-semibold">インポート履歴</h2>
-            <p className="text-zinc-400 text-sm">
+            <p className="text-slate-600 text-sm">
               いつ・何件・どの形式で取り込んだかをローカルに保存します
             </p>
           </div>
@@ -751,37 +751,37 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
               clearImportHistory();
               setImportHistory([]);
             }}
-            className="px-4 py-2 text-sm bg-zinc-950 text-zinc-200 border border-zinc-800 rounded hover:bg-zinc-800 transition-colors"
+            className="px-4 py-2 text-sm bg-slate-50 text-slate-800 border border-slate-200 rounded hover:bg-slate-100 transition-colors"
           >
             履歴をクリア
           </button>
         </div>
 
         {importHistory.length === 0 ? (
-          <p className="text-zinc-400 text-sm">履歴はまだありません</p>
+          <p className="text-slate-600 text-sm">履歴はまだありません</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-800 border-b border-zinc-700">
+              <thead className="bg-slate-100 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-2 text-left font-semibold text-zinc-300">
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">
                     取り込み日時
                   </th>
-                  <th className="px-4 py-2 text-left font-semibold text-zinc-300">
+                  <th className="px-4 py-2 text-left font-semibold text-slate-700">
                     ファイル形式
                   </th>
-                  <th className="px-4 py-2 text-right font-semibold text-zinc-300">
+                  <th className="px-4 py-2 text-right font-semibold text-slate-700">
                     取り込み件数
                   </th>
-                  <th className="px-4 py-2 text-right font-semibold text-zinc-300">
+                  <th className="px-4 py-2 text-right font-semibold text-slate-700">
                     成功
                   </th>
-                  <th className="px-4 py-2 text-right font-semibold text-zinc-300">
+                  <th className="px-4 py-2 text-right font-semibold text-slate-700">
                     エラー
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800">
+              <tbody className="divide-y divide-slate-200">
                 {importHistory.map((h) => {
                   const date = new Date(h.importedAt);
                   const dateText = Number.isNaN(date.getTime())
@@ -789,11 +789,11 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                     : date.toLocaleString("ja-JP");
                   const ok = h.errorCount === 0;
                   return (
-                    <tr key={h.id} className="hover:bg-zinc-800/60 transition-colors">
-                      <td className="px-4 py-2 text-zinc-200 whitespace-nowrap">
+                    <tr key={h.id} className="hover:bg-slate-100/60 transition-colors">
+                      <td className="px-4 py-2 text-slate-800 whitespace-nowrap">
                         {dateText}
                       </td>
-                      <td className="px-4 py-2 text-zinc-200 whitespace-nowrap">
+                      <td className="px-4 py-2 text-slate-800 whitespace-nowrap">
                         {h.fileFormat === "twincoach"
                           ? "TwinCoach標準CSV"
                           : h.fileFormat === "hacomono"
@@ -802,16 +802,16 @@ name,plan,lastVisit,visitInterval,storeName,assignedTrainer,hasCancellationHisto
                           ? "来店履歴CSV"
                           : "タスクCSV"}
                       </td>
-                      <td className="px-4 py-2 text-right text-zinc-200">
+                      <td className="px-4 py-2 text-right text-slate-800">
                         {h.count.toLocaleString()}
                       </td>
                       <td className="px-4 py-2 text-right">
-                        <span className="text-green-400 font-semibold">
+                        <span className="text-green-700 font-semibold">
                           {h.successCount.toLocaleString()}
                         </span>
                       </td>
                       <td className="px-4 py-2 text-right">
-                        <span className={`font-semibold ${ok ? "text-zinc-400" : "text-red-400"}`}>
+                        <span className={`font-semibold ${ok ? "text-slate-600" : "text-red-600"}`}>
                           {h.errorCount.toLocaleString()}
                         </span>
                       </td>

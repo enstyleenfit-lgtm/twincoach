@@ -12,16 +12,16 @@ export function TrainersListBody({ trainerNames }: Props) {
   const seg = useAppRouteSegment();
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
+    <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
       {trainerNames.length === 0 ? (
-        <p className="text-zinc-400 text-center py-8">トレーナーが見つかりません</p>
+        <p className="text-slate-600 text-center py-8">トレーナーが見つかりません</p>
       ) : (
         <ul className="space-y-2">
           {trainerNames.map((trainerName) => (
             <li key={trainerName}>
               <Link
                 href={trainerDetailHref(seg, trainerName)}
-                className="block px-4 py-3 rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-200 hover:bg-zinc-800/50 hover:text-white transition-colors"
+                className="block px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
               >
                 {trainerName}
               </Link>

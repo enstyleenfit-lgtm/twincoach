@@ -14,7 +14,7 @@ const WEEKDAYS = ["月", "火", "水", "木", "金", "土", "日"];
  */
 function getPressureColor(pressureScore: number, maxPressure: number): string {
   if (maxPressure === 0) {
-    return "bg-zinc-800";
+    return "bg-slate-100";
   }
 
   const ratio = pressureScore / maxPressure;
@@ -30,7 +30,7 @@ function getPressureColor(pressureScore: number, maxPressure: number): string {
   } else if (ratio > 0) {
     return "bg-yellow-400";
   } else {
-    return "bg-zinc-800"; // 予約なし
+    return "bg-slate-100"; // 予約なし
   }
 }
 
@@ -47,13 +47,13 @@ export function ReservationHeatmap({
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="px-2 py-2 text-xs font-semibold text-zinc-400 border border-zinc-800 bg-zinc-900">
+              <th className="px-2 py-2 text-xs font-semibold text-slate-600 border border-slate-200 bg-white">
                 時間帯
               </th>
               {WEEKDAYS.map((weekday) => (
                 <th
                   key={weekday}
-                  className="px-2 py-2 text-xs font-semibold text-zinc-400 border border-zinc-800 bg-zinc-900"
+                  className="px-2 py-2 text-xs font-semibold text-slate-600 border border-slate-200 bg-white"
                 >
                   {weekday}
                 </th>
@@ -65,7 +65,7 @@ export function ReservationHeatmap({
               const hour = row[0].hour;
               return (
                 <tr key={hour}>
-                  <td className="px-2 py-2 text-xs font-semibold text-zinc-400 border border-zinc-800 bg-zinc-900">
+                  <td className="px-2 py-2 text-xs font-semibold text-slate-600 border border-slate-200 bg-white">
                     {hour}時
                   </td>
                   {row.map((cell, weekdayIndex) => {
@@ -73,16 +73,16 @@ export function ReservationHeatmap({
                     return (
                       <td
                         key={`${hour}-${cell.weekday}`}
-                        className={`px-2 py-2 text-center border border-zinc-800 ${bgColor} relative group`}
+                        className={`px-2 py-2 text-center border border-slate-200 ${bgColor} relative group`}
                         title={`${hour}時 ${cell.weekday}曜日: ${cell.count}人, 圧力スコア ${cell.pressureScore}`}
                       >
                         {cell.count > 0 && (
-                          <span className="text-xs font-semibold text-white">
+                          <span className="text-xs font-semibold text-slate-900">
                             {cell.count}
                           </span>
                         )}
                         {/* ツールチップ風の表示 */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-zinc-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10 border border-zinc-700">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-white text-slate-900 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10 border border-slate-200">
                           {hour}時 {cell.weekday}曜日
                           <br />
                           予約希望: {cell.count}人
@@ -98,10 +98,10 @@ export function ReservationHeatmap({
           </tbody>
         </table>
         {/* 凡例 */}
-        <div className="mt-4 flex items-center gap-4 text-xs text-zinc-400">
+        <div className="mt-4 flex items-center gap-4 text-xs text-slate-600">
           <span>凡例:</span>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-zinc-800 border border-zinc-700"></div>
+            <div className="w-4 h-4 bg-slate-100 border border-slate-200"></div>
             <span>予約なし</span>
           </div>
           <div className="flex items-center gap-2">

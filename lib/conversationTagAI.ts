@@ -82,7 +82,7 @@ export function sessionWithConversationTags(session: Session): Session {
 export function conversationTagBadgeClass(category: ConversationTag["category"]): string {
   switch (category) {
     case "生活":
-      return "text-amber-200 bg-amber-500/15 border-amber-400/35";
+      return "text-amber-900 bg-amber-500/15 border-amber-400/35";
     case "体調":
       return "text-rose-200 bg-rose-500/15 border-rose-400/35";
     case "食事":
@@ -90,10 +90,10 @@ export function conversationTagBadgeClass(category: ConversationTag["category"])
     case "心理":
       return "text-violet-200 bg-violet-500/15 border-violet-400/35";
     case "姿勢":
-      return "text-sky-200 bg-sky-500/15 border-sky-400/35";
+      return "text-sky-800 bg-sky-500/15 border-sky-400/35";
     case "目標":
       return "text-teal-200 bg-teal-500/15 border-teal-400/35";
     default:
-      return "text-zinc-200 bg-zinc-500/15 border-zinc-400/35";
+      return "text-slate-800 bg-slate-200/90 border-slate-300/70";
   }
 }
