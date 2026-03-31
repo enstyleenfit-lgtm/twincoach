@@ -20,7 +20,7 @@ export function RoleSwitchControl() {
   const btn =
     "flex-1 text-center rounded-lg border px-2 py-1.5 text-xs font-semibold transition-colors duration-200";
   const on =
-    "border-emerald-400 bg-emerald-100/80 text-slate-900 shadow-sm hover:bg-emerald-200/70";
+    "border-emerald-400 bg-emerald-100/80 text-slate-900 shadow-sm hover:bg-slate-200 hover:text-slate-900 hover:border-slate-300";
   const off =
     "border-slate-200 bg-white text-slate-700 hover:bg-slate-200 hover:border-slate-300 hover:text-slate-900";
 

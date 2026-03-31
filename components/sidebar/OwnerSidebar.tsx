@@ -24,7 +24,7 @@ export function OwnerSidebar() {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
     return `${sidebarNavLinkBase} ${
       active
-        ? `${sidebarNavLinkActive} hover:bg-emerald-100`
+        ? `${sidebarNavLinkActive} hover:bg-slate-200 hover:text-slate-900`
         : `${sidebarNavLinkInactive} hover:bg-slate-200`
     }`;
   };
