@@ -250,7 +250,9 @@ export function analyzeSuccessfulSessions(
   }
 
   const reservationActionCount = targetSessions.filter((s) =>
-    /(予約|次回|確定|リマインド)/.test(`${s.nextAction} ${s.conversationSummary}`)
+    /(予約|次回|確定|リマインド)/.test(
+      `${s.nextAction} ${s.conversationSummary} ${s.conversationNotes ?? ""}`
+    )
   ).length;
   if (reservationActionCount > 0) {
     const ratio = reservationActionCount / Math.max(1, targetSessions.length);

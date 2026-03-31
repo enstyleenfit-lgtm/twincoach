@@ -113,7 +113,8 @@ export function evaluateTrainerPerformance(
     trainerSessions.length === 0
       ? 0
       : trainerSessions.reduce((sum, s) => {
-          const conversation = (s.conversationSummary || "").trim().length >= 10 ? 1 : 0;
+          const convText = `${s.conversationNotes ?? ""} ${s.conversationSummary ?? ""}`.trim();
+          const conversation = convText.length >= 10 ? 1 : 0;
           const menu = (s.menuSummary || "").trim().length >= 8 ? 1 : 0;
           const action = (s.nextAction || "").trim().length >= 8 ? 1 : 0;
           return sum + (conversation + menu + action) / 3;

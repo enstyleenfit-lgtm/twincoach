@@ -188,6 +188,7 @@ export default function CsvImportPage() {
           セッション日付: s.sessionDate,
           メニュー要約: s.menuSummary,
           会話要約: s.conversationSummary,
+          会話内容: (s.conversationNotes ?? "").trim() || "—",
           会話タグ: (s.tags ?? []).map((t) => t.tag).join("、") || "—",
           次回アクション: s.nextAction,
           担当トレーナー: s.trainerName,

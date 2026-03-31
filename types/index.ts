@@ -372,6 +372,10 @@ export interface Session {
   sessionDate: string; // YYYY-MM-DD
   menuSummary: string;
   conversationSummary: string;
+  /**
+   * セッション中の会話・生活・モチベ等の自由記述（トレーニング記録とは別管理）
+   */
+  conversationNotes?: string;
   nextAction: string;
   trainerName: string;
   storeName: string;

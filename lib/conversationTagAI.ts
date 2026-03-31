@@ -43,6 +43,14 @@ const TAG_RULES: Rule[] = [
   },
 ];
 
+/** タグ抽出用: 自由記述の会話と既存の会話要約（CSV・種目メモ由来など）を結合 */
+export function conversationTextForTags(session: Session): string {
+  const notes = (session.conversationNotes || "").trim();
+  const summary = (session.conversationSummary || "").trim();
+  if (notes && summary) return `${notes}\n${summary}`;
+  return notes || summary;
+}
+
 export function extractConversationTags(conversationSummary: string): ConversationTag[] {
   const text = (conversationSummary || "").trim();
   if (!text) return [];
@@ -74,7 +82,7 @@ export function sessionWithConversationTags(session: Session): Session {
   if (existing && existing.length > 0) {
     return session;
   }
-  const tags = extractConversationTags(session.conversationSummary);
+  const tags = extractConversationTags(conversationTextForTags(session));
   return { ...session, tags };
 }
 

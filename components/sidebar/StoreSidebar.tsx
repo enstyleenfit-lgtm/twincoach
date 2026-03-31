@@ -25,6 +25,21 @@ export function StoreSidebar() {
               店舗一覧
             </Link>
           </li>
+          <li>
+            <Link href="/members" className={sidebarNavLink}>
+              会員一覧
+            </Link>
+          </li>
+          <li>
+            <Link href="/tasks" className={sidebarNavLink}>
+              タスク
+            </Link>
+          </li>
+          <li>
+            <Link href="/session-input" className={sidebarNavLink}>
+              セッション入力
+            </Link>
+          </li>
         </ul>
       </nav>
       <div className={sidebarFooter}>

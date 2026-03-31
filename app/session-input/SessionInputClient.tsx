@@ -32,6 +32,8 @@ type SavedSession = {
   sessionDate: string; // YYYY-MM-DD
   createdAt: string; // ISO
   records: SessionRecord[];
+  /** トレーニングとは別の会話・フォロー用メモ */
+  conversationNotes?: string;
 };
 
 const SESSION_RECORDS_KEY = "twincoach:trainerSessionRecords:v1";
@@ -236,6 +238,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
   const [drafts, setDrafts] = useState<ExerciseDraft[]>([]);
+  const [conversationNotes, setConversationNotes] = useState("");
   const [status, setStatus] = useState<string>("");
   const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({});
 
@@ -324,6 +327,10 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   }, [assignedMembers, selectedMemberId]);
 
   useEffect(() => {
+    setConversationNotes("");
+  }, [selectedMemberId]);
+
+  useEffect(() => {
     // 初期ドラフトは「1種目だけ」。直近セッション1件目を優先で埋めます。
     const initialExercise = quickMenu[0] ?? "ベンチプレス";
     const lastRecords = lastSessionForSelectedMember?.records ?? [];
@@ -407,6 +414,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     }
     setDrafts(copied);
     setMemoOpen({});
+    setConversationNotes(lastSessionForSelectedMember?.conversationNotes ?? "");
     setStatus("前回をコピーしました");
   };
 
@@ -420,12 +428,17 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     return null;
   };
 
-  const persistSession = (draftsToSave: ExerciseDraft[]) => {
+  const persistSession = (
+    draftsToSave: ExerciseDraft[],
+    opts?: { conversationNotes?: string }
+  ) => {
     setStatus("");
     if (!selectedMember) {
       setStatus("会員を選択してください");
       return;
     }
+    const notesForSave =
+      opts?.conversationNotes !== undefined ? opts.conversationNotes : conversationNotes;
     if (draftsToSave.length === 0) {
       setStatus("種目を追加してください");
       return;
@@ -455,6 +468,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       createdAt,
     }));
 
+    const notesTrimmed = notesForSave.trim();
     const saved: SavedSession = {
       sessionId,
       trainerName: TRAINER_NAME,
@@ -464,6 +478,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       sessionDate,
       createdAt,
       records,
+      ...(notesTrimmed ? { conversationNotes: notesTrimmed } : {}),
     };
 
     if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
@@ -478,6 +493,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       sessionId,
       sessionDate,
       trainerName: TRAINER_NAME,
+      conversationNotes: notesTrimmed || undefined,
     });
     persistNextActionSuggestion(selectedMember.id, nextSuggestion);
     const primaryNextAction =
@@ -496,6 +512,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         sessionDate,
         menuSummary,
         conversationSummary,
+        conversationNotes: notesTrimmed || undefined,
         nextAction: primaryNextAction,
         trainerName: TRAINER_NAME,
         storeName: selectedMember.storeName,
@@ -521,9 +538,11 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       setStatus("前回の保存データがありません");
       return;
     }
+    const lastNotes = lastSessionForSelectedMember?.conversationNotes ?? "";
+    setConversationNotes(lastNotes);
     setDrafts(copied);
     setMemoOpen({});
-    persistSession(copied);
+    persistSession(copied, { conversationNotes: lastNotes });
   };
 
   const quickExercisesOptions = useMemo(() => {
@@ -574,7 +593,22 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           </div>
         </div>
 
+        <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
+          <h2 className="text-slate-900 font-semibold text-base mb-2">会話内容</h2>
+          <p className="text-slate-500 text-xs mb-2">
+            雑談・仕事・生活の変化・悩み・次回の話題など（トレーニングの種目メモとは別）
+          </p>
+          <textarea
+            value={conversationNotes}
+            onChange={(e) => setConversationNotes(e.target.value)}
+            placeholder="会話した内容、最近の変化、気になったことを記録"
+            rows={5}
+            className="w-full min-h-[120px] rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 resize-y"
+          />
+        </div>
+
         <div className="mb-4">
+          <h2 className="text-slate-900 font-semibold text-base mb-2">トレーニング内容</h2>
           <div className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-2">
             よく使うメニュー
           </div>

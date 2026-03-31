@@ -119,14 +119,21 @@ function appendSessionRecordActions(
 function buildSyntheticSession(
   member: Member,
   records: SessionInputRecordForNextAction[],
-  meta: { sessionId: string; sessionDate: string; trainerName: string }
+  meta: {
+    sessionId: string;
+    sessionDate: string;
+    trainerName: string;
+    conversationNotes?: string;
+  }
 ): Session {
+  const notes = (meta.conversationNotes || "").trim();
   return {
     id: meta.sessionId,
     memberName: member.name,
     sessionDate: meta.sessionDate,
     menuSummary: buildMenuSummaryFromRecords(records),
     conversationSummary: buildConversationSummaryFromRecords(records),
+    conversationNotes: notes || undefined,
     nextAction: "最新セッション入力を反映",
     trainerName: meta.trainerName,
     storeName: member.storeName,
@@ -139,7 +146,12 @@ function buildSyntheticSession(
 export function generateNextActionsAfterSessionInput(
   member: Member,
   records: SessionInputRecordForNextAction[],
-  meta: { sessionId: string; sessionDate: string; trainerName: string }
+  meta: {
+    sessionId: string;
+    sessionDate: string;
+    trainerName: string;
+    conversationNotes?: string;
+  }
 ): NextActionSuggestion {
   if (records.length === 0) {
     return generateNextActions(member, undefined, undefined);

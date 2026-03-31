@@ -1,4 +1,4 @@
-import { extractConversationTags } from "@/lib/conversationTagAI";
+import { sessionWithConversationTags } from "@/lib/conversationTagAI";
 import { Session } from "@/types";
 
 type CsvRow = Record<string, string>;
@@ -33,6 +33,7 @@ function getColumnsFromRows(rows: CsvRow[]): string[] {
  * - session_date
  * - menu_summary
  * - conversation_summary
+ * - conversation_notes（任意・会話内容の自由記述）
  * - next_action
  * - trainer_name
  * - store_name
@@ -52,17 +53,18 @@ export function mapSessionCsvToSessions(rows: CsvRow[]): Session[] {
 
   return rows.map((row) => {
     const conversationSummary = row["conversation_summary"] ?? "";
-    return {
+    const conversationNotes = (row["conversation_notes"] ?? "").trim() || undefined;
+    return sessionWithConversationTags({
       id: generateId(),
       memberName: row["member_name"] ?? "",
       sessionDate: row["session_date"] ?? "",
       menuSummary: row["menu_summary"] ?? "",
       conversationSummary,
+      conversationNotes,
       nextAction: row["next_action"] ?? "",
       trainerName: row["trainer_name"] ?? "",
       storeName: row["store_name"] ?? "",
-      tags: extractConversationTags(conversationSummary),
-    };
+    });
   });
 }
 

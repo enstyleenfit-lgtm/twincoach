@@ -101,10 +101,12 @@ export function MemberSessionsClient({ memberName }: { memberName: string }) {
 
                     <div>
                       <div className="text-slate-600 text-xs font-semibold mb-1">
-                        会話要約
+                        会話内容
                       </div>
-                      <div className="text-slate-800 text-sm leading-relaxed line-clamp-3 whitespace-pre-wrap">
-                        {s.conversationSummary || "-"}
+                      <div className="text-slate-800 text-sm leading-relaxed whitespace-pre-wrap">
+                        {(s.conversationNotes ?? "").trim() ||
+                          (s.conversationSummary ?? "").trim() ||
+                          "-"}
                       </div>
                       {tags.length > 0 && (
                         <div className="mt-2">
