@@ -5,8 +5,8 @@ export const sidebarHeader = "border-b border-slate-200/80 p-6 bg-slate-50/60";
 export const sidebarFooter = "border-t border-slate-200 p-4";
 export const sidebarTitle = "text-lg font-bold text-slate-900";
 export const sidebarNavLinkBase =
-  "group flex items-center rounded-lg px-4 py-3 text-sm font-semibold transition-colors";
+  "group flex items-center rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-200";
 export const sidebarNavLinkActive =
-  "bg-emerald-50 text-emerald-950 ring-1 ring-emerald-200/60 shadow-sm shadow-emerald-900/5";
+  "bg-emerald-100/70 text-slate-900 ring-1 ring-emerald-300/70 shadow-sm shadow-emerald-900/5";
 export const sidebarNavLinkInactive =
-  "text-slate-700 hover:bg-slate-100 hover:text-slate-900";
+  "text-slate-700 hover:bg-slate-200 hover:text-slate-900";

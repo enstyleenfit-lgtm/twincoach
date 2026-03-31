@@ -67,10 +67,10 @@ export default function StoresClient({ initialMembers }: Props) {
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded border text-xs transition-colors ${
+                className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors duration-200 ${
                   activeTab === tab
-                    ? "text-green-300 bg-green-500/10 border-green-500/30"
-                    : "text-slate-600 bg-white border-slate-200 hover:border-slate-300"
+                    ? "bg-emerald-100/80 text-slate-900 border-emerald-400/70 shadow-sm shadow-emerald-900/5 ring-1 ring-emerald-300/40"
+                    : "text-slate-700 bg-white border-slate-200 hover:bg-slate-200 hover:text-slate-900 hover:border-slate-300"
                 }`}
               >
                 {rankers[tab].label}
