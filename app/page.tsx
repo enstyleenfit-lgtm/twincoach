@@ -39,6 +39,7 @@ import {
 } from "@/lib/roleConfig";
 import { generateHQActionPlan } from "@/lib/hqActionAI";
 import { NegotiationDashboard } from "@/components/dashboard/NegotiationDashboard";
+import { TrialStoreDisplay } from "@/components/store/TrialStoreDisplay";
 import { Role, Member, Task } from "@/types";
 import { ImportedDashboardReflection } from "@/components/import/ImportedDashboardReflection";
 import { memberRepository, taskRepository } from "@/lib/repositories";
@@ -463,7 +464,10 @@ export default async function Home() {
         </div>
 
         <header className="mb-10 border-b border-slate-200 pb-6">
-          <h2 className="text-xl font-semibold text-slate-800">詳細ダッシュボード</h2>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between">
+            <h2 className="text-xl font-semibold text-slate-800">詳細ダッシュボード</h2>
+            <TrialStoreDisplay className="text-sm" />
+          </div>
           <p className="mt-1 text-sm text-slate-500">
             {getRoleDescription(currentRole)}（表示ロール: {getRoleDisplayName(currentRole)}）
           </p>

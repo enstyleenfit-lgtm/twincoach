@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { TrialStoreDisplay } from "@/components/store/TrialStoreDisplay";
 import type { Member, HQActionPlan } from "@/types";
 import type { ChurnPrediction } from "@/lib/churnPrediction";
 
@@ -75,6 +76,9 @@ export function NegotiationDashboard({
         <div className="pointer-events-none absolute -bottom-24 -left-16 h-56 w-56 rounded-full bg-red-500/5 blur-3xl" />
         <div className="relative grid gap-10 lg:grid-cols-[1fr_minmax(0,1.1fr)] lg:items-end">
           <div>
+            <div className="mb-3 inline-flex items-center rounded-lg border border-slate-200 bg-white/80 px-3 py-2 text-sm shadow-sm">
+              <TrialStoreDisplay />
+            </div>
             <h1 className="text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
               TwinCoach
             </h1>

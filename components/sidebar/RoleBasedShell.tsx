@@ -12,6 +12,7 @@ import { OwnerSidebar } from "@/components/sidebar/OwnerSidebar";
 import { TrainerSidebar } from "@/components/sidebar/TrainerSidebar";
 import { StoreSidebar } from "@/components/sidebar/StoreSidebar";
 import { AppTopBar } from "@/components/layout/AppTopBar";
+import { TrialStoreProvider } from "@/components/store/TrialStoreProvider";
 
 type Props = { children: ReactNode };
 type Role = "hq" | "owner" | "store" | "trainer";
@@ -63,23 +64,25 @@ export function RoleBasedShell({ children }: Props) {
     );
 
   return (
-    <div className="flex min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden bg-slate-50 text-slate-900">
-      <div
-        data-app-sidebar-slot
-        className="max-lg:hidden lg:flex lg:w-64 lg:flex-shrink-0"
-      >
-        {sidebar}
+    <TrialStoreProvider>
+      <div className="flex min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden bg-slate-50 text-slate-900">
+        <div
+          data-app-sidebar-slot
+          className="max-lg:hidden lg:flex lg:w-64 lg:flex-shrink-0"
+        >
+          {sidebar}
+        </div>
+        <main
+          className={`min-h-0 min-w-0 w-full max-w-full flex-1 basis-0 shrink overflow-x-hidden overflow-y-auto ${
+            role === "trainer" ? TRAINER_MOBILE_MAIN_PADDING : ""
+          }`}
+        >
+          <AppTopBar />
+          {children}
+        </main>
+        {role === "trainer" ? <MobileTrainerTabBar /> : null}
       </div>
-      <main
-        className={`min-h-0 min-w-0 w-full max-w-full flex-1 basis-0 shrink overflow-x-hidden overflow-y-auto ${
-          role === "trainer" ? TRAINER_MOBILE_MAIN_PADDING : ""
-        }`}
-      >
-        <AppTopBar />
-        {children}
-      </main>
-      {role === "trainer" ? <MobileTrainerTabBar /> : null}
-    </div>
+    </TrialStoreProvider>
   );
 }
 
