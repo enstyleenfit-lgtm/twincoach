@@ -1,5 +1,9 @@
 "use client";
 
+/**
+ * 右上「店舗選択」ドロップダウンのトリガー（TwinCoach 共通トップバー）
+ * RoleBasedShell 内で描画。試験用は TrialStoreProvider 経由の店舗名を表示。
+ */
 import { useState } from "react";
 import { useTrialStore } from "@/components/store/TrialStoreProvider";
 
@@ -18,13 +22,23 @@ export function AppTopBar() {
         <div className="relative">
           <button
             type="button"
+            data-twin-topbar-store-trigger
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-haspopup="listbox"
-            className="flex min-h-[44px] min-w-[10rem] items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-semibold text-slate-900 shadow-sm transition-colors duration-200 hover:bg-slate-200 hover:border-slate-300"
+            className={`group flex min-h-[44px] min-w-[10rem] items-center justify-between gap-2 rounded-xl border bg-white px-3 py-2 text-left text-sm font-semibold shadow-sm transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 ${
+              open
+                ? "border-slate-400 bg-slate-100 text-slate-950 shadow-md ring-1 ring-slate-300/90"
+                : "border-slate-300 text-slate-900 hover:border-slate-400 hover:bg-slate-200 hover:text-slate-950 hover:shadow-md active:bg-slate-200"
+            }`}
           >
             <span className="truncate">{selectedStore.name}</span>
-            <span className="shrink-0 text-slate-500" aria-hidden>
+            <span
+              className={`shrink-0 transition-colors duration-200 ${
+                open ? "text-slate-800" : "text-slate-600 group-hover:text-slate-900"
+              }`}
+              aria-hidden
+            >
               ▼
             </span>
           </button>
