@@ -1,21 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
-import { usePathname } from "next/navigation";
-
-type Role = "hq" | "owner" | "store" | "trainer";
-
-function roleFromPathname(pathname: string): Role {
-  if (pathname.startsWith("/hq")) return "hq";
-  if (pathname.startsWith("/owner")) return "owner";
-  if (pathname.startsWith("/stores") || pathname.startsWith("/store/")) return "store";
-  return "trainer";
-}
+import {
+  persistPreferredAppRole,
+  useResolvedAppRole,
+} from "@/components/sidebar/useResolvedAppRole";
 
 export function RoleSwitchControl() {
-  const pathname = usePathname();
-  const currentRole = useMemo(() => roleFromPathname(pathname), [pathname]);
+  const currentRole = useResolvedAppRole();
 
   const btn =
     "flex-1 text-center rounded-lg border px-2 py-1.5 text-xs font-semibold leading-none transition-colors duration-200";
@@ -30,39 +22,21 @@ export function RoleSwitchControl() {
       <div className="flex gap-2">
         <Link
           href="/hq"
-          onClick={() => {
-            try {
-              window.localStorage.setItem("twincoach:preferredRoleSegment:v1", "hq");
-            } catch {
-              // noop
-            }
-          }}
+          onClick={() => persistPreferredAppRole("hq")}
           className={`${btn} ${currentRole === "hq" ? on : off}`}
         >
           本部
         </Link>
         <Link
           href="/owner"
-          onClick={() => {
-            try {
-              window.localStorage.setItem("twincoach:preferredRoleSegment:v1", "owner");
-            } catch {
-              // noop
-            }
-          }}
+          onClick={() => persistPreferredAppRole("owner")}
           className={`${btn} ${currentRole === "owner" ? on : off}`}
         >
           オーナー
         </Link>
         <Link
           href="/stores"
-          onClick={() => {
-            try {
-              window.localStorage.setItem("twincoach:preferredRoleSegment:v1", "store");
-            } catch {
-              // noop
-            }
-          }}
+          onClick={() => persistPreferredAppRole("store")}
           className={`${btn} ${currentRole === "store" ? on : off}`}
         >
           店舗

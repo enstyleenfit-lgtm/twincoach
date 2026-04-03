@@ -14,6 +14,7 @@ import {
   sidebarNavLinkInactive,
   sidebarTitle,
 } from "@/components/sidebar/sidebarNavClasses";
+import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole";
 
 export function HQSidebar() {
   const pathname = usePathname();
@@ -44,32 +45,56 @@ export function HQSidebar() {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <Link href={dashboard} className={linkClass(dashboard)}>
+            <Link
+              href={dashboard}
+              className={linkClass(dashboard)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
               ダッシュボード
             </Link>
           </li>
           <li>
-            <Link href={stores} className={linkClass(stores)}>
+            <Link
+              href={stores}
+              className={linkClass(stores)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
               店舗一覧
             </Link>
           </li>
           <li>
-            <Link href={trainers} className={linkClass(trainers)}>
+            <Link
+              href={trainers}
+              className={linkClass(trainers)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
               トレーナー一覧
             </Link>
           </li>
           <li>
-            <Link href={reports} className={linkClass(reports)}>
+            <Link
+              href={reports}
+              className={linkClass(reports)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
               レポート
             </Link>
           </li>
           <li>
-            <Link href={priceRevision} className={linkClass(priceRevision)}>
+            <Link
+              href={priceRevision}
+              className={linkClass(priceRevision)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
               価格改定
             </Link>
           </li>
           <li>
-            <Link href={pocSummary} className={linkClass(pocSummary)}>
+            <Link
+              href={pocSummary}
+              className={linkClass(pocSummary)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
               PoCサマリー
             </Link>
           </li>

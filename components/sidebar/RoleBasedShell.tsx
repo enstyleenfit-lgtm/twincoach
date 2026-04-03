@@ -1,8 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import { HQSidebar } from "@/components/sidebar/HQSidebar";
 import {
   MobileTrainerTabBar,
@@ -11,46 +9,14 @@ import {
 import { OwnerSidebar } from "@/components/sidebar/OwnerSidebar";
 import { TrainerSidebar } from "@/components/sidebar/TrainerSidebar";
 import { StoreSidebar } from "@/components/sidebar/StoreSidebar";
+import { useResolvedAppRole } from "@/components/sidebar/useResolvedAppRole";
 import { AppTopBar } from "@/components/layout/AppTopBar";
 import { TrialStoreProvider } from "@/components/store/TrialStoreProvider";
 
 type Props = { children: ReactNode };
-type Role = "hq" | "owner" | "store" | "trainer";
-
-function roleFromPathname(pathname: string): Role {
-  if (pathname.startsWith("/hq")) return "hq";
-  if (pathname.startsWith("/owner")) return "owner";
-  if (pathname.startsWith("/stores") || pathname.startsWith("/store/")) return "store";
-  return "trainer";
-}
 
 export function RoleBasedShell({ children }: Props) {
-  const pathname = usePathname();
-  const [preferredRole, setPreferredRole] = useState<Role | null>(null);
-
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem("twincoach:preferredRoleSegment:v1");
-      if (raw === "hq" || raw === "owner" || raw === "store" || raw === "trainer") {
-        setPreferredRole(raw);
-      } else {
-        setPreferredRole(null);
-      }
-    } catch {
-      setPreferredRole(null);
-    }
-  }, []);
-
-  // pathname だけだと /members /tasks /session-input が常に trainer 扱いになり、
-  // 店舗ロールで「店舗一覧」「タスク」のラベルが別文言に見える（サイドバーが入れ替わる）ため、
-  // ロール切替の直近選択をフォールバックとして利用する。
-  const inferred = roleFromPathname(pathname);
-  const role: Role =
-    inferred !== "trainer"
-      ? inferred
-      : pathname.startsWith("/trainer")
-        ? "trainer"
-        : preferredRole ?? "trainer";
+  const role = useResolvedAppRole();
 
   const sidebar =
     role === "hq" ? (

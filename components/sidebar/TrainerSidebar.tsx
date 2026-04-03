@@ -14,6 +14,7 @@ import {
   sidebarNavLinkInactive,
   sidebarTitle,
 } from "@/components/sidebar/sidebarNavClasses";
+import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole";
 
 export function TrainerSidebar() {
   const pathname = usePathname();
@@ -36,22 +37,38 @@ export function TrainerSidebar() {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <Link href="/trainer" className={linkClass("/trainer")}>
+            <Link
+              href="/trainer"
+              className={linkClass("/trainer")}
+              onClick={() => persistPreferredAppRole("trainer")}
+            >
               今日の予約
             </Link>
           </li>
           <li>
-            <Link href="/members" className={linkClass("/members")}>
+            <Link
+              href="/members"
+              className={linkClass("/members")}
+              onClick={() => persistPreferredAppRole("trainer")}
+            >
               会員一覧
             </Link>
           </li>
           <li>
-            <Link href="/tasks" className={linkClass("/tasks")}>
+            <Link
+              href="/tasks"
+              className={linkClass("/tasks")}
+              onClick={() => persistPreferredAppRole("trainer")}
+            >
               介入タスク
             </Link>
           </li>
           <li>
-            <Link href="/session-input" className={linkClass("/session-input")}>
+            <Link
+              href="/session-input"
+              className={linkClass("/session-input")}
+              onClick={() => persistPreferredAppRole("trainer")}
+            >
               セッション入力
             </Link>
           </li>

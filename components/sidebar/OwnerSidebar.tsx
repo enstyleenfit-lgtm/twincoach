@@ -14,6 +14,7 @@ import {
   sidebarNavLinkInactive,
   sidebarTitle,
 } from "@/components/sidebar/sidebarNavClasses";
+import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole";
 
 export function OwnerSidebar() {
   const pathname = usePathname();
@@ -38,32 +39,56 @@ export function OwnerSidebar() {
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           <li>
-            <Link href={dashboard} className={linkClass(dashboard)}>
+            <Link
+              href={dashboard}
+              className={linkClass(dashboard)}
+              onClick={() => persistPreferredAppRole("owner")}
+            >
               ダッシュボード
             </Link>
           </li>
           <li>
-            <Link href={stores} className={linkClass(stores)}>
+            <Link
+              href={stores}
+              className={linkClass(stores)}
+              onClick={() => persistPreferredAppRole("owner")}
+            >
               店舗一覧
             </Link>
           </li>
           <li>
-            <Link href={trainers} className={linkClass(trainers)}>
+            <Link
+              href={trainers}
+              className={linkClass(trainers)}
+              onClick={() => persistPreferredAppRole("owner")}
+            >
               トレーナー
             </Link>
           </li>
           <li>
-            <Link href={members} className={linkClass(members)}>
+            <Link
+              href={members}
+              className={linkClass(members)}
+              onClick={() => persistPreferredAppRole("owner")}
+            >
               会員一覧
             </Link>
           </li>
           <li>
-            <Link href={tasks} className={linkClass(tasks)}>
+            <Link
+              href={tasks}
+              className={linkClass(tasks)}
+              onClick={() => persistPreferredAppRole("owner")}
+            >
               介入タスク
             </Link>
           </li>
           <li>
-            <Link href={reports} className={linkClass(reports)}>
+            <Link
+              href={reports}
+              className={linkClass(reports)}
+              onClick={() => persistPreferredAppRole("owner")}
+            >
               レポート
             </Link>
           </li>
