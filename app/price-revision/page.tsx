@@ -254,7 +254,7 @@ export default async function PriceRevisionPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8">
           <div className="text-slate-600 text-sm mb-2">改定対象会員数</div>
-          <div className="text-4xl font-semibold text-slate-900">
+          <div className="text-3xl font-semibold text-slate-900">
             {priceRevisionImpact.targetMembers.length}
           </div>
           <div className="text-slate-500 text-sm mt-2">人</div>
@@ -262,7 +262,7 @@ export default async function PriceRevisionPage() {
 
         <div className="bg-white border border-red-500/40 rounded-lg p-8">
           <div className="text-slate-600 text-sm mb-2">改定後高リスク会員数</div>
-          <div className="text-4xl font-semibold text-red-600">
+          <div className="text-3xl font-semibold text-red-600">
             {priceRevisionImpact.highRiskTargetMembers.length}
           </div>
           <div className="text-slate-500 text-sm mt-2">人</div>
@@ -270,7 +270,7 @@ export default async function PriceRevisionPage() {
 
         <div className="bg-white border border-green-500/40 rounded-lg p-8">
           <div className="text-slate-600 text-sm mb-2">月間増収見込み</div>
-          <div className="text-4xl font-semibold text-green-700">
+          <div className="text-3xl font-semibold text-green-700">
             ¥{priceRevisionImpact.monthlyRevenueIncrease.toLocaleString()}
           </div>
           <div className="text-slate-500 text-sm mt-2">/月</div>
@@ -278,7 +278,7 @@ export default async function PriceRevisionPage() {
 
         <div className="bg-white border border-red-500/40 rounded-lg p-8">
           <div className="text-slate-600 text-sm mb-2">月間リスク売上</div>
-          <div className="text-4xl font-semibold text-red-600">
+          <div className="text-3xl font-semibold text-red-600">
             ¥{priceRevisionImpact.monthlyRevenueAtRiskAfterRevision.toLocaleString()}
           </div>
           <div className="text-slate-500 text-sm mt-2">/月</div>
@@ -286,7 +286,7 @@ export default async function PriceRevisionPage() {
 
         <div className="bg-white border border-green-500/40 rounded-lg p-8">
           <div className="text-slate-600 text-sm mb-2">守れる売上見込み</div>
-          <div className="text-4xl font-semibold text-green-700">
+          <div className="text-3xl font-semibold text-green-700">
             ¥{priceRevisionImpact.estimatedProtectedRevenue.toLocaleString()}
           </div>
           <div className="text-slate-500 text-sm mt-2">/月</div>
@@ -661,7 +661,7 @@ export default async function PriceRevisionPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
             <div className="text-slate-600 text-sm mb-2">改定対象会員数</div>
-            <div className="text-3xl font-semibold text-slate-900">
+            <div className="text-2xl font-semibold text-slate-900">
               {priceRevision30Days.targetMembers}
             </div>
             <div className="text-slate-500 text-xs mt-1">人</div>
@@ -669,7 +669,7 @@ export default async function PriceRevisionPage() {
 
           <div className="bg-slate-50 border border-red-500/40 rounded-lg p-6">
             <div className="text-slate-600 text-sm mb-2">改定後高リスク会員数</div>
-            <div className="text-3xl font-semibold text-red-600">
+            <div className="text-2xl font-semibold text-red-600">
               {priceRevision30Days.highRiskMembersAfterRevision}
             </div>
             <div className="text-slate-500 text-xs mt-1">人</div>
@@ -677,7 +677,7 @@ export default async function PriceRevisionPage() {
 
           <div className="bg-slate-50 border border-orange-500/40 rounded-lg p-6">
             <div className="text-slate-600 text-sm mb-2">リスク上昇会員数</div>
-            <div className="text-3xl font-semibold text-orange-700">
+            <div className="text-2xl font-semibold text-orange-700">
               {priceRevision30Days.increasedRiskMembers}
             </div>
             <div className="text-slate-500 text-xs mt-1">人</div>
@@ -685,7 +685,7 @@ export default async function PriceRevisionPage() {
 
           <div className="bg-slate-50 border border-yellow-500/40 rounded-lg p-6">
             <div className="text-slate-600 text-sm mb-2">来店減少会員数</div>
-            <div className="text-3xl font-semibold text-yellow-700">
+            <div className="text-2xl font-semibold text-yellow-700">
               {priceRevision30Days.visitDropMembers}
             </div>
             <div className="text-slate-500 text-xs mt-1">人</div>
@@ -693,7 +693,7 @@ export default async function PriceRevisionPage() {
 
           <div className="bg-slate-50 border border-red-500/40 rounded-lg p-6">
             <div className="text-slate-600 text-sm mb-2">30日損失予測</div>
-            <div className="text-3xl font-semibold text-red-600">
+            <div className="text-2xl font-semibold text-red-600">
               ¥{Math.round(priceRevision30Days.expectedLoss30Days).toLocaleString()}
             </div>
             <div className="text-slate-500 text-xs mt-1">期待損失額</div>
@@ -701,7 +701,7 @@ export default async function PriceRevisionPage() {
 
           <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
             <div className="text-slate-600 text-sm mb-2">守れた売上見込み</div>
-            <div className="text-3xl font-semibold text-green-700">
+            <div className="text-2xl font-semibold text-green-700">
               ¥{Math.round(priceRevision30Days.protectedRevenueEstimate).toLocaleString()}
             </div>
             <div className="text-slate-500 text-xs mt-1">/月</div>
