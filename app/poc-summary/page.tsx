@@ -106,7 +106,7 @@ export default async function PocSummaryPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           <div className="bg-white border-2 border-red-500/50 rounded-xl p-8">
             <div className="text-slate-600 text-lg mb-2">高リスク会員数</div>
-            <div className="text-6xl font-bold text-red-600 mb-2">
+            <div className="text-5xl font-semibold text-red-600 mb-2">
               {highRiskMembers}
             </div>
             <div className="text-slate-500 text-sm">人</div>
@@ -116,7 +116,7 @@ export default async function PocSummaryPage() {
             <div className="text-slate-600 text-lg mb-2">
               来月失う可能性のある売上
             </div>
-            <div className="text-6xl font-bold text-red-600 mb-2">
+            <div className="text-5xl font-semibold text-red-600 mb-2">
               ¥{Math.round(totalExpectedLoss30Days).toLocaleString()}
             </div>
             <div className="text-slate-500 text-sm">30日期待損失額</div>
@@ -124,7 +124,7 @@ export default async function PocSummaryPage() {
 
           <div className="bg-white border-2 border-red-500/50 rounded-xl p-8">
             <div className="text-slate-600 text-lg mb-2">60日損失予測</div>
-            <div className="text-6xl font-bold text-red-600 mb-2">
+            <div className="text-5xl font-semibold text-red-600 mb-2">
               ¥{Math.round(totalExpectedLoss60Days).toLocaleString()}
             </div>
             <div className="text-slate-500 text-sm">60日期待損失額</div>
@@ -132,7 +132,7 @@ export default async function PocSummaryPage() {
 
           <div className="bg-white border-2 border-yellow-500/50 rounded-xl p-8">
             <div className="text-slate-600 text-lg mb-2">守るべき会員数</div>
-            <div className="text-6xl font-bold text-yellow-700 mb-2">
+            <div className="text-5xl font-semibold text-yellow-700 mb-2">
               {revenueDefenseSimulation.membersToSaveForGoal}
             </div>
             <div className="text-slate-500 text-sm">人</div>
@@ -140,7 +140,7 @@ export default async function PocSummaryPage() {
 
           <div className="bg-white border-2 border-orange-500/50 rounded-xl p-8">
             <div className="text-slate-600 text-lg mb-2">高リスク上位店舗</div>
-            <div className="text-6xl font-bold text-orange-700 mb-2">
+            <div className="text-5xl font-semibold text-orange-700 mb-2">
               {storeSummaries.length > 0 ? storeSummaries[0].storeName : "なし"}
             </div>
             <div className="text-slate-500 text-sm">
@@ -153,7 +153,7 @@ export default async function PocSummaryPage() {
             <div className="text-slate-600 text-lg mb-2">
               価格改定対象の高リスク会員数
             </div>
-            <div className="text-6xl font-bold text-red-600 mb-2">
+            <div className="text-5xl font-semibold text-red-600 mb-2">
               {priceRevisionImpact.highRiskTargetMembers.length}
             </div>
             <div className="text-slate-500 text-sm">人</div>
@@ -185,7 +185,7 @@ export default async function PocSummaryPage() {
                     </div>
                     <div className="text-right">
                       <div
-                        className={`text-3xl font-bold ${getRiskScoreColor(
+                        className={`text-2xl font-semibold ${getRiskScoreColor(
                           item.riskResult.score
                         )}`}
                       >
@@ -239,7 +239,7 @@ export default async function PocSummaryPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-3xl font-bold text-red-600">
+                      <div className="text-2xl font-semibold text-red-600">
                         ¥{Math.round(store.annualRevenueAtRisk).toLocaleString()}
                       </div>
                       <div className="text-slate-500 text-xs mt-1">
@@ -345,7 +345,7 @@ export default async function PocSummaryPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-6">
               <div className="text-slate-600 text-sm mb-2">改定対象会員数</div>
-              <div className="text-4xl font-bold text-slate-900">
+              <div className="text-3xl font-semibold text-slate-900">
                 {priceRevision30Days.targetMembers}
               </div>
               <div className="text-slate-500 text-xs mt-1">人</div>
@@ -353,7 +353,7 @@ export default async function PocSummaryPage() {
 
             <div className="bg-slate-50 border border-red-500/40 rounded-lg p-6">
               <div className="text-slate-600 text-sm mb-2">リスク上昇会員数</div>
-              <div className="text-4xl font-bold text-red-600">
+              <div className="text-3xl font-semibold text-red-600">
                 {priceRevision30Days.increasedRiskMembers}
               </div>
               <div className="text-slate-500 text-xs mt-1">人</div>
@@ -361,7 +361,7 @@ export default async function PocSummaryPage() {
 
             <div className="bg-slate-50 border border-red-500/40 rounded-lg p-6">
               <div className="text-slate-600 text-sm mb-2">30日損失予測</div>
-              <div className="text-4xl font-bold text-red-600">
+              <div className="text-3xl font-semibold text-red-600">
                 ¥{Math.round(priceRevision30Days.expectedLoss30Days).toLocaleString()}
               </div>
               <div className="text-slate-500 text-xs mt-1">期待損失額</div>
@@ -375,7 +375,7 @@ export default async function PocSummaryPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
               <div className="text-slate-600 text-sm mb-2">上位3人を守った場合</div>
-              <div className="text-4xl font-bold text-green-700">
+              <div className="text-3xl font-semibold text-green-700">
                 ¥{Math.round(
                   revenueDefenseSimulation.protectedRevenueIfTop3Saved
                 ).toLocaleString()}
@@ -385,7 +385,7 @@ export default async function PocSummaryPage() {
 
             <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
               <div className="text-slate-600 text-sm mb-2">上位5人を守った場合</div>
-              <div className="text-4xl font-bold text-green-700">
+              <div className="text-3xl font-semibold text-green-700">
                 ¥{Math.round(
                   revenueDefenseSimulation.protectedRevenueIfTop5Saved
                 ).toLocaleString()}
@@ -395,7 +395,7 @@ export default async function PocSummaryPage() {
 
             <div className="bg-slate-50 border border-green-500/40 rounded-lg p-6">
               <div className="text-slate-600 text-sm mb-2">高リスク全体を守った場合</div>
-              <div className="text-4xl font-bold text-green-700">
+              <div className="text-3xl font-semibold text-green-700">
                 ¥{Math.round(
                   revenueDefenseSimulation.protectedRevenueIfHighRiskSaved
                 ).toLocaleString()}
