@@ -9,6 +9,7 @@ import {
 import { sessionWithConversationTags } from "@/lib/conversationTagAI";
 import { generateNextActionsAfterSessionInput } from "@/lib/nextActionAI";
 import { persistNextActionSuggestion } from "@/lib/memberNextActionStorage";
+import { ExerciseSearchField } from "@/components/session-input/ExerciseSearchField";
 
 type SessionRecord = {
   memberId: string;
@@ -389,6 +390,45 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setDrafts((prev) => prev.map((d) => (d.localId === localId ? { ...d, ...patch } : d)));
   };
 
+  const handleExerciseMasterPick = (exerciseName: string, append: boolean) => {
+    if (append) {
+      setDrafts((prev) => [
+        ...prev,
+        buildDraftFromPrefill({
+          localId: makeId(),
+          desiredExerciseName: exerciseName,
+          prefill: null,
+          preferredIssues: frequentFormIssues,
+        }),
+      ]);
+      setStatus(`「${exerciseName}」を追加しました`);
+      return;
+    }
+    setDrafts((prev) => {
+      if (prev.length === 0) {
+        return [
+          buildDraftFromPrefill({
+            localId: makeId(),
+            desiredExerciseName: exerciseName,
+            prefill: null,
+            preferredIssues: frequentFormIssues,
+          }),
+        ];
+      }
+      const first = prev[0];
+      const base = exerciseNameToDraftBase(exerciseName);
+      return [
+        {
+          ...first,
+          exerciseBase: base.exerciseBase,
+          customExercise: base.customExercise,
+        },
+        ...prev.slice(1),
+      ];
+    });
+    setStatus(`「${exerciseName}」を1種目に設定しました`);
+  };
+
   const addExercise = () => {
     const nextExercise = quickMenu[0] ?? "ベンチプレス";
     const lastRecords = lastSessionForSelectedMember?.records ?? [];
@@ -609,6 +649,9 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
         <div className="mb-4">
           <h2 className="text-slate-900 font-semibold text-base mb-2">トレーニング内容</h2>
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <ExerciseSearchField onPick={handleExerciseMasterPick} />
+          </div>
           <div className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-2">
             よく使うメニュー
           </div>
