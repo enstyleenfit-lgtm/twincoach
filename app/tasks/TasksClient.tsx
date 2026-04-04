@@ -5,6 +5,7 @@ import Link from "next/link";
 import { DashboardBackLink } from "@/components/navigation/DashboardBackLink";
 import { generateTasksFromHighRiskMembers } from "@/lib/taskGenerator";
 import { Task, Member } from "@/types";
+import { formatTaskActionForDisplay } from "@/lib/taskActionDisplayLabels";
 
 function getStatusColor(status: string): string {
   switch (status) {
@@ -106,7 +107,7 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="mb-6">
           <DashboardBackLink className="text-blue-700 hover:text-blue-800 hover:underline text-sm">
-            ← Back to Dashboard
+            ← ダッシュボードに戻る
           </DashboardBackLink>
         </div>
         <h1 className="text-4xl font-bold mb-8">介入タスク</h1>
@@ -125,7 +126,7 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="mb-6">
         <DashboardBackLink className="text-blue-700 hover:text-blue-800 hover:underline text-sm">
-          ← Back to Dashboard
+          ← ダッシュボードに戻る
         </DashboardBackLink>
       </div>
       <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8">タスク一覧</h1>
@@ -162,7 +163,9 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
 
             <p className="mt-1 text-[11px] leading-4 text-slate-800">
               <span className="text-slate-500">アクション：</span>
-              <span className="line-clamp-2 break-words">{toTwoLineText(task.action, 48)}</span>
+              <span className="line-clamp-2 break-words">
+                {toTwoLineText(formatTaskActionForDisplay(task.action), 48)}
+              </span>
             </p>
 
             <div className="mt-1 text-[11px] leading-4">
@@ -253,7 +256,9 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-700">{task.action}</td>
+                  <td className="px-6 py-4 text-slate-700">
+                    {formatTaskActionForDisplay(task.action)}
+                  </td>
                   <td className="px-6 py-4">
                     {task.priority ? (
                       <span
