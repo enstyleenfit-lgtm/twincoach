@@ -8,6 +8,11 @@ import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
 import { Member } from "@/types";
 import { loadImportedMembers, mergeBaseAndImported } from "@/lib/importStore";
+import {
+  formatInterventionStatusForDisplay,
+  formatPlanForDisplay,
+  formatVisitIntervalForDisplay,
+} from "@/lib/memberDisplayLabels";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -65,7 +70,9 @@ export default function MembersClient({ initialMembers }: Props) {
             {members.map((member) => {
               const hasLastVisit = Boolean(member.lastVisitDate);
               const primaryVisitLabel = hasLastVisit ? "最終来店" : "来店間隔";
-              const primaryVisitInfo = hasLastVisit ? member.lastVisitDate : member.visitInterval;
+              const primaryVisitInfo = hasLastVisit
+                ? member.lastVisitDate
+                : formatVisitIntervalForDisplay(member.visitInterval);
               return (
                 <Link
                   key={member.id}
@@ -81,7 +88,9 @@ export default function MembersClient({ initialMembers }: Props) {
                   <div className="mt-1 space-y-0 text-[11px] leading-4">
                     <p className="text-slate-800 truncate">
                       <span className="text-slate-500">プラン：</span>
-                      <span className="truncate">{member.plan}</span>
+                      <span className="truncate">
+                        {formatPlanForDisplay(member.plan)}
+                      </span>
                     </p>
                     <p className="text-slate-700">
                       <span className="text-slate-500">{primaryVisitLabel}：</span>
@@ -102,19 +111,19 @@ export default function MembersClient({ initialMembers }: Props) {
                     名前
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
-                    Plan
+                    プラン
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
-                    Last Visit
+                    最終来店日
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
-                    Visit Interval
+                    来店間隔
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     リスクスコア
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
-                    Intervention Status
+                    介入状況
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">
                     会員タイプ
@@ -143,12 +152,14 @@ export default function MembersClient({ initialMembers }: Props) {
                           {member.name}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-slate-700">{member.plan}</td>
                       <td className="px-6 py-4 text-slate-700">
-                        {member.lastVisitDate}
+                        {formatPlanForDisplay(member.plan)}
                       </td>
                       <td className="px-6 py-4 text-slate-700">
-                        {member.visitInterval}
+                        {member.lastVisitDate || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-slate-700">
+                        {formatVisitIntervalForDisplay(member.visitInterval)}
                       </td>
                       <td className="px-6 py-4">
                         <span
@@ -160,7 +171,9 @@ export default function MembersClient({ initialMembers }: Props) {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-slate-700">
-                        {member.interventionStatus}
+                        {formatInterventionStatusForDisplay(
+                          member.interventionStatus
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span
