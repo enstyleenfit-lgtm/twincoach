@@ -672,49 +672,33 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </header>
 
         <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
-          <div className="flex flex-col gap-4">
-            <div className="min-w-0">
-              <div className="text-slate-500 text-xs mb-1">トレーナー</div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="min-w-0 flex-1">
+              <div className="text-slate-500 text-xs mb-1">会員</div>
               <select
-                value={selectedTrainerName}
-                onChange={(e) => setSelectedTrainerName(e.target.value)}
+                value={selectedMemberId}
+                onChange={(e) => setSelectedMemberId(e.target.value)}
                 className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
               >
-                {TRAINER_OPTIONS.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
+                {assignedMembers.length === 0 ? (
+                  <option value="">担当会員がありません</option>
+                ) : (
+                  assignedMembers.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="min-w-0 flex-1">
-                <div className="text-slate-500 text-xs mb-1">会員</div>
-                <select
-                  value={selectedMemberId}
-                  onChange={(e) => setSelectedMemberId(e.target.value)}
-                  className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-                >
-                  {assignedMembers.length === 0 ? (
-                    <option value="">担当会員がありません</option>
-                  ) : (
-                    assignedMembers.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                      </option>
-                    ))
-                  )}
-                </select>
-              </div>
-              <div className="shrink-0 sm:self-end">
-                <button
-                  type="button"
-                  onClick={handleCopyLast}
-                  className="h-12 w-full sm:w-auto px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
-                >
-                  前回コピー
-                </button>
-              </div>
+            <div className="shrink-0 sm:self-end">
+              <button
+                type="button"
+                onClick={handleCopyLast}
+                className="h-12 w-full sm:w-auto px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
+              >
+                前回コピー
+              </button>
             </div>
           </div>
         </div>
@@ -1002,6 +986,21 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
             >
               ＋種目追加
             </button>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="text-slate-500 text-xs mb-1">トレーナー</div>
+            <select
+              value={selectedTrainerName}
+              onChange={(e) => setSelectedTrainerName(e.target.value)}
+              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+            >
+              {TRAINER_OPTIONS.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
