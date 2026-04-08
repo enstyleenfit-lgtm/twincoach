@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import type { Member, Session } from "@/types";
 import {
   loadImportedSessions,
@@ -242,9 +241,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     initialMembers.filter((m) => m.assignedTrainer === TRAINER_OPTIONS[0])
   );
   const [selectedMemberId, setSelectedMemberId] = useState<string>("");
-  /** max-sm: overflow 親の外へ出して viewport 基準の fixed にする（main overflow-y-auto 対策） */
-  const [isNarrowSmViewport, setIsNarrowSmViewport] = useState(false);
-  const [viewportMqReady, setViewportMqReady] = useState(false);
 
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
   const [drafts, setDrafts] = useState<ExerciseDraft[]>([]);
@@ -325,16 +321,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const t = window.setTimeout(() => setStatus(""), 2600);
     return () => window.clearTimeout(t);
   }, [status]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 639px)");
-    const sync = () => setIsNarrowSmViewport(mq.matches);
-    sync();
-    setViewportMqReady(true);
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
 
   useEffect(() => {
     setMembers(initialMembers);
@@ -628,7 +614,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         <button
           type="button"
           onClick={handleSaveSameAsLast}
-          className="w-full rounded-2xl border border-slate-200 bg-white/60 hover:bg-white px-4 py-4 text-sm font-bold text-slate-800 mb-3"
+          className="w-full rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-4 text-sm font-bold text-slate-800 mb-3"
         >
           前回と同じで保存
         </button>
@@ -647,19 +633,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       )}
     </>
   );
-
-  const portalSaveBar =
-    viewportMqReady && isNarrowSmViewport && typeof document !== "undefined"
-      ? createPortal(
-          <div
-            className="fixed left-0 right-0 bottom-20 z-[55] w-full max-w-[100vw] overflow-x-hidden border-t border-slate-200 bg-white/95 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] shadow-[0_-4px_20px_rgba(15,23,42,0.12)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90"
-            data-session-input-mobile-save-bar
-          >
-            <div className="w-full max-w-3xl mx-auto min-w-0 px-4 sm:px-6">{saveBarInner}</div>
-          </div>,
-          document.body
-        )
-      : null;
 
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden py-4 sm:py-6 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:pl-6 sm:pr-6">
@@ -757,8 +730,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           </div>
         </div>
 
-        {/* max-lg: 下タブ＋固定保存バー分。lg+: PC（下タブなし）用の余白 */}
-        <div className="space-y-3 max-sm:pb-56 sm:max-lg:pb-56 lg:pb-24">
+        <div className="space-y-3 pb-8">
           {drafts.map((d, idx) => (
             <div
               key={d.localId}
@@ -988,6 +960,11 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
             </button>
           </div>
 
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
+            <div className="text-slate-500 text-xs font-medium mb-3">保存</div>
+            {saveBarInner}
+          </div>
+
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="text-slate-500 text-xs mb-1">トレーナー</div>
             <select
@@ -1003,17 +980,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
             </select>
           </div>
         </div>
-
-        {portalSaveBar}
-        {/*
-          max-sm かつ viewport 計測後: 上記 portal のみ表示（本文内は出さない）。
-          sm 以上: main 内 fixed（従来）。lg+: 下タブなしで bottom-0。
-        */}
-        {!(viewportMqReady && isNarrowSmViewport) ? (
-          <div className="fixed bottom-20 left-0 right-0 max-w-full overflow-x-hidden border-t border-slate-200 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] z-50 max-sm:bg-white/95 max-sm:shadow-[0_-4px_20px_rgba(15,23,42,0.1)] max-sm:backdrop-blur-md max-sm:supports-[backdrop-filter]:bg-white/90 sm:max-lg:z-30 sm:max-lg:bg-slate-50/70 sm:max-lg:backdrop-blur sm:max-lg:shadow-none sm:max-lg:py-4 sm:px-6 lg:bottom-0 lg:z-30 lg:bg-slate-50/70 lg:py-4 lg:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:shadow-none lg:backdrop-blur">
-            <div className="w-full max-w-3xl mx-auto min-w-0 px-0">{saveBarInner}</div>
-          </div>
-        ) : null}
       </div>
     </div>
   );
