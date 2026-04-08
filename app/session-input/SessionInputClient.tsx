@@ -687,8 +687,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           </div>
         </div>
 
-        {/* max-lg: 下タブ(約5rem)＋固定保存バー分の余白（本文が隠れないよう多めに） */}
-        <div className="space-y-3 pb-56 lg:pb-24">
+        {/* max-lg: 下タブ＋固定保存バー分。lg+: PC（下タブなし）用の余白 */}
+        <div className="space-y-3 max-sm:pb-56 sm:max-lg:pb-56 lg:pb-24">
           {drafts.map((d, idx) => (
             <div
               key={d.localId}
@@ -920,10 +920,11 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </div>
 
         {/*
-          モバイル: 下タブ（z-40）の上に固定。bottom-20 は RoleBasedShell の main pb-20 と同じ基準。
-          PC（lg）: 従来どおりビューポート下端・z-30・半透明バー。
+          max-sm: スマホ幅のみ「最下部固定」強調（白＋影、z-50）。bottom-20 = main の pb-20 と同じ下タブ回避。
+          sm〜lg未満: 下タブありのため bottom-20 固定は維持しつつ、従来の半透明バー（PCに近い見た目）。
+          lg+: 下タブ非表示。従来どおり viewport 下端 fixed・z-30（PC レイアウト変更なし）。
         */}
-        <div className="fixed bottom-20 left-0 right-0 z-50 max-w-full overflow-x-hidden border-t border-slate-200 bg-white/95 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] shadow-[0_-4px_20px_rgba(15,23,42,0.1)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 sm:px-6 lg:bottom-0 lg:z-30 lg:bg-slate-50/70 lg:py-4 lg:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:shadow-none lg:backdrop-blur">
+        <div className="fixed bottom-20 left-0 right-0 max-w-full overflow-x-hidden border-t border-slate-200 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] z-50 max-sm:bg-white/95 max-sm:shadow-[0_-4px_20px_rgba(15,23,42,0.1)] max-sm:backdrop-blur-md max-sm:supports-[backdrop-filter]:bg-white/90 sm:max-lg:z-30 sm:max-lg:bg-slate-50/70 sm:max-lg:backdrop-blur sm:max-lg:shadow-none sm:max-lg:py-4 sm:px-6 lg:bottom-0 lg:z-30 lg:bg-slate-50/70 lg:py-4 lg:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:shadow-none lg:backdrop-blur">
           <div className="w-full max-w-3xl mx-auto min-w-0 px-0">
             {lastSessionForSelectedMember && lastSessionForSelectedMember.records.length > 0 ? (
               <button
