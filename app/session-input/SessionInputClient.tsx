@@ -10,6 +10,11 @@ import { sessionWithConversationTags } from "@/lib/conversationTagAI";
 import { generateNextActionsAfterSessionInput } from "@/lib/nextActionAI";
 import { persistNextActionSuggestion } from "@/lib/memberNextActionStorage";
 import { ExerciseSearchField } from "@/components/session-input/ExerciseSearchField";
+import { useTrialStore } from "@/components/store/TrialStoreProvider";
+import {
+  getSessionTrainerPresetOptions,
+  SESSION_TRAINER_CUSTOM,
+} from "@/lib/sessionTrainerPresets";
 
 type SessionRecord = {
   memberId: string;
@@ -38,12 +43,6 @@ type SavedSession = {
 };
 
 const SESSION_RECORDS_KEY = "twincoach:trainerSessionRecords:v1";
-
-const TRAINER_OPTIONS = [
-  "山本トレーナー",
-  "佐々木トレーナー",
-  "高橋トレーナー",
-] as const;
 
 const EXERCISE_BASE = ["ベンチプレス", "スクワット", "デッドリフト", "その他"] as const;
 type ExerciseBase = (typeof EXERCISE_BASE)[number];
@@ -235,11 +234,26 @@ type SessionInputProps = {
 };
 
 export default function SessionInputClient({ initialMembers }: SessionInputProps) {
-  const [members, setMembers] = useState<Member[]>(initialMembers);
-  const [selectedTrainerName, setSelectedTrainerName] = useState<string>(TRAINER_OPTIONS[0]);
-  const [assignedMembers, setAssignedMembers] = useState<Member[]>(() =>
-    initialMembers.filter((m) => m.assignedTrainer === TRAINER_OPTIONS[0])
+  const { selectedStore } = useTrialStore();
+  const presetOptions = useMemo(
+    () => getSessionTrainerPresetOptions(selectedStore.id),
+    [selectedStore.id]
   );
+
+  const [members, setMembers] = useState<Member[]>(initialMembers);
+  const [trainerSelectValue, setTrainerSelectValue] = useState<string>(() =>
+    getSessionTrainerPresetOptions(selectedStore.id)[0] ?? ""
+  );
+  const [trainerCustomInput, setTrainerCustomInput] = useState("");
+  const resolvedTrainerName = useMemo(() => {
+    if (trainerSelectValue === SESSION_TRAINER_CUSTOM) return trainerCustomInput.trim();
+    return (trainerSelectValue || "").trim();
+  }, [trainerSelectValue, trainerCustomInput]);
+
+  const [assignedMembers, setAssignedMembers] = useState<Member[]>(() => {
+    const first = getSessionTrainerPresetOptions(selectedStore.id)[0];
+    return initialMembers.filter((m) => m.assignedTrainer === first);
+  });
   const [selectedMemberId, setSelectedMemberId] = useState<string>("");
 
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
@@ -278,12 +292,12 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       .filter(
         (s) =>
           s.memberId === selectedMemberId &&
-          (!s.trainerName || s.trainerName === selectedTrainerName)
+          (!s.trainerName || s.trainerName === resolvedTrainerName)
       )
       .slice()
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return list[0] ?? null;
-  }, [savedSessions, selectedMemberId, selectedTrainerName]);
+  }, [savedSessions, selectedMemberId, resolvedTrainerName]);
 
   const recentSessionsForMember = useMemo(() => {
     if (!selectedMemberId) return [];
@@ -291,12 +305,12 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       .filter(
         (s) =>
           s.memberId === selectedMemberId &&
-          (!s.trainerName || s.trainerName === selectedTrainerName)
+          (!s.trainerName || s.trainerName === resolvedTrainerName)
       )
       .slice()
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 3);
-  }, [savedSessions, selectedMemberId, selectedTrainerName]);
+  }, [savedSessions, selectedMemberId, resolvedTrainerName]);
 
   const frequentFormIssues = useMemo(() => {
     const counts = new Map<string, number>();
@@ -323,19 +337,25 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   }, [status]);
 
   useEffect(() => {
+    const opts = getSessionTrainerPresetOptions(selectedStore.id);
+    setTrainerSelectValue(opts[0] ?? "");
+    setTrainerCustomInput("");
+  }, [selectedStore.id]);
+
+  useEffect(() => {
     setMembers(initialMembers);
     setAssignedMembers(
-      initialMembers.filter((m) => m.assignedTrainer === selectedTrainerName)
+      initialMembers.filter((m) => m.assignedTrainer === resolvedTrainerName)
     );
-  }, [initialMembers, selectedTrainerName]);
+  }, [initialMembers, resolvedTrainerName]);
 
   useEffect(() => {
     setSelectedMemberId((prev) => {
-      const nextList = members.filter((m) => m.assignedTrainer === selectedTrainerName);
+      const nextList = members.filter((m) => m.assignedTrainer === resolvedTrainerName);
       if (nextList.some((m) => m.id === prev)) return prev;
       return nextList[0]?.id ?? "";
     });
-  }, [selectedTrainerName, members]);
+  }, [resolvedTrainerName, members]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
@@ -490,6 +510,10 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     opts?: { conversationNotes?: string }
   ) => {
     setStatus("");
+    if (!resolvedTrainerName) {
+      setStatus("トレーナーを選択するか、「その他（手入力）」で名前を入力してください");
+      return;
+    }
     if (!selectedMember) {
       setStatus("会員を選択してください");
       return;
@@ -528,7 +552,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const notesTrimmed = notesForSave.trim();
     const saved: SavedSession = {
       sessionId,
-      trainerName: selectedTrainerName,
+      trainerName: resolvedTrainerName,
       memberId: selectedMember.id,
       memberName: selectedMember.name,
       storeName: selectedMember.storeName,
@@ -549,7 +573,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const nextSuggestion = generateNextActionsAfterSessionInput(selectedMember, records, {
       sessionId,
       sessionDate,
-      trainerName: selectedTrainerName,
+      trainerName: resolvedTrainerName,
       conversationNotes: notesTrimmed || undefined,
     });
     persistNextActionSuggestion(selectedMember.id, nextSuggestion);
@@ -571,7 +595,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         conversationSummary,
         conversationNotes: notesTrimmed || undefined,
         nextAction: primaryNextAction,
-        trainerName: selectedTrainerName,
+        trainerName: resolvedTrainerName,
         storeName: selectedMember.storeName,
       });
       const merged = [session, ...imported];
@@ -607,6 +631,43 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const unique = Array.from(new Set([...quickMenu, ...EXERCISE_BASE]));
     return unique;
   }, [quickMenu]);
+
+  const trainerFields = (
+    <>
+      <div className="text-slate-500 text-xs mb-1">トレーナー</div>
+      <select
+        value={trainerSelectValue === SESSION_TRAINER_CUSTOM ? SESSION_TRAINER_CUSTOM : trainerSelectValue}
+        onChange={(e) => {
+          const v = e.target.value;
+          setTrainerSelectValue(v);
+          if (v !== SESSION_TRAINER_CUSTOM) setTrainerCustomInput("");
+        }}
+        className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+      >
+        {presetOptions.map((t) => (
+          <option key={t} value={t}>
+            {t}
+          </option>
+        ))}
+        <option value={SESSION_TRAINER_CUSTOM}>その他（手入力）</option>
+      </select>
+      {trainerSelectValue === SESSION_TRAINER_CUSTOM ? (
+        <div className="mt-2">
+          <label className="block">
+            <span className="text-slate-500 text-xs mb-1 block">ヘルプトレーナーを入力</span>
+            <input
+              type="text"
+              value={trainerCustomInput}
+              onChange={(e) => setTrainerCustomInput(e.target.value)}
+              placeholder="氏名（他店舗ヘルプ・ゲストなど）"
+              autoComplete="name"
+              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
+            />
+          </label>
+        </div>
+      ) : null}
+    </>
+  );
 
   const saveBarInner = (
     <>
@@ -645,7 +706,37 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </header>
 
         <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          {/* スマホ（lg 未満）: 会員 → トレーナー → 前回コピー */}
+          <div className="flex flex-col gap-4 lg:hidden">
+            <div className="min-w-0">
+              <div className="text-slate-500 text-xs mb-1">会員</div>
+              <select
+                value={selectedMemberId}
+                onChange={(e) => setSelectedMemberId(e.target.value)}
+                className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+              >
+                {assignedMembers.length === 0 ? (
+                  <option value="">担当会員がありません</option>
+                ) : (
+                  assignedMembers.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+            <div className="min-w-0">{trainerFields}</div>
+            <button
+              type="button"
+              onClick={handleCopyLast}
+              className="h-12 w-full shrink-0 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
+            >
+              前回コピー
+            </button>
+          </div>
+          {/* PC（lg 以上）: 会員 | 前回コピー（従来） */}
+          <div className="hidden lg:flex flex-row gap-3 items-end">
             <div className="min-w-0 flex-1">
               <div className="text-slate-500 text-xs mb-1">会員</div>
               <select
@@ -664,11 +755,11 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                 )}
               </select>
             </div>
-            <div className="shrink-0 sm:self-end">
+            <div className="shrink-0 self-end">
               <button
                 type="button"
                 onClick={handleCopyLast}
-                className="h-12 w-full sm:w-auto px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
+                className="h-12 px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
               >
                 前回コピー
               </button>
@@ -960,24 +1051,13 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
             </button>
           </div>
 
+          <div className="hidden lg:block rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+            {trainerFields}
+          </div>
+
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
             <div className="text-slate-500 text-xs font-medium mb-3">保存</div>
             {saveBarInner}
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="text-slate-500 text-xs mb-1">トレーナー</div>
-            <select
-              value={selectedTrainerName}
-              onChange={(e) => setSelectedTrainerName(e.target.value)}
-              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-            >
-              {TRAINER_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
       </div>
