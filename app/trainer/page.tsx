@@ -4,6 +4,7 @@ import { getPriorityQueue } from "@/lib/priorityQueue";
 import { memberRepository, taskRepository } from "@/lib/repositories";
 import { Member, Task } from "@/types";
 import Link from "next/link";
+import { memberDetailHref } from "@/lib/routeContext";
 import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { generateNextActions } from "@/lib/nextActionAI";
 
@@ -21,18 +22,32 @@ function getTodayDate(): string {
 }
 
 // 今日の予約をモック（将来的には予約システムと連携）
-function getTodayReservations(trainerName: string): Array<{
+function getTodayReservations(assignedMembers: Member[]): Array<{
   id: string;
+  memberId: string;
   memberName: string;
   time: string;
   type: string;
 }> {
-  // モックデータ - 将来的には予約システムから取得
-  return [
-    { id: "1", memberName: "田中太郎", time: "10:00-11:00", type: "パーソナル" },
-    { id: "2", memberName: "鈴木一郎", time: "14:00-15:00", type: "グループ" },
-    { id: "3", memberName: "高橋健太", time: "18:00-19:00", type: "パーソナル" },
+  const slots: Array<{ memberId: string; time: string; type: string }> = [
+    { memberId: "1", time: "10:00-11:00", type: "パーソナル" },
+    { memberId: "3", time: "14:00-15:00", type: "グループ" },
+    { memberId: "5", time: "18:00-19:00", type: "パーソナル" },
   ];
+  const assignedIds = new Set(assignedMembers.map((m) => m.id));
+  return slots
+    .filter((s) => assignedIds.has(s.memberId))
+    .map((s, i) => {
+      const m = assignedMembers.find((x) => x.id === s.memberId);
+      return {
+        id: `today-res-${s.memberId}-${i}`,
+        memberId: s.memberId,
+        memberName: m?.name ?? "",
+        time: s.time,
+        type: s.type,
+      };
+    })
+    .filter((r) => r.memberName);
 }
 
 // セッション履歴をモック（将来的にはセッション履歴システムと連携）
@@ -118,8 +133,8 @@ export default async function TrainerPage() {
     })
     .slice(0, 10);
 
-  // 今日の予約
-  const todayReservations = getTodayReservations(trainerName);
+  // 今日の予約（担当会員に紐づくモックスロットのみ）
+  const todayReservations = getTodayReservations(assignedMembers);
 
   return (
     <div className="p-8">
@@ -138,9 +153,14 @@ export default async function TrainerPage() {
                   key={reservation.id}
                   className="bg-slate-100 border border-slate-200 rounded-lg p-4"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-slate-900 font-semibold">{reservation.memberName}</p>
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="min-w-0">
+                      <Link
+                        href={memberDetailHref("trainer", reservation.memberId)}
+                        className="text-blue-800 font-semibold underline decoration-blue-400/70 underline-offset-2 hover:text-blue-900 hover:decoration-blue-600 active:opacity-80 inline-flex min-h-11 items-center py-1 -my-1 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1"
+                      >
+                        {reservation.memberName}
+                      </Link>
                       <p className="text-slate-600 text-sm">{reservation.type}</p>
                     </div>
                     <p className="text-blue-700 font-bold">{reservation.time}</p>
@@ -153,8 +173,8 @@ export default async function TrainerPage() {
           )}
         </div>
 
-        {/* 介入タスク */}
-        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+        {/* 介入タスク（PC のみ。スマホは予約・会員確認に集中） */}
+        <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-bold mb-4">介入タスク</h2>
           {todayTasks.length > 0 ? (
             <div className="space-y-3">
