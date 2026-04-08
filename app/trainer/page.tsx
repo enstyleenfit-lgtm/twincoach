@@ -336,8 +336,8 @@ export default async function TrainerPage() {
         )}
       </div>
 
-      {/* 高リスク会員 */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
+      {/* 高リスク会員（PC のみ。スマホはダッシュボードを軽く） */}
+      <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">高リスク会員</h2>
         {highRiskMembers.length > 0 ? (
           <div className="overflow-x-auto">
@@ -382,8 +382,8 @@ export default async function TrainerPage() {
         )}
       </div>
 
-      {/* 会員一覧 */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
+      {/* 会員一覧（PC のみ。スマホは /members で確認） */}
+      <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">会員一覧</h2>
         {memberList.length === 0 ? (
           <p className="text-slate-600">担当会員がいません</p>

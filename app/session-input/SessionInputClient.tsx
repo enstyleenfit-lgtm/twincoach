@@ -687,7 +687,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           </div>
         </div>
 
-        <div className="space-y-3 pb-40 lg:pb-24">
+        {/* max-lg: 下タブ(約5rem)＋固定保存バー分の余白（本文が隠れないよう多めに） */}
+        <div className="space-y-3 pb-56 lg:pb-24">
           {drafts.map((d, idx) => (
             <div
               key={d.localId}
@@ -918,7 +919,11 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           </div>
         </div>
 
-        <div className="fixed bottom-20 left-0 right-0 z-30 max-w-full overflow-x-hidden border-t border-slate-200 bg-slate-50/70 py-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] backdrop-blur sm:px-6 sm:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:bottom-0">
+        {/*
+          モバイル: 下タブ（z-40）の上に固定。bottom-20 は RoleBasedShell の main pb-20 と同じ基準。
+          PC（lg）: 従来どおりビューポート下端・z-30・半透明バー。
+        */}
+        <div className="fixed bottom-20 left-0 right-0 z-50 max-w-full overflow-x-hidden border-t border-slate-200 bg-white/95 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] shadow-[0_-4px_20px_rgba(15,23,42,0.1)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90 sm:px-6 lg:bottom-0 lg:z-30 lg:bg-slate-50/70 lg:py-4 lg:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:shadow-none lg:backdrop-blur">
           <div className="w-full max-w-3xl mx-auto min-w-0 px-0">
             {lastSessionForSelectedMember && lastSessionForSelectedMember.records.length > 0 ? (
               <button
