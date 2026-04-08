@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Member, Session } from "@/types";
 import {
   loadImportedSessions,
@@ -39,7 +40,11 @@ type SavedSession = {
 
 const SESSION_RECORDS_KEY = "twincoach:trainerSessionRecords:v1";
 
-const TRAINER_NAME = "山本トレーナー";
+const TRAINER_OPTIONS = [
+  "山本トレーナー",
+  "佐々木トレーナー",
+  "高橋トレーナー",
+] as const;
 
 const EXERCISE_BASE = ["ベンチプレス", "スクワット", "デッドリフト", "その他"] as const;
 type ExerciseBase = (typeof EXERCISE_BASE)[number];
@@ -232,10 +237,14 @@ type SessionInputProps = {
 
 export default function SessionInputClient({ initialMembers }: SessionInputProps) {
   const [members, setMembers] = useState<Member[]>(initialMembers);
+  const [selectedTrainerName, setSelectedTrainerName] = useState<string>(TRAINER_OPTIONS[0]);
   const [assignedMembers, setAssignedMembers] = useState<Member[]>(() =>
-    initialMembers.filter((m) => m.assignedTrainer === TRAINER_NAME)
+    initialMembers.filter((m) => m.assignedTrainer === TRAINER_OPTIONS[0])
   );
   const [selectedMemberId, setSelectedMemberId] = useState<string>("");
+  /** max-sm: overflow 親の外へ出して viewport 基準の fixed にする（main overflow-y-auto 対策） */
+  const [isNarrowSmViewport, setIsNarrowSmViewport] = useState(false);
+  const [viewportMqReady, setViewportMqReady] = useState(false);
 
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
   const [drafts, setDrafts] = useState<ExerciseDraft[]>([]);
@@ -270,20 +279,28 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   const lastSessionForSelectedMember = useMemo(() => {
     if (!selectedMemberId) return null;
     const list = savedSessions
-      .filter((s) => s.memberId === selectedMemberId)
+      .filter(
+        (s) =>
+          s.memberId === selectedMemberId &&
+          (!s.trainerName || s.trainerName === selectedTrainerName)
+      )
       .slice()
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return list[0] ?? null;
-  }, [savedSessions, selectedMemberId]);
+  }, [savedSessions, selectedMemberId, selectedTrainerName]);
 
   const recentSessionsForMember = useMemo(() => {
     if (!selectedMemberId) return [];
     return savedSessions
-      .filter((s) => s.memberId === selectedMemberId)
+      .filter(
+        (s) =>
+          s.memberId === selectedMemberId &&
+          (!s.trainerName || s.trainerName === selectedTrainerName)
+      )
       .slice()
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 3);
-  }, [savedSessions, selectedMemberId]);
+  }, [savedSessions, selectedMemberId, selectedTrainerName]);
 
   const frequentFormIssues = useMemo(() => {
     const counts = new Map<string, number>();
@@ -310,9 +327,29 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   }, [status]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 639px)");
+    const sync = () => setIsNarrowSmViewport(mq.matches);
+    sync();
+    setViewportMqReady(true);
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
     setMembers(initialMembers);
-    setAssignedMembers(initialMembers.filter((m) => m.assignedTrainer === TRAINER_NAME));
-  }, [initialMembers]);
+    setAssignedMembers(
+      initialMembers.filter((m) => m.assignedTrainer === selectedTrainerName)
+    );
+  }, [initialMembers, selectedTrainerName]);
+
+  useEffect(() => {
+    setSelectedMemberId((prev) => {
+      const nextList = members.filter((m) => m.assignedTrainer === selectedTrainerName);
+      if (nextList.some((m) => m.id === prev)) return prev;
+      return nextList[0]?.id ?? "";
+    });
+  }, [selectedTrainerName, members]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
@@ -320,12 +357,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const parsed = safeParse<SavedSession[]>(raw);
     setSavedSessions(Array.isArray(parsed) ? parsed : []);
   }, []);
-
-  useEffect(() => {
-    if (!selectedMemberId && assignedMembers.length > 0) {
-      setSelectedMemberId(assignedMembers[0].id);
-    }
-  }, [assignedMembers, selectedMemberId]);
 
   useEffect(() => {
     setConversationNotes("");
@@ -511,7 +542,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const notesTrimmed = notesForSave.trim();
     const saved: SavedSession = {
       sessionId,
-      trainerName: TRAINER_NAME,
+      trainerName: selectedTrainerName,
       memberId: selectedMember.id,
       memberName: selectedMember.name,
       storeName: selectedMember.storeName,
@@ -532,7 +563,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const nextSuggestion = generateNextActionsAfterSessionInput(selectedMember, records, {
       sessionId,
       sessionDate,
-      trainerName: TRAINER_NAME,
+      trainerName: selectedTrainerName,
       conversationNotes: notesTrimmed || undefined,
     });
     persistNextActionSuggestion(selectedMember.id, nextSuggestion);
@@ -554,7 +585,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         conversationSummary,
         conversationNotes: notesTrimmed || undefined,
         nextAction: primaryNextAction,
-        trainerName: TRAINER_NAME,
+        trainerName: selectedTrainerName,
         storeName: selectedMember.storeName,
       });
       const merged = [session, ...imported];
@@ -591,6 +622,45 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     return unique;
   }, [quickMenu]);
 
+  const saveBarInner = (
+    <>
+      {lastSessionForSelectedMember && lastSessionForSelectedMember.records.length > 0 ? (
+        <button
+          type="button"
+          onClick={handleSaveSameAsLast}
+          className="w-full rounded-2xl border border-slate-200 bg-white/60 hover:bg-white px-4 py-4 text-sm font-bold text-slate-800 mb-3"
+        >
+          前回と同じで保存
+        </button>
+      ) : null}
+      <button
+        type="button"
+        onClick={handleSave}
+        className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-slate-900 py-4 text-sm font-bold"
+      >
+        保存
+      </button>
+      {status ? (
+        <div className="mt-2 text-center text-xs text-slate-700">{status}</div>
+      ) : (
+        <div className="mt-2 text-center text-xs text-slate-500">保存はローカルのみ（ローカル完結）</div>
+      )}
+    </>
+  );
+
+  const portalSaveBar =
+    viewportMqReady && isNarrowSmViewport && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            className="fixed left-0 right-0 bottom-20 z-[55] w-full max-w-[100vw] overflow-x-hidden border-t border-slate-200 bg-white/95 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] shadow-[0_-4px_20px_rgba(15,23,42,0.12)] backdrop-blur-md supports-[backdrop-filter]:bg-white/90"
+            data-session-input-mobile-save-bar
+          >
+            <div className="w-full max-w-3xl mx-auto min-w-0 px-4 sm:px-6">{saveBarInner}</div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden py-4 sm:py-6 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:pl-6 sm:pr-6">
       <div className="w-full max-w-3xl mx-auto min-w-0">
@@ -602,33 +672,49 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </header>
 
         <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="min-w-0 flex-1">
-              <div className="text-slate-500 text-xs mb-1">会員</div>
+          <div className="flex flex-col gap-4">
+            <div className="min-w-0">
+              <div className="text-slate-500 text-xs mb-1">トレーナー</div>
               <select
-                value={selectedMemberId}
-                onChange={(e) => setSelectedMemberId(e.target.value)}
+                value={selectedTrainerName}
+                onChange={(e) => setSelectedTrainerName(e.target.value)}
                 className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
               >
-                {assignedMembers.length === 0 ? (
-                  <option value="">担当会員がありません</option>
-                ) : (
-                  assignedMembers.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))
-                )}
+                {TRAINER_OPTIONS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
               </select>
             </div>
-            <div className="shrink-0 sm:self-end">
-              <button
-                type="button"
-                onClick={handleCopyLast}
-                className="h-12 w-full sm:w-auto px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
-              >
-                前回コピー
-              </button>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1">
+                <div className="text-slate-500 text-xs mb-1">会員</div>
+                <select
+                  value={selectedMemberId}
+                  onChange={(e) => setSelectedMemberId(e.target.value)}
+                  className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+                >
+                  {assignedMembers.length === 0 ? (
+                    <option value="">担当会員がありません</option>
+                  ) : (
+                    assignedMembers.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+              <div className="shrink-0 sm:self-end">
+                <button
+                  type="button"
+                  onClick={handleCopyLast}
+                  className="h-12 w-full sm:w-auto px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
+                >
+                  前回コピー
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -919,36 +1005,16 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           </div>
         </div>
 
+        {portalSaveBar}
         {/*
-          max-sm: スマホ幅のみ「最下部固定」強調（白＋影、z-50）。bottom-20 = main の pb-20 と同じ下タブ回避。
-          sm〜lg未満: 下タブありのため bottom-20 固定は維持しつつ、従来の半透明バー（PCに近い見た目）。
-          lg+: 下タブ非表示。従来どおり viewport 下端 fixed・z-30（PC レイアウト変更なし）。
+          max-sm かつ viewport 計測後: 上記 portal のみ表示（本文内は出さない）。
+          sm 以上: main 内 fixed（従来）。lg+: 下タブなしで bottom-0。
         */}
-        <div className="fixed bottom-20 left-0 right-0 max-w-full overflow-x-hidden border-t border-slate-200 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] z-50 max-sm:bg-white/95 max-sm:shadow-[0_-4px_20px_rgba(15,23,42,0.1)] max-sm:backdrop-blur-md max-sm:supports-[backdrop-filter]:bg-white/90 sm:max-lg:z-30 sm:max-lg:bg-slate-50/70 sm:max-lg:backdrop-blur sm:max-lg:shadow-none sm:max-lg:py-4 sm:px-6 lg:bottom-0 lg:z-30 lg:bg-slate-50/70 lg:py-4 lg:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:shadow-none lg:backdrop-blur">
-          <div className="w-full max-w-3xl mx-auto min-w-0 px-0">
-            {lastSessionForSelectedMember && lastSessionForSelectedMember.records.length > 0 ? (
-              <button
-                type="button"
-                onClick={handleSaveSameAsLast}
-                className="w-full rounded-2xl border border-slate-200 bg-white/60 hover:bg-white px-4 py-4 text-sm font-bold text-slate-800 mb-3"
-              >
-                前回と同じで保存
-              </button>
-            ) : null}
-            <button
-              type="button"
-              onClick={handleSave}
-              className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-slate-900 py-4 text-sm font-bold"
-            >
-              保存
-            </button>
-            {status ? (
-              <div className="mt-2 text-center text-xs text-slate-700">{status}</div>
-            ) : (
-              <div className="mt-2 text-center text-xs text-slate-500">保存はローカルのみ（ローカル完結）</div>
-            )}
+        {!(viewportMqReady && isNarrowSmViewport) ? (
+          <div className="fixed bottom-20 left-0 right-0 max-w-full overflow-x-hidden border-t border-slate-200 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] z-50 max-sm:bg-white/95 max-sm:shadow-[0_-4px_20px_rgba(15,23,42,0.1)] max-sm:backdrop-blur-md max-sm:supports-[backdrop-filter]:bg-white/90 sm:max-lg:z-30 sm:max-lg:bg-slate-50/70 sm:max-lg:backdrop-blur sm:max-lg:shadow-none sm:max-lg:py-4 sm:px-6 lg:bottom-0 lg:z-30 lg:bg-slate-50/70 lg:py-4 lg:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] lg:shadow-none lg:backdrop-blur">
+            <div className="w-full max-w-3xl mx-auto min-w-0 px-0">{saveBarInner}</div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );
