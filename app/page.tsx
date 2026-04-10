@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { calculateRiskScore, getRiskReasons, type RiskScoreResult } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { calculateRetentionMetrics } from "@/lib/retentionMetrics";
@@ -88,6 +90,14 @@ function getPriorityBadgeColor(priority: "low" | "medium" | "high"): string {
 }
 
 export default async function Home() {
+  const userAgent = (await headers()).get("user-agent") ?? "";
+  const isMobile = /iPhone|iPod|Android.+Mobile|Windows Phone|webOS|BlackBerry/i.test(
+    userAgent
+  );
+  if (isMobile) {
+    redirect("/trainer");
+  }
+
   // サーバーでは自ホストへの HTTP ループバックを避け、API Route と同じデータ取得を直接行う
   const [members, tasks] = await Promise.all([
     memberRepository.getAll(),
