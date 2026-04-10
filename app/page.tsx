@@ -440,24 +440,26 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto max-w-6xl px-5 py-12 sm:px-8">
-        <NegotiationDashboard
-          memberCount={members.length}
-          estimatedRetentionRate={retentionMetrics.estimatedRetentionRate}
-          highRiskCount={highRiskMembers}
-          nextMonthLoss={totalExpectedLoss30Days}
-          priorityToday={priorityTodayRows}
-          churnRanking={churnRankRows}
-          revenueRisk={{
-            loss30: totalExpectedLoss30Days,
-            loss60: totalExpectedLoss60Days,
-            annualDanger: highRiskAnnualRevenue,
-            membersToDefend: needIntervention,
-          }}
-          topStores={pitchStores}
-          hqPlan={hqActionPlan}
-        />
+        <div className="hidden md:block">
+          <NegotiationDashboard
+            memberCount={members.length}
+            estimatedRetentionRate={retentionMetrics.estimatedRetentionRate}
+            highRiskCount={highRiskMembers}
+            nextMonthLoss={totalExpectedLoss30Days}
+            priorityToday={priorityTodayRows}
+            churnRanking={churnRankRows}
+            revenueRisk={{
+              loss30: totalExpectedLoss30Days,
+              loss60: totalExpectedLoss60Days,
+              annualDanger: highRiskAnnualRevenue,
+              membersToDefend: needIntervention,
+            }}
+            topStores={pitchStores}
+            hqPlan={hqActionPlan}
+          />
 
-        <div className="my-16 border-t border-slate-200/80" aria-hidden />
+          <div className="my-16 border-t border-slate-200/80" aria-hidden />
+        </div>
 
         <div className="mb-10 rounded-xl border border-slate-200/80 bg-white/30 p-4 sm:p-5">
           <ImportedDashboardReflection baseMembersFromServer={members} />
