@@ -10,6 +10,8 @@ import { sessionWithConversationTags } from "@/lib/conversationTagAI";
 import { generateNextActionsAfterSessionInput } from "@/lib/nextActionAI";
 import { persistNextActionSuggestion } from "@/lib/memberNextActionStorage";
 import { ExerciseSearchField } from "@/components/session-input/ExerciseSearchField";
+import { MobileExercisePicker } from "@/components/session-input/MobileExercisePicker";
+import { findMasterByName, getSessionPickDefaults, type ExerciseMaster } from "@/lib/exerciseMaster";
 import { useTrialStore } from "@/components/store/TrialStoreProvider";
 import {
   getSessionTrainerPresetOptions,
@@ -98,6 +100,9 @@ type ExerciseDraft = {
   formRating: SessionRecord["formRating"];
   formIssues: string[];
   note: string;
+  /** ピラティス・自重などで重量0を許可 */
+  allowsZeroWeight?: boolean;
+  workoutKind?: "tr" | "pl";
 };
 
 function defaultDraft(exercise: string): ExerciseDraft {
@@ -132,6 +137,28 @@ function exerciseNameToDraftBase(exercise: string): { exerciseBase: ExerciseBase
   return { exerciseBase: "その他", customExercise: name };
 }
 
+function applyMasterToDraftPatch(master: ExerciseMaster): Pick<
+  ExerciseDraft,
+  "exerciseBase" | "customExercise" | "weight" | "reps" | "allowsZeroWeight" | "workoutKind"
+> {
+  const base = exerciseNameToDraftBase(master.name);
+  const def = getSessionPickDefaults(master);
+  return {
+    exerciseBase: base.exerciseBase,
+    customExercise: base.customExercise,
+    weight: def.defaultWeightKg,
+    reps: def.defaultReps,
+    allowsZeroWeight: def.allowsZeroWeight,
+    workoutKind: def.workoutKind,
+  };
+}
+
+function draftWeightIsValid(d: ExerciseDraft): boolean {
+  if (d.weight > 0) return true;
+  if (d.weight === 0 && d.allowsZeroWeight) return true;
+  return false;
+}
+
 function buildDraftFromPrefill(params: {
   localId: string;
   desiredExerciseName: string;
@@ -142,6 +169,8 @@ function buildDraftFromPrefill(params: {
 
   if (prefill) {
     const base = exerciseNameToDraftBase(prefill.exercise);
+    const master = findMasterByName(prefill.exercise);
+    const def = master ? getSessionPickDefaults(master) : null;
     return {
       localId,
       exerciseBase: base.exerciseBase,
@@ -157,6 +186,9 @@ function buildDraftFromPrefill(params: {
           ? prefill.formIssues
           : preferredIssues,
       note: prefill.note ?? "",
+      ...(def
+        ? { allowsZeroWeight: def.allowsZeroWeight, workoutKind: def.workoutKind }
+        : {}),
     };
   }
 
@@ -213,6 +245,8 @@ function copyLastSessionRecords(
       r.exercise === "ベンチプレス" ||
       r.exercise === "スクワット" ||
       r.exercise === "デッドリフト";
+    const master = findMasterByName(r.exercise);
+    const def = master ? getSessionPickDefaults(master) : null;
     return {
       localId: makeId(),
       exerciseBase: isLift ? (r.exercise as ExerciseBase) : "その他",
@@ -225,6 +259,9 @@ function copyLastSessionRecords(
       formIssues:
         r.formIssues && r.formIssues.length > 0 ? r.formIssues : preferredIssues,
       note: r.note ?? "",
+      ...(def
+        ? { allowsZeroWeight: def.allowsZeroWeight, workoutKind: def.workoutKind }
+        : {}),
     };
   });
 }
@@ -427,16 +464,26 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setDrafts((prev) => prev.map((d) => (d.localId === localId ? { ...d, ...patch } : d)));
   };
 
-  const handleExerciseMasterPick = (exerciseName: string, append: boolean) => {
+  const handleExerciseMasterPick = (master: ExerciseMaster, append: boolean) => {
+    const patch = applyMasterToDraftPatch(master);
+    const exerciseName = master.name;
     if (append) {
       setDrafts((prev) => [
         ...prev,
-        buildDraftFromPrefill({
+        {
           localId: makeId(),
-          desiredExerciseName: exerciseName,
-          prefill: null,
-          preferredIssues: frequentFormIssues,
-        }),
+          exerciseBase: patch.exerciseBase,
+          customExercise: patch.customExercise,
+          weight: patch.weight,
+          reps: patch.reps,
+          sets: 1,
+          rest: 90,
+          formRating: "good",
+          formIssues: [...frequentFormIssues],
+          note: "",
+          allowsZeroWeight: patch.allowsZeroWeight,
+          workoutKind: patch.workoutKind,
+        },
       ]);
       setStatus(`「${exerciseName}」を追加しました`);
       return;
@@ -444,21 +491,27 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setDrafts((prev) => {
       if (prev.length === 0) {
         return [
-          buildDraftFromPrefill({
+          {
             localId: makeId(),
-            desiredExerciseName: exerciseName,
-            prefill: null,
-            preferredIssues: frequentFormIssues,
-          }),
+            exerciseBase: patch.exerciseBase,
+            customExercise: patch.customExercise,
+            weight: patch.weight,
+            reps: patch.reps,
+            sets: 1,
+            rest: 90,
+            formRating: "good",
+            formIssues: [...frequentFormIssues],
+            note: "",
+            allowsZeroWeight: patch.allowsZeroWeight,
+            workoutKind: patch.workoutKind,
+          },
         ];
       }
       const first = prev[0];
-      const base = exerciseNameToDraftBase(exerciseName);
       return [
         {
           ...first,
-          exerciseBase: base.exerciseBase,
-          customExercise: base.customExercise,
+          ...patch,
         },
         ...prev.slice(1),
       ];
@@ -498,7 +551,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   const validateDraft = (d: ExerciseDraft): string | null => {
     const exercise = getExerciseName(d);
     if (!exercise || exercise === "その他") return "種目を入力してください";
-    if (d.weight <= 0) return "重量（kg）を入力してください";
+    if (!draftWeightIsValid(d)) return "重量（kg）を入力してください";
     if (d.reps <= 0) return "回数を入力してください";
     if (d.sets <= 0) return "セット数を入力してください";
     if (!d.rest) return "休憩時間を選択してください";
@@ -783,19 +836,26 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
         <div className="mb-4">
           <h2 className="text-slate-900 font-semibold text-base mb-2">トレーニング内容</h2>
-          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
+            <MobileExercisePicker onPick={handleExerciseMasterPick} />
+          </div>
+          <div className="mb-4 hidden lg:block rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
             <ExerciseSearchField onPick={handleExerciseMasterPick} />
           </div>
-          <div className="text-slate-500 text-xs uppercase tracking-wider font-semibold mb-2">
+          <div className="hidden lg:block text-slate-500 text-xs uppercase tracking-wider font-semibold mb-2">
             よく使うメニュー
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="hidden lg:flex flex-wrap gap-2">
             {quickExercisesOptions.slice(0, 5).map((x) => (
               <button
                 key={x}
                 type="button"
                 onClick={() => {
-                  // 一番上の種目へセット（速度重視）
+                  const m = findMasterByName(x);
+                  if (m) {
+                    handleExerciseMasterPick(m, false);
+                    return;
+                  }
                   setDrafts((prev) => {
                     if (prev.length === 0) return prev;
                     const first = prev[0];
@@ -809,6 +869,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                         exerciseBase: base,
                         customExercise:
                           base === "その他" && x !== "その他" ? x : d.customExercise,
+                        allowsZeroWeight: undefined,
+                        workoutKind: undefined,
                       };
                     });
                   });
@@ -853,30 +915,67 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
               <div className="space-y-3">
                 <div>
                   <div className="text-slate-500 text-xs mb-1">種目</div>
-                  <select
-                    value={d.exerciseBase}
-                    onChange={(e) => {
-                      const base = e.target.value as ExerciseBase;
-                      setDraftAt(d.localId, {
-                        exerciseBase: base,
-                        customExercise: base === "その他" ? d.customExercise : "",
-                      });
-                    }}
-                    className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-                  >
-                    <option value="ベンチプレス">ベンチプレス</option>
-                    <option value="スクワット">スクワット</option>
-                    <option value="デッドリフト">デッドリフト</option>
-                    <option value="その他">その他</option>
-                  </select>
-                  {d.exerciseBase === "その他" && (
-                    <input
-                      value={d.customExercise}
-                      onChange={(e) => setDraftAt(d.localId, { customExercise: e.target.value })}
-                      placeholder="例）ベンチプレス（フォーム改善）"
-                      className="mt-2 w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600"
-                    />
-                  )}
+                  <div className="lg:hidden rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-3">
+                    <p className="text-base font-semibold text-slate-900">{getExerciseName(d)}</p>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      上の「種目（選択式）」から変更できます（スマホ）
+                    </p>
+                  </div>
+                  <div className="hidden lg:block">
+                    <select
+                      value={d.exerciseBase}
+                      onChange={(e) => {
+                        const base = e.target.value as ExerciseBase;
+                        const resolvedName =
+                          base === "その他" ? d.customExercise.trim() : base;
+                        const m = resolvedName ? findMasterByName(resolvedName) : undefined;
+                        const patch = m ? applyMasterToDraftPatch(m) : null;
+                        setDraftAt(d.localId, {
+                          exerciseBase: base,
+                          customExercise: base === "その他" ? d.customExercise : "",
+                          ...(patch
+                            ? {
+                                weight: patch.weight,
+                                reps: patch.reps,
+                                allowsZeroWeight: patch.allowsZeroWeight,
+                                workoutKind: patch.workoutKind,
+                              }
+                            : base === "その他"
+                              ? { allowsZeroWeight: undefined, workoutKind: undefined }
+                              : {}),
+                        });
+                      }}
+                      className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+                    >
+                      <option value="ベンチプレス">ベンチプレス</option>
+                      <option value="スクワット">スクワット</option>
+                      <option value="デッドリフト">デッドリフト</option>
+                      <option value="その他">その他</option>
+                    </select>
+                    {d.exerciseBase === "その他" && (
+                      <input
+                        value={d.customExercise}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          const m = findMasterByName(v.trim());
+                          if (m) {
+                            setDraftAt(d.localId, {
+                              ...applyMasterToDraftPatch(m),
+                              customExercise: v,
+                            });
+                          } else {
+                            setDraftAt(d.localId, {
+                              customExercise: v,
+                              allowsZeroWeight: undefined,
+                              workoutKind: undefined,
+                            });
+                          }
+                        }}
+                        placeholder="例）ベンチプレス（フォーム改善）"
+                        className="mt-2 w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600"
+                      />
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

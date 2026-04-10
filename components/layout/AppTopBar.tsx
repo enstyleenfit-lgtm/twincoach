@@ -4,12 +4,33 @@
  * 右上「店舗選択」ドロップダウンのトリガー（TwinCoach 共通トップバー）
  * RoleBasedShell 内で描画。試験用は TrialStoreProvider 経由の店舗名を表示。
  */
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTrialStore } from "@/components/store/TrialStoreProvider";
 
 export function AppTopBar() {
   const { stores, selectedId, selectedStore, setSelectedId } = useTrialStore();
   const [open, setOpen] = useState(false);
+  const storeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = () => setOpen(false);
+    const onPointerDown = (e: PointerEvent) => {
+      const root = storeMenuRef.current;
+      if (root && !root.contains(e.target as Node)) {
+        close();
+      }
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   return (
     <div className="sticky top-0 z-30 w-full border-b border-slate-200 bg-white/95 shadow-sm backdrop-blur">
@@ -19,7 +40,7 @@ export function AppTopBar() {
           <div className="text-xs text-slate-500">店舗切替（試験）</div>
         </div>
 
-        <div className="relative">
+        <div ref={storeMenuRef} className="relative">
           <button
             type="button"
             data-twin-topbar-store-trigger

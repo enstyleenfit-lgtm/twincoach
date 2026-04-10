@@ -5,8 +5,8 @@ import { EXERCISE_MASTERS, type ExerciseMaster } from "@/lib/exerciseMaster";
 import { searchExercises } from "@/lib/exerciseSearch";
 
 type Props = {
-  /** 種目名を渡す。append=false で先頭種目へ、true で新規行追加 */
-  onPick: (exerciseName: string, append: boolean) => void;
+  /** マスタ行を渡す。append=false で先頭種目へ、true で新規行追加 */
+  onPick: (master: ExerciseMaster, append: boolean) => void;
 };
 
 export function ExerciseSearchField({ onPick }: Props) {
@@ -33,7 +33,7 @@ export function ExerciseSearchField({ onPick }: Props) {
   const showList = open && query.trim().length >= 1 && results.length > 0;
 
   const pick = (m: ExerciseMaster, append: boolean) => {
-    onPick(m.name, append);
+    onPick(m, append);
     setQuery("");
     setOpen(false);
     inputRef.current?.focus();

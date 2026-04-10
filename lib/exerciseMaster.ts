@@ -12,6 +12,95 @@ export interface ExerciseMaster {
   bodyPart: string;
   searchKeywords: string[];
   sortOrder: number;
+  /** セッション入力の初期重量（kg）。未指定時は器具などから推定 */
+  defaultWeightKg?: number;
+  /** 初期回数（未指定時は 10） */
+  defaultReps?: number;
+  /** 重量0を有効とする（ピラティス・自重など） */
+  allowsZeroWeight?: boolean;
+}
+
+/** スマホ選択フロー：TR の部位（マスタ bodyPart と突き合わせ） */
+export const TRAINING_BODY_PARTS_UI = ["胸", "背中", "肩", "腕", "体幹", "お尻", "脚"] as const;
+
+/** スマホ選択フロー：TR の器具表示順 */
+export const TRAINING_EQUIPMENT_ORDER = [
+  "スミス",
+  "ダンベル",
+  "バーベル",
+  "EZバー",
+  "ケーブル",
+  "自重",
+  "ST",
+] as const;
+
+/** スマホ選択フロー：PL の器具 */
+export const PILATES_EQUIPMENT_ORDER = ["RF", "CH", "MT"] as const;
+
+export function matchesTrainingBodyPart(masterBodyPart: string, selectedPart: string): boolean {
+  if (masterBodyPart === selectedPart) return true;
+  return masterBodyPart.split(/[・／]/).some((p) => p.trim() === selectedPart);
+}
+
+export function findMasterByName(name: string): ExerciseMaster | undefined {
+  return EXERCISE_MASTERS.find((m) => m.name === name);
+}
+
+/**
+ * 種目確定時の初期値（平均重量の目安・回数10）。
+ * マスタの optional で上書き可能。
+ */
+export function getSessionPickDefaults(m: ExerciseMaster): {
+  defaultWeightKg: number;
+  defaultReps: number;
+  allowsZeroWeight: boolean;
+  workoutKind: "tr" | "pl";
+} {
+  const workoutKind = m.category === "ピラティス" ? "pl" : "tr";
+  const defaultReps = m.defaultReps ?? 10;
+
+  const allowsZeroWeight =
+    m.allowsZeroWeight ?? (workoutKind === "pl" || m.equipment === "自重");
+
+  let defaultWeightKg = m.defaultWeightKg;
+  if (defaultWeightKg == null) {
+    if (workoutKind === "pl") {
+      defaultWeightKg = 0;
+    } else if (m.equipment === "自重") {
+      defaultWeightKg = 0;
+    } else {
+      switch (m.equipment) {
+        case "バーベル":
+          if (m.name.includes("デッド") || m.bodyPart.includes("背中")) {
+            defaultWeightKg = m.name.includes("デッド") ? 80 : 50;
+          } else if (m.bodyPart.includes("脚")) {
+            defaultWeightKg = 60;
+          } else {
+            defaultWeightKg = 50;
+          }
+          break;
+        case "スミス":
+          defaultWeightKg = 40;
+          break;
+        case "ダンベル":
+          defaultWeightKg = m.bodyPart === "腕" ? 10 : m.bodyPart === "肩" ? 12 : 14;
+          break;
+        case "EZバー":
+          defaultWeightKg = 12;
+          break;
+        case "ケーブル":
+          defaultWeightKg = 15;
+          break;
+        case "ST":
+          defaultWeightKg = 30;
+          break;
+        default:
+          defaultWeightKg = 20;
+      }
+    }
+  }
+
+  return { defaultWeightKg, defaultReps, allowsZeroWeight, workoutKind };
 }
 
 /** マスタ一覧（sortOrder 昇順がデフォルト表示の基準） */
@@ -82,6 +171,24 @@ export const EXERCISE_MASTERS: ExerciseMaster[] = [
     searchKeywords: ["かーる", "curl", "二頭"],
     sortOrder: 32,
   },
+  {
+    id: "tr-db-4",
+    name: "ダンベルヒップスラスト",
+    category: "トレーニング",
+    equipment: "ダンベル",
+    bodyPart: "お尻",
+    searchKeywords: ["ひっぷ", "hip", "グラ", "glute"],
+    sortOrder: 33,
+  },
+  {
+    id: "tr-db-5",
+    name: "ダンベルショルダープレス",
+    category: "トレーニング",
+    equipment: "ダンベル",
+    bodyPart: "肩",
+    searchKeywords: ["しょるだー", "shoulder", "プレス"],
+    sortOrder: 34,
+  },
   // バーベル
   {
     id: "tr-bb-1",
@@ -100,6 +207,7 @@ export const EXERCISE_MASTERS: ExerciseMaster[] = [
     bodyPart: "脚・背中",
     searchKeywords: ["でっど", "deadlift", "dl"],
     sortOrder: 41,
+    defaultWeightKg: 80,
   },
   {
     id: "tr-bb-3",
@@ -176,6 +284,15 @@ export const EXERCISE_MASTERS: ExerciseMaster[] = [
     searchKeywords: ["ぷっしゅ", "腕立て", "pushup"],
     sortOrder: 72,
   },
+  {
+    id: "tr-bw-4",
+    name: "プランク",
+    category: "トレーニング",
+    equipment: "自重",
+    bodyPart: "体幹",
+    searchKeywords: ["ぷらんく", "plank"],
+    sortOrder: 73,
+  },
   // 既存クイック選択との整合
   {
     id: "tr-classic-1",
@@ -203,6 +320,7 @@ export const EXERCISE_MASTERS: ExerciseMaster[] = [
     bodyPart: "脚・背中",
     searchKeywords: ["でっど", "dl"],
     sortOrder: 7,
+    defaultWeightKg: 80,
   },
   // ピラティス
   {
@@ -222,6 +340,15 @@ export const EXERCISE_MASTERS: ExerciseMaster[] = [
     bodyPart: "背中・体幹",
     searchKeywords: ["すぱいん", "spine"],
     sortOrder: 101,
+  },
+  {
+    id: "pi-rf-3",
+    name: "RFペルビックリフト",
+    category: "ピラティス",
+    equipment: "RF",
+    bodyPart: "体幹",
+    searchKeywords: ["ぺるびっく", "pelvic", "りふと"],
+    sortOrder: 102,
   },
   {
     id: "pi-ch-1",

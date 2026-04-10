@@ -13,6 +13,7 @@ import {
   formatPlanForDisplay,
   formatVisitIntervalForDisplay,
 } from "@/lib/memberDisplayLabels";
+import { sortMembersByDisplayName } from "@/lib/sortMembersByName";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -36,7 +37,7 @@ export default function MembersClient({ initialMembers }: Props) {
 
   useEffect(() => {
     const merged = mergeBaseAndImported(initialMembers, loadImportedMembers());
-    setMembers(merged);
+    setMembers(sortMembersByDisplayName(merged));
   }, [initialMembers]);
 
   useEffect(() => {
