@@ -13,7 +13,10 @@ import {
 type FlowRoot = null | "TR" | "PL";
 
 type Props = {
-  onPick: (master: ExerciseMaster, append: boolean) => void;
+  /** 種目確定時（親でスロット割り当て） */
+  onPick: (master: ExerciseMaster) => void;
+  /** 見出し（例: まず種目を選ぶ / 続きの種目を選ぶ） */
+  heading?: string;
 };
 
 function trainingEquipmentsForPart(part: string): string[] {
@@ -50,7 +53,7 @@ function chipButtonClass(active?: boolean): string {
   ].join(" ");
 }
 
-export function MobileExercisePicker({ onPick }: Props) {
+export function MobileExercisePicker({ onPick, heading = "種目を選ぶ" }: Props) {
   const [root, setRoot] = useState<FlowRoot>(null);
   const [trPart, setTrPart] = useState<string | null>(null);
   const [trEq, setTrEq] = useState<string | null>(null);
@@ -80,7 +83,7 @@ export function MobileExercisePicker({ onPick }: Props) {
   };
 
   const breadcrumb = useMemo(() => {
-    const parts: string[] = ["種目を選ぶ"];
+    const parts: string[] = [heading];
     if (root === "TR") {
       parts.push("TR");
       if (trPart) parts.push(trPart);
@@ -91,9 +94,9 @@ export function MobileExercisePicker({ onPick }: Props) {
     }
     if (customOpen) parts.push("その他");
     return parts.join(" › ");
-  }, [root, trPart, trEq, plEq, customOpen]);
+  }, [heading, root, trPart, trEq, plEq, customOpen]);
 
-  const pickCustom = (append: boolean) => {
+  const pickCustom = () => {
     const name = customName.trim();
     if (!name) return;
     const synthetic: ExerciseMaster = {
@@ -108,7 +111,7 @@ export function MobileExercisePicker({ onPick }: Props) {
       defaultReps: 10,
       allowsZeroWeight: false,
     };
-    onPick(synthetic, append);
+    onPick(synthetic);
     resetFlow();
   };
 
@@ -129,14 +132,9 @@ export function MobileExercisePicker({ onPick }: Props) {
             placeholder="種目名を入力"
             className="w-full min-h-[48px] rounded-lg border border-slate-200 bg-white px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
           />
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" className={chipButtonClass()} onClick={() => pickCustom(false)}>
-              1種目へ
-            </button>
-            <button type="button" className={chipButtonClass()} onClick={() => pickCustom(true)}>
-              ＋追加
-            </button>
-          </div>
+          <button type="button" className={`w-full ${chipButtonClass()}`} onClick={pickCustom}>
+            この種目にする
+          </button>
           <button
             type="button"
             className="w-full min-h-[44px] text-sm text-slate-600 underline"
@@ -236,28 +234,16 @@ export function MobileExercisePicker({ onPick }: Props) {
                 className="rounded-xl border border-slate-200 bg-white p-3 flex flex-col gap-2"
               >
                 <div className="text-sm font-semibold text-slate-900">{m.name}</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    className={chipButtonClass()}
-                    onClick={() => {
-                      onPick(m, false);
-                      resetFlow();
-                    }}
-                  >
-                    1種目へ
-                  </button>
-                  <button
-                    type="button"
-                    className={chipButtonClass()}
-                    onClick={() => {
-                      onPick(m, true);
-                      resetFlow();
-                    }}
-                  >
-                    ＋追加
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className={chipButtonClass()}
+                  onClick={() => {
+                    onPick(m);
+                    resetFlow();
+                  }}
+                >
+                  この種目にする
+                </button>
               </div>
             ))}
           </div>
@@ -291,28 +277,16 @@ export function MobileExercisePicker({ onPick }: Props) {
                 className="rounded-xl border border-slate-200 bg-white p-3 flex flex-col gap-2"
               >
                 <div className="text-sm font-semibold text-slate-900">{m.name}</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    className={chipButtonClass()}
-                    onClick={() => {
-                      onPick(m, false);
-                      resetFlow();
-                    }}
-                  >
-                    1種目へ
-                  </button>
-                  <button
-                    type="button"
-                    className={chipButtonClass()}
-                    onClick={() => {
-                      onPick(m, true);
-                      resetFlow();
-                    }}
-                  >
-                    ＋追加
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className={chipButtonClass()}
+                  onClick={() => {
+                    onPick(m);
+                    resetFlow();
+                  }}
+                >
+                  この種目にする
+                </button>
               </div>
             ))}
           </div>

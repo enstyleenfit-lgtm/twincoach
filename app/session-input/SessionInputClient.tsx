@@ -12,6 +12,7 @@ import { persistNextActionSuggestion } from "@/lib/memberNextActionStorage";
 import { ExerciseSearchField } from "@/components/session-input/ExerciseSearchField";
 import { MobileExercisePicker } from "@/components/session-input/MobileExercisePicker";
 import { findMasterByName, getSessionPickDefaults, type ExerciseMaster } from "@/lib/exerciseMaster";
+import { getTrialStoreNameForData } from "@/lib/trialStore";
 import { useTrialStore } from "@/components/store/TrialStoreProvider";
 import {
   getSessionTrainerPresetOptions,
@@ -42,9 +43,13 @@ type SavedSession = {
   records: SessionRecord[];
   /** トレーニングとは別の会話・フォロー用メモ */
   conversationNotes?: string;
+  /** マスタ外の種目・補足（自由記述） */
+  supplementalExerciseText?: string;
 };
 
 const SESSION_RECORDS_KEY = "twincoach:trainerSessionRecords:v1";
+/** スマホ：会員プルダウン「その他 / 手入力」 */
+const MANUAL_MEMBER_ID = "__manual_member__";
 
 const EXERCISE_BASE = ["ベンチプレス", "スクワット", "デッドリフト", "その他"] as const;
 type ExerciseBase = (typeof EXERCISE_BASE)[number];
@@ -157,6 +162,24 @@ function draftWeightIsValid(d: ExerciseDraft): boolean {
   if (d.weight > 0) return true;
   if (d.weight === 0 && d.allowsZeroWeight) return true;
   return false;
+}
+
+function createDraftFromMaster(master: ExerciseMaster, preferredIssues: string[]): ExerciseDraft {
+  const patch = applyMasterToDraftPatch(master);
+  return {
+    localId: makeId(),
+    exerciseBase: patch.exerciseBase,
+    customExercise: patch.customExercise,
+    weight: patch.weight,
+    reps: patch.reps,
+    sets: 1,
+    rest: 90,
+    formRating: "good",
+    formIssues: [...preferredIssues],
+    note: "",
+    allowsZeroWeight: patch.allowsZeroWeight,
+    workoutKind: patch.workoutKind,
+  };
 }
 
 function buildDraftFromPrefill(params: {
@@ -277,7 +300,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     [selectedStore.id]
   );
 
-  const [members, setMembers] = useState<Member[]>(initialMembers);
+  const [members, setMembers] = useState<Member[]>([]);
   const [trainerSelectValue, setTrainerSelectValue] = useState<string>(() =>
     getSessionTrainerPresetOptions(selectedStore.id)[0] ?? ""
   );
@@ -287,44 +310,58 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     return (trainerSelectValue || "").trim();
   }, [trainerSelectValue, trainerCustomInput]);
 
-  const [assignedMembers, setAssignedMembers] = useState<Member[]>(() => {
-    const first = getSessionTrainerPresetOptions(selectedStore.id)[0];
-    return initialMembers.filter((m) => m.assignedTrainer === first);
-  });
+  const [assignedMembers, setAssignedMembers] = useState<Member[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<string>("");
+  const [manualMemberName, setManualMemberName] = useState("");
 
   const [savedSessions, setSavedSessions] = useState<SavedSession[]>([]);
-  const [drafts, setDrafts] = useState<ExerciseDraft[]>([]);
+  const [draft1, setDraft1] = useState<ExerciseDraft | null>(null);
+  const [draft2, setDraft2] = useState<ExerciseDraft | null>(null);
+  const [supplementalExerciseText, setSupplementalExerciseText] = useState("");
   const [conversationNotes, setConversationNotes] = useState("");
   const [status, setStatus] = useState<string>("");
   const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({});
 
-  const selectedMember = useMemo(
-    () => assignedMembers.find((m) => m.id === selectedMemberId) ?? null,
-    [assignedMembers, selectedMemberId]
+  /** 店舗・会員IDの変更時のみ入力をリセット（手入力名のキー入力ではリセットしない） */
+  const memberSessionKey = useMemo(
+    () => `${selectedStore.id}|${selectedMemberId}`,
+    [selectedStore.id, selectedMemberId]
   );
 
-  const quickMenu = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const s of savedSessions) {
-      for (const r of s.records) {
-        const name = r.exercise?.trim();
-        if (!name) continue;
-        counts.set(name, (counts.get(name) ?? 0) + 1);
-      }
+  const selectedMember = useMemo((): Member | null => {
+    if (!selectedMemberId) return null;
+    if (selectedMemberId === MANUAL_MEMBER_ID) {
+      const n = manualMemberName.trim();
+      if (!n) return null;
+      return {
+        id: MANUAL_MEMBER_ID,
+        name: n,
+        plan: "",
+        storeName: getTrialStoreNameForData(selectedStore.id),
+        joinDate: "",
+        lastVisitDate: "",
+        visitInterval: "",
+      };
     }
-    const items = Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja"))
-      .map(([exercise]) => exercise);
-
-    // ベース定番を極力残す（登録が無くても迷わない）
-    const base = ["ベンチプレス", "スクワット", "デッドリフト", "その他"];
-    const merged = Array.from(new Set([...items, ...base]));
-    return merged.filter((x) => x !== "");
-  }, [savedSessions]);
+    return assignedMembers.find((m) => m.id === selectedMemberId) ?? null;
+  }, [assignedMembers, selectedMemberId, manualMemberName, selectedStore.id]);
 
   const lastSessionForSelectedMember = useMemo(() => {
     if (!selectedMemberId) return null;
+    if (selectedMemberId === MANUAL_MEMBER_ID) {
+      const n = manualMemberName.trim();
+      if (!n) return null;
+      const list = savedSessions
+        .filter(
+          (s) =>
+            s.memberId === MANUAL_MEMBER_ID &&
+            s.memberName === n &&
+            (!s.trainerName || s.trainerName === resolvedTrainerName)
+        )
+        .slice()
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      return list[0] ?? null;
+    }
     const list = savedSessions
       .filter(
         (s) =>
@@ -334,10 +371,24 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       .slice()
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return list[0] ?? null;
-  }, [savedSessions, selectedMemberId, resolvedTrainerName]);
+  }, [savedSessions, selectedMemberId, manualMemberName, resolvedTrainerName]);
 
   const recentSessionsForMember = useMemo(() => {
     if (!selectedMemberId) return [];
+    if (selectedMemberId === MANUAL_MEMBER_ID) {
+      const n = manualMemberName.trim();
+      if (!n) return [];
+      return savedSessions
+        .filter(
+          (s) =>
+            s.memberId === MANUAL_MEMBER_ID &&
+            s.memberName === n &&
+            (!s.trainerName || s.trainerName === resolvedTrainerName)
+        )
+        .slice()
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 3);
+    }
     return savedSessions
       .filter(
         (s) =>
@@ -347,7 +398,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       .slice()
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 3);
-  }, [savedSessions, selectedMemberId, resolvedTrainerName]);
+  }, [savedSessions, selectedMemberId, manualMemberName, resolvedTrainerName]);
 
   const frequentFormIssues = useMemo(() => {
     const counts = new Map<string, number>();
@@ -380,19 +431,21 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   }, [selectedStore.id]);
 
   useEffect(() => {
-    setMembers(initialMembers);
-    setAssignedMembers(
-      initialMembers.filter((m) => m.assignedTrainer === resolvedTrainerName)
-    );
-  }, [initialMembers, resolvedTrainerName]);
+    const storeName = getTrialStoreNameForData(selectedStore.id);
+    setMembers(initialMembers.filter((m) => m.storeName === storeName));
+  }, [initialMembers, selectedStore.id]);
+
+  useEffect(() => {
+    setAssignedMembers(members.filter((m) => m.assignedTrainer === resolvedTrainerName));
+  }, [members, resolvedTrainerName]);
 
   useEffect(() => {
     setSelectedMemberId((prev) => {
-      const nextList = members.filter((m) => m.assignedTrainer === resolvedTrainerName);
-      if (nextList.some((m) => m.id === prev)) return prev;
-      return nextList[0]?.id ?? "";
+      if (prev === MANUAL_MEMBER_ID) return prev;
+      if (assignedMembers.some((m) => m.id === prev)) return prev;
+      return assignedMembers[0]?.id ?? "";
     });
-  }, [resolvedTrainerName, members]);
+  }, [assignedMembers]);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
@@ -402,147 +455,49 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   }, []);
 
   useEffect(() => {
+    setDraft1(null);
+    setDraft2(null);
+    setSupplementalExerciseText("");
     setConversationNotes("");
-  }, [selectedMemberId]);
-
-  useEffect(() => {
-    // 初期ドラフトは「1種目だけ」。直近セッション1件目を優先で埋めます。
-    const initialExercise = quickMenu[0] ?? "ベンチプレス";
-    const lastRecords = lastSessionForSelectedMember?.records ?? [];
-    const prefill = lastRecords.length > 0 ? lastRecords[0] : null;
-
-    const isPristine =
-      drafts.length === 0 ||
-      (drafts.length === 1 &&
-        drafts[0].weight === 0 &&
-        drafts[0].reps === 0 &&
-        drafts[0].note.trim() === "" &&
-        drafts[0].formIssues.length === 0);
-
-    if (!isPristine) return;
-
-    const localId = drafts[0]?.localId ?? makeId();
-    setDrafts([
-      buildDraftFromPrefill({
-        localId,
-        desiredExerciseName: initialExercise,
-        prefill,
-        preferredIssues: frequentFormIssues,
-      }),
-    ]);
-  }, [quickMenu, selectedMemberId, lastSessionForSelectedMember, frequentFormIssues]);
-
-  useEffect(() => {
-    // member切り替え時に、前回コピー相当を自動反映（ただし未保存の入力は上書きしない）
-    if (!selectedMemberId) return;
-    if (drafts.length === 1) {
-      // draftがデフォルト初期状態のときだけ上書き
-      const isBlank =
-        drafts[0].weight === 0 &&
-        drafts[0].reps === 0 &&
-        drafts[0].rest === 90 &&
-        drafts[0].note.trim() === "";
-      if (isBlank) {
-        const initialExercise = quickMenu[0] ?? "ベンチプレス";
-        const lastRecords = lastSessionForSelectedMember?.records ?? [];
-        const prefill = lastRecords.length > 0 ? lastRecords[0] : null;
-        const localId = drafts[0].localId;
-        setDrafts([
-          buildDraftFromPrefill({
-            localId,
-            desiredExerciseName: initialExercise,
-            prefill,
-            preferredIssues: frequentFormIssues,
-          }),
-        ]);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMemberId, frequentFormIssues, lastSessionForSelectedMember, quickMenu]);
+    setMemoOpen({});
+  }, [memberSessionKey]);
 
   const setDraftAt = (localId: string, patch: Partial<ExerciseDraft>) => {
-    setDrafts((prev) => prev.map((d) => (d.localId === localId ? { ...d, ...patch } : d)));
+    setDraft1((d) => (d && d.localId === localId ? { ...d, ...patch } : d));
+    setDraft2((d) => (d && d.localId === localId ? { ...d, ...patch } : d));
   };
 
-  const handleExerciseMasterPick = (master: ExerciseMaster, append: boolean) => {
-    const patch = applyMasterToDraftPatch(master);
-    const exerciseName = master.name;
+  const handleMobilePickFirst = (master: ExerciseMaster) => {
+    setDraft1(createDraftFromMaster(master, frequentFormIssues));
+    setStatus(`「${master.name}」を設定しました`);
+  };
+
+  const handleMobilePickSecond = (master: ExerciseMaster) => {
+    setDraft2(createDraftFromMaster(master, frequentFormIssues));
+    setStatus(`「${master.name}」を2つ目に設定しました`);
+  };
+
+  /** PC: append=false で1つ目、true で2つ目 */
+  const handleDesktopExercisePick = (master: ExerciseMaster, append: boolean) => {
+    const d = createDraftFromMaster(master, frequentFormIssues);
     if (append) {
-      setDrafts((prev) => [
-        ...prev,
-        {
-          localId: makeId(),
-          exerciseBase: patch.exerciseBase,
-          customExercise: patch.customExercise,
-          weight: patch.weight,
-          reps: patch.reps,
-          sets: 1,
-          rest: 90,
-          formRating: "good",
-          formIssues: [...frequentFormIssues],
-          note: "",
-          allowsZeroWeight: patch.allowsZeroWeight,
-          workoutKind: patch.workoutKind,
-        },
-      ]);
-      setStatus(`「${exerciseName}」を追加しました`);
-      return;
+      setDraft2(d);
+      setStatus(`「${master.name}」を2つ目に設定しました`);
+    } else {
+      setDraft1(d);
+      setStatus(`「${master.name}」を設定しました`);
     }
-    setDrafts((prev) => {
-      if (prev.length === 0) {
-        return [
-          {
-            localId: makeId(),
-            exerciseBase: patch.exerciseBase,
-            customExercise: patch.customExercise,
-            weight: patch.weight,
-            reps: patch.reps,
-            sets: 1,
-            rest: 90,
-            formRating: "good",
-            formIssues: [...frequentFormIssues],
-            note: "",
-            allowsZeroWeight: patch.allowsZeroWeight,
-            workoutKind: patch.workoutKind,
-          },
-        ];
-      }
-      const first = prev[0];
-      return [
-        {
-          ...first,
-          ...patch,
-        },
-        ...prev.slice(1),
-      ];
-    });
-    setStatus(`「${exerciseName}」を1種目に設定しました`);
-  };
-
-  const addExercise = () => {
-    const nextExercise = quickMenu[0] ?? "ベンチプレス";
-    const lastRecords = lastSessionForSelectedMember?.records ?? [];
-    const index = drafts.length;
-    const prefill = index < lastRecords.length ? lastRecords[index] : null;
-    const localId = makeId();
-    setDrafts((prev) => [
-      ...prev,
-      buildDraftFromPrefill({
-        localId,
-        desiredExerciseName: nextExercise,
-        prefill,
-        preferredIssues: frequentFormIssues,
-      }),
-    ]);
   };
 
   const handleCopyLast = () => {
     const copied = copyLastSessionRecords(lastSessionForSelectedMember, frequentFormIssues);
-    if (copied.length === 0) {
+    if (copied.length === 0 && !(lastSessionForSelectedMember?.supplementalExerciseText?.trim())) {
       setStatus("前回コピーできる記録がありません");
       return;
     }
-    setDrafts(copied);
+    setDraft1(copied[0] ?? null);
+    setDraft2(copied[1] ?? null);
+    setSupplementalExerciseText(lastSessionForSelectedMember?.supplementalExerciseText ?? "");
     setMemoOpen({});
     setConversationNotes(lastSessionForSelectedMember?.conversationNotes ?? "");
     setStatus("前回をコピーしました");
@@ -560,7 +515,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
   const persistSession = (
     draftsToSave: ExerciseDraft[],
-    opts?: { conversationNotes?: string }
+    opts?: { conversationNotes?: string; supplementalExerciseText?: string }
   ) => {
     setStatus("");
     if (!resolvedTrainerName) {
@@ -573,8 +528,14 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     }
     const notesForSave =
       opts?.conversationNotes !== undefined ? opts.conversationNotes : conversationNotes;
-    if (draftsToSave.length === 0) {
-      setStatus("種目を追加してください");
+    const supplementalForSave =
+      opts?.supplementalExerciseText !== undefined
+        ? opts.supplementalExerciseText
+        : supplementalExerciseText;
+    const supplementalTrim = supplementalForSave.trim();
+
+    if (draftsToSave.length === 0 && !supplementalTrim) {
+      setStatus("種目を選ぶか、その他種目（手入力）を入力してください");
       return;
     }
     for (const d of draftsToSave) {
@@ -603,6 +564,18 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     }));
 
     const notesTrimmed = notesForSave.trim();
+    let menuSummary = buildSessionMenuSummary(records);
+    let conversationSummary = buildConversationSummary(records);
+    if (supplementalTrim) {
+      menuSummary = menuSummary
+        ? `${menuSummary}\n【その他種目・補足】\n${supplementalTrim}`
+        : `【その他種目・補足】\n${supplementalTrim}`;
+      const oneLine = supplementalTrim.replace(/\s+/g, " ");
+      conversationSummary = conversationSummary
+        ? `${conversationSummary} / 補足種目:${oneLine}`
+        : `補足種目:${oneLine}`;
+    }
+
     const saved: SavedSession = {
       sessionId,
       trainerName: resolvedTrainerName,
@@ -613,6 +586,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       createdAt,
       records,
       ...(notesTrimmed ? { conversationNotes: notesTrimmed } : {}),
+      ...(supplementalTrim ? { supplementalExerciseText: supplementalTrim } : {}),
     };
 
     if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
@@ -623,11 +597,15 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     );
     setSavedSessions(nextSavedSessions);
 
+    const mergedNotes = [notesTrimmed, supplementalTrim ? `補足種目: ${supplementalTrim}` : ""]
+      .filter(Boolean)
+      .join("\n");
+
     const nextSuggestion = generateNextActionsAfterSessionInput(selectedMember, records, {
       sessionId,
       sessionDate,
       trainerName: resolvedTrainerName,
-      conversationNotes: notesTrimmed || undefined,
+      conversationNotes: mergedNotes || undefined,
     });
     persistNextActionSuggestion(selectedMember.id, nextSuggestion);
     const primaryNextAction =
@@ -638,8 +616,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     // 既存のセッション履歴（MemberSessionsClient）へも反映
     try {
       const imported = loadImportedSessions();
-      const menuSummary = buildSessionMenuSummary(records);
-      const conversationSummary = buildConversationSummary(records);
       const session: Session = sessionWithConversationTags({
         id: sessionId,
         memberName: selectedMember.name,
@@ -660,7 +636,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     }
   };
 
-  const handleSave = () => persistSession(drafts);
+  const handleSave = () =>
+    persistSession([draft1, draft2].filter((x): x is ExerciseDraft => x != null));
 
   const handleSaveSameAsLast = () => {
     const copied = copyLastSessionRecords(lastSessionForSelectedMember, frequentFormIssues);
@@ -668,22 +645,22 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       setStatus("会員を選択してください");
       return;
     }
-    if (copied.length === 0) {
+    const lastSup = lastSessionForSelectedMember?.supplementalExerciseText ?? "";
+    if (copied.length === 0 && !lastSup.trim()) {
       setStatus("前回の保存データがありません");
       return;
     }
     const lastNotes = lastSessionForSelectedMember?.conversationNotes ?? "";
     setConversationNotes(lastNotes);
-    setDrafts(copied);
+    setSupplementalExerciseText(lastSup);
+    setDraft1(copied[0] ?? null);
+    setDraft2(copied[1] ?? null);
     setMemoOpen({});
-    persistSession(copied, { conversationNotes: lastNotes });
+    persistSession(copied, {
+      conversationNotes: lastNotes,
+      supplementalExerciseText: lastSup,
+    });
   };
-
-  const quickExercisesOptions = useMemo(() => {
-    // よく使うメニュー上位 + ベース定番
-    const unique = Array.from(new Set([...quickMenu, ...EXERCISE_BASE]));
-    return unique;
-  }, [quickMenu]);
 
   const trainerFields = (
     <>
@@ -724,7 +701,9 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
   const saveBarInner = (
     <>
-      {lastSessionForSelectedMember && lastSessionForSelectedMember.records.length > 0 ? (
+      {lastSessionForSelectedMember &&
+      (lastSessionForSelectedMember.records.length > 0 ||
+        (lastSessionForSelectedMember.supplementalExerciseText?.trim() ?? "")) ? (
         <button
           type="button"
           onClick={handleSaveSameAsLast}
@@ -748,37 +727,304 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     </>
   );
 
+  const memberSelect = (
+    <>
+      <div className="text-slate-500 text-xs mb-1">会員</div>
+      <select
+        value={selectedMemberId}
+        onChange={(e) => {
+          const v = e.target.value;
+          setSelectedMemberId(v);
+          if (v !== MANUAL_MEMBER_ID) setManualMemberName("");
+        }}
+        className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+      >
+        {assignedMembers.length === 0 ? (
+          <option value="" disabled>
+            担当会員がいません
+          </option>
+        ) : (
+          assignedMembers.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))
+        )}
+        <option value={MANUAL_MEMBER_ID}>その他 / 手入力</option>
+      </select>
+      {selectedMemberId === MANUAL_MEMBER_ID ? (
+        <div className="mt-2">
+          <label className="block">
+            <span className="text-slate-500 text-xs mb-1 block">会員名（手入力）</span>
+            <input
+              type="text"
+              value={manualMemberName}
+              onChange={(e) => setManualMemberName(e.target.value)}
+              placeholder="氏名を入力"
+              autoComplete="name"
+              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
+            />
+          </label>
+        </div>
+      ) : null}
+    </>
+  );
+
+  const exerciseDraftCard = (d: ExerciseDraft, slot: "first" | "second") => (
+    <div
+      key={d.localId}
+      className={`bg-white border rounded-2xl p-4 ${
+        d.weight > 0 || d.reps > 0 ? "border-emerald-500/40" : "border-slate-200"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0">
+          <div className="text-slate-500 text-xs mb-0.5">{slot === "first" ? "選択した種目" : "続きの種目"}</div>
+          <div className="text-slate-900 font-semibold text-base leading-snug break-words">
+            {getExerciseName(d)}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            if (slot === "first") {
+              setDraft1(null);
+              setDraft2(null);
+            } else {
+              setDraft2(null);
+            }
+          }}
+          className="shrink-0 text-slate-600 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
+        >
+          選び直す
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <div>
+          <div className="text-slate-500 text-xs mb-1">種目</div>
+          <div className="lg:hidden rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-3">
+            <p className="text-base font-semibold text-slate-900">{getExerciseName(d)}</p>
+            <p className="text-[11px] text-slate-500 mt-1">上の選択フローから変更できます（スマホ）</p>
+          </div>
+          <div className="hidden lg:block">
+            <select
+              value={d.exerciseBase}
+              onChange={(e) => {
+                const base = e.target.value as ExerciseBase;
+                const resolvedName = base === "その他" ? d.customExercise.trim() : base;
+                const m = resolvedName ? findMasterByName(resolvedName) : undefined;
+                const patch = m ? applyMasterToDraftPatch(m) : null;
+                setDraftAt(d.localId, {
+                  exerciseBase: base,
+                  customExercise: base === "その他" ? d.customExercise : "",
+                  ...(patch
+                    ? {
+                        weight: patch.weight,
+                        reps: patch.reps,
+                        allowsZeroWeight: patch.allowsZeroWeight,
+                        workoutKind: patch.workoutKind,
+                      }
+                    : base === "その他"
+                      ? { allowsZeroWeight: undefined, workoutKind: undefined }
+                      : {}),
+                });
+              }}
+              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+            >
+              <option value="ベンチプレス">ベンチプレス</option>
+              <option value="スクワット">スクワット</option>
+              <option value="デッドリフト">デッドリフト</option>
+              <option value="その他">その他</option>
+            </select>
+            {d.exerciseBase === "その他" && (
+              <input
+                value={d.customExercise}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  const m = findMasterByName(v.trim());
+                  if (m) {
+                    setDraftAt(d.localId, {
+                      ...applyMasterToDraftPatch(m),
+                      customExercise: v,
+                    });
+                  } else {
+                    setDraftAt(d.localId, {
+                      customExercise: v,
+                      allowsZeroWeight: undefined,
+                      workoutKind: undefined,
+                    });
+                  }
+                }}
+                placeholder="例）ベンチプレス（フォーム改善）"
+                className="mt-2 w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600"
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <div className="text-slate-500 text-xs mb-1">重量（kg）</div>
+            <input
+              type="number"
+              inputMode="decimal"
+              value={d.weight}
+              onChange={(e) => setDraftAt(d.localId, { weight: normalizeNumber(e.target.value, 0) })}
+              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
+                d.weight > 0 ? "border-emerald-500/50" : "border-slate-200"
+              }`}
+            />
+          </div>
+          <div>
+            <div className="text-slate-500 text-xs mb-1">回数</div>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={d.reps}
+              onChange={(e) => setDraftAt(d.localId, { reps: normalizeNumber(e.target.value, 0) })}
+              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
+                d.reps > 0 ? "border-emerald-500/50" : "border-slate-200"
+              }`}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <div className="text-slate-500 text-xs mb-1">セット数</div>
+            <input
+              type="number"
+              inputMode="numeric"
+              value={d.sets}
+              onChange={(e) => setDraftAt(d.localId, { sets: normalizeNumber(e.target.value, 1) })}
+              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
+                d.sets > 0 && (d.weight > 0 || d.reps > 0) ? "border-emerald-500/50" : "border-slate-200"
+              }`}
+            />
+          </div>
+          <div className="col-span-2">
+            <div className="text-slate-500 text-xs mb-1">休憩時間</div>
+            <select
+              value={d.rest}
+              onChange={(e) => setDraftAt(d.localId, { rest: normalizeNumber(e.target.value, 90) })}
+              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
+                d.weight > 0 || d.reps > 0 ? "border-emerald-500/50" : "border-slate-200"
+              }`}
+            >
+              {REST_OPTIONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}秒
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <div className="text-slate-500 text-xs mb-1">動作評価</div>
+          <div className="grid grid-cols-3 gap-2">
+            {(
+              [
+                { key: "good", label: "良い" },
+                { key: "normal", label: "やや崩れ" },
+                { key: "bad", label: "崩れあり" },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setDraftAt(d.localId, { formRating: opt.key })}
+                className={`rounded-lg border px-2 py-3 text-sm font-semibold transition-colors ${
+                  d.formRating === opt.key
+                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-800"
+                    : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-slate-500 text-xs mb-1">フォームの癖（複数選択）</div>
+          <div className="grid grid-cols-2 gap-2">
+            {FORM_ISSUES.map((issue) => {
+              const checked = d.formIssues.includes(issue);
+              return (
+                <button
+                  key={issue}
+                  type="button"
+                  onClick={() => {
+                    setDraftAt(d.localId, {
+                      formIssues: checked
+                        ? d.formIssues.filter((x) => x !== issue)
+                        : [...d.formIssues, issue],
+                    });
+                  }}
+                  className={`rounded-lg border px-2 py-2.5 text-sm font-semibold transition-colors ${
+                    checked
+                      ? "border-red-500/40 bg-red-500/10 text-red-700"
+                      : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
+                  }`}
+                >
+                  {issue}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between gap-3 mb-1">
+            <button
+              type="button"
+              onClick={() =>
+                setMemoOpen((prev) => ({
+                  ...prev,
+                  [d.localId]: !prev[d.localId],
+                }))
+              }
+              className="text-slate-500 text-xs hover:text-slate-700"
+            >
+              メモ（任意） {memoOpen[d.localId] ? "閉じる" : "開く"}
+            </button>
+            {d.note.trim() ? <span className="text-[11px] text-emerald-800">入力あり</span> : null}
+          </div>
+
+          {memoOpen[d.localId] ? (
+            <div>
+              <input
+                value={d.note}
+                onChange={(e) => setDraftAt(d.localId, { note: e.target.value })}
+                placeholder="例）次回はフォーム意識"
+                className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 ${
+                  d.note.trim() ? "border-emerald-500/40" : "border-slate-200"
+                }`}
+              />
+              <div className="mt-2 text-[11px] text-slate-500">将来：音声入力に対応する前提の構造です。</div>
+            </div>
+          ) : (
+            <div className="text-[11px] text-slate-600">タップでメモ入力</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden py-4 sm:py-6 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:pl-6 sm:pr-6">
       <div className="w-full max-w-3xl mx-auto min-w-0">
         <header className="mb-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-balance">セッション入力</h1>
-          <p className="text-slate-600 text-base mt-1">
-            タップで完了。1種目は10秒目標で入力できます。
-          </p>
+          <p className="text-slate-600 text-base mt-1">タップで完了。種目は選択フローから選べます。</p>
         </header>
 
         <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
           {/* スマホ（lg 未満）: 会員 → トレーナー → 前回コピー */}
           <div className="flex flex-col gap-4 lg:hidden">
-            <div className="min-w-0">
-              <div className="text-slate-500 text-xs mb-1">会員</div>
-              <select
-                value={selectedMemberId}
-                onChange={(e) => setSelectedMemberId(e.target.value)}
-                className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-              >
-                {assignedMembers.length === 0 ? (
-                  <option value="">担当会員がありません</option>
-                ) : (
-                  assignedMembers.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
+            <div className="min-w-0">{memberSelect}</div>
             <div className="min-w-0">{trainerFields}</div>
             <button
               type="button"
@@ -790,24 +1036,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
           </div>
           {/* PC（lg 以上）: 会員 | 前回コピー（従来） */}
           <div className="hidden lg:flex flex-row gap-3 items-end">
-            <div className="min-w-0 flex-1">
-              <div className="text-slate-500 text-xs mb-1">会員</div>
-              <select
-                value={selectedMemberId}
-                onChange={(e) => setSelectedMemberId(e.target.value)}
-                className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-              >
-                {assignedMembers.length === 0 ? (
-                  <option value="">担当会員がありません</option>
-                ) : (
-                  assignedMembers.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
+            <div className="min-w-0 flex-1">{memberSelect}</div>
             <div className="shrink-0 self-end">
               <button
                 type="button"
@@ -837,317 +1066,35 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         <div className="mb-4">
           <h2 className="text-slate-900 font-semibold text-base mb-2">トレーニング内容</h2>
           <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
-            <MobileExercisePicker onPick={handleExerciseMasterPick} />
+            <MobileExercisePicker heading="種目を選ぶ" onPick={handleMobilePickFirst} />
           </div>
           <div className="mb-4 hidden lg:block rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <ExerciseSearchField onPick={handleExerciseMasterPick} />
-          </div>
-          <div className="hidden lg:block text-slate-500 text-xs uppercase tracking-wider font-semibold mb-2">
-            よく使うメニュー
-          </div>
-          <div className="hidden lg:flex flex-wrap gap-2">
-            {quickExercisesOptions.slice(0, 5).map((x) => (
-              <button
-                key={x}
-                type="button"
-                onClick={() => {
-                  const m = findMasterByName(x);
-                  if (m) {
-                    handleExerciseMasterPick(m, false);
-                    return;
-                  }
-                  setDrafts((prev) => {
-                    if (prev.length === 0) return prev;
-                    const first = prev[0];
-                    const base = EXERCISE_BASE.includes(x as ExerciseBase)
-                      ? (x as ExerciseBase)
-                      : "その他";
-                    return prev.map((d, idx) => {
-                      if (idx !== 0) return d;
-                      return {
-                        ...d,
-                        exerciseBase: base,
-                        customExercise:
-                          base === "その他" && x !== "その他" ? x : d.customExercise,
-                        allowsZeroWeight: undefined,
-                        workoutKind: undefined,
-                      };
-                    });
-                  });
-                }}
-                className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 hover:bg-slate-100 transition-colors"
-              >
-                {x}
-              </button>
-            ))}
+            <ExerciseSearchField onPick={handleDesktopExercisePick} />
           </div>
         </div>
 
         <div className="space-y-3 pb-8">
-          {drafts.map((d, idx) => (
-            <div
-              key={d.localId}
-              className={`bg-white border rounded-2xl p-4 ${
-                d.weight > 0 || d.reps > 0
-                  ? "border-emerald-500/40"
-                  : "border-slate-200"
-              }`}
-            >
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="text-slate-900 font-semibold">
-                  {idx + 1}種目
-                </div>
-                {drafts.length > 1 ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDrafts((prev) => prev.filter((x) => x.localId !== d.localId));
-                    }}
-                    className="text-slate-600 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
-                  >
-                    削除
-                  </button>
-                ) : (
-                  <span className="text-slate-500 text-xs">タップ入力</span>
-                )}
-              </div>
+          {draft1 ? exerciseDraftCard(draft1, "first") : null}
 
-              <div className="space-y-3">
-                <div>
-                  <div className="text-slate-500 text-xs mb-1">種目</div>
-                  <div className="lg:hidden rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-3">
-                    <p className="text-base font-semibold text-slate-900">{getExerciseName(d)}</p>
-                    <p className="text-[11px] text-slate-500 mt-1">
-                      上の「種目（選択式）」から変更できます（スマホ）
-                    </p>
-                  </div>
-                  <div className="hidden lg:block">
-                    <select
-                      value={d.exerciseBase}
-                      onChange={(e) => {
-                        const base = e.target.value as ExerciseBase;
-                        const resolvedName =
-                          base === "その他" ? d.customExercise.trim() : base;
-                        const m = resolvedName ? findMasterByName(resolvedName) : undefined;
-                        const patch = m ? applyMasterToDraftPatch(m) : null;
-                        setDraftAt(d.localId, {
-                          exerciseBase: base,
-                          customExercise: base === "その他" ? d.customExercise : "",
-                          ...(patch
-                            ? {
-                                weight: patch.weight,
-                                reps: patch.reps,
-                                allowsZeroWeight: patch.allowsZeroWeight,
-                                workoutKind: patch.workoutKind,
-                              }
-                            : base === "その他"
-                              ? { allowsZeroWeight: undefined, workoutKind: undefined }
-                              : {}),
-                        });
-                      }}
-                      className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-                    >
-                      <option value="ベンチプレス">ベンチプレス</option>
-                      <option value="スクワット">スクワット</option>
-                      <option value="デッドリフト">デッドリフト</option>
-                      <option value="その他">その他</option>
-                    </select>
-                    {d.exerciseBase === "その他" && (
-                      <input
-                        value={d.customExercise}
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          const m = findMasterByName(v.trim());
-                          if (m) {
-                            setDraftAt(d.localId, {
-                              ...applyMasterToDraftPatch(m),
-                              customExercise: v,
-                            });
-                          } else {
-                            setDraftAt(d.localId, {
-                              customExercise: v,
-                              allowsZeroWeight: undefined,
-                              workoutKind: undefined,
-                            });
-                          }
-                        }}
-                        placeholder="例）ベンチプレス（フォーム改善）"
-                        className="mt-2 w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600"
-                      />
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-slate-500 text-xs mb-1">重量（kg）</div>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      value={d.weight}
-                      onChange={(e) => setDraftAt(d.localId, { weight: normalizeNumber(e.target.value, 0) })}
-                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                        d.weight > 0 ? "border-emerald-500/50" : "border-slate-200"
-                      }`}
-                    />
-                  </div>
-                  <div>
-                    <div className="text-slate-500 text-xs mb-1">回数</div>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={d.reps}
-                      onChange={(e) => setDraftAt(d.localId, { reps: normalizeNumber(e.target.value, 0) })}
-                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                        d.reps > 0 ? "border-emerald-500/50" : "border-slate-200"
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <div className="text-slate-500 text-xs mb-1">セット数</div>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={d.sets}
-                      onChange={(e) => setDraftAt(d.localId, { sets: normalizeNumber(e.target.value, 1) })}
-                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                        d.sets > 0 && (d.weight > 0 || d.reps > 0)
-                          ? "border-emerald-500/50"
-                          : "border-slate-200"
-                      }`}
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <div className="text-slate-500 text-xs mb-1">休憩時間</div>
-                    <select
-                      value={d.rest}
-                      onChange={(e) => setDraftAt(d.localId, { rest: normalizeNumber(e.target.value, 90) })}
-                      className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                        d.weight > 0 || d.reps > 0
-                          ? "border-emerald-500/50"
-                          : "border-slate-200"
-                      }`}
-                    >
-                      {REST_OPTIONS.map((r) => (
-                        <option key={r} value={r}>
-                          {r}秒
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-slate-500 text-xs mb-1">動作評価</div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(
-                      [
-                        { key: "good", label: "良い" },
-                        { key: "normal", label: "やや崩れ" },
-                        { key: "bad", label: "崩れあり" },
-                      ] as const
-                    ).map((opt) => (
-                      <button
-                        key={opt.key}
-                        type="button"
-                        onClick={() => setDraftAt(d.localId, { formRating: opt.key })}
-                        className={`rounded-lg border px-2 py-3 text-sm font-semibold transition-colors ${
-                          d.formRating === opt.key
-                            ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-800"
-                            : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-slate-500 text-xs mb-1">フォームの癖（複数選択）</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {FORM_ISSUES.map((issue) => {
-                      const checked = d.formIssues.includes(issue);
-                      return (
-                        <button
-                          key={issue}
-                          type="button"
-                          onClick={() => {
-                            setDraftAt(d.localId, {
-                              formIssues: checked
-                                ? d.formIssues.filter((x) => x !== issue)
-                                : [...d.formIssues, issue],
-                            });
-                          }}
-                          className={`rounded-lg border px-2 py-2.5 text-sm font-semibold transition-colors ${
-                            checked
-                              ? "border-red-500/40 bg-red-500/10 text-red-700"
-                              : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
-                          }`}
-                        >
-                          {issue}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between gap-3 mb-1">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setMemoOpen((prev) => ({
-                          ...prev,
-                          [d.localId]: !prev[d.localId],
-                        }))
-                      }
-                      className="text-slate-500 text-xs hover:text-slate-700"
-                    >
-                      メモ（任意） {memoOpen[d.localId] ? "閉じる" : "開く"}
-                    </button>
-                    {d.note.trim() ? (
-                      <span className="text-[11px] text-emerald-800">入力あり</span>
-                    ) : null}
-                  </div>
-
-                  {memoOpen[d.localId] ? (
-                    <div>
-                      <input
-                        value={d.note}
-                        onChange={(e) => setDraftAt(d.localId, { note: e.target.value })}
-                        placeholder="例）次回はフォーム意識"
-                        className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 ${
-                          d.note.trim()
-                            ? "border-emerald-500/40"
-                            : "border-slate-200"
-                        }`}
-                      />
-                      <div className="mt-2 text-[11px] text-slate-500">
-                        将来：音声入力に対応する前提の構造です。
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-[11px] text-slate-600">
-                      タップでメモ入力
-                    </div>
-                  )}
-                </div>
-              </div>
+          {draft1 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
+              <MobileExercisePicker heading="続きの種目を選ぶ" onPick={handleMobilePickSecond} />
             </div>
-          ))}
+          ) : null}
 
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={addExercise}
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-800 hover:bg-slate-100 transition-colors"
-            >
-              ＋種目追加
-            </button>
+          {draft2 ? exerciseDraftCard(draft2, "second") : null}
+
+          <div className="bg-white border border-slate-200 rounded-2xl p-4">
+            <label className="block">
+              <span className="text-slate-500 text-xs mb-1 block">その他種目（手入力）・補足種目メモ</span>
+              <textarea
+                value={supplementalExerciseText}
+                onChange={(e) => setSupplementalExerciseText(e.target.value)}
+                placeholder="マスタにない種目・補助メモ・特別対応など"
+                rows={4}
+                className="w-full min-h-[100px] rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 resize-y"
+              />
+            </label>
           </div>
 
           <div className="hidden lg:block rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
