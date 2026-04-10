@@ -5,11 +5,11 @@
 
 export const SESSION_TRAINER_CUSTOM = "__custom__" as const;
 
-/** デフォルト（人形町等） */
+/** 人形町（デモ既定） */
 export const SESSION_TRAINER_PRESETS_DEFAULT = [
-  "山本トレーナー",
-  "佐々木トレーナー",
-  "高橋トレーナー",
+  "我妻",
+  "竹内",
+  "小野",
 ] as const;
 
 /** 水天宮前店エリア */
