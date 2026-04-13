@@ -5,6 +5,7 @@ import { memberRepository, taskRepository } from "@/lib/repositories";
 import { Member, Task } from "@/types";
 import Link from "next/link";
 import { HacomonoDemoTodayReservations } from "@/components/dashboard/HacomonoDemoTodayReservations";
+import { TrainerPriorityQueueMobile } from "@/components/dashboard/TrainerPriorityQueueMobile";
 import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { generateNextActions } from "@/lib/nextActionAI";
 
@@ -13,31 +14,6 @@ function getTrainerName(): string {
   // 現時点ではモックとして最初のトレーナーを使用
   // 将来的には認証情報（セッション/クッキー）から取得
   return "山本トレーナー";
-}
-
-// セッション履歴をモック（将来的にはセッション履歴システムと連携）
-function getSessionHistory(trainerName: string): Array<{
-  id: string;
-  memberName: string;
-  date: string;
-  type: string;
-  status: string;
-}> {
-  // モックデータ - 将来的にはセッション履歴システムから取得
-  const today = new Date();
-  const history = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    history.push({
-      id: `session-${i}`,
-      memberName: `会員${i + 1}`,
-      date: date.toISOString().split("T")[0],
-      type: i % 2 === 0 ? "パーソナル" : "グループ",
-      status: "完了",
-    });
-  }
-  return history;
 }
 
 export default async function TrainerPage() {
@@ -61,6 +37,16 @@ export default async function TrainerPage() {
 
   // 今日の優先対応（担当会員の優先キュー）
   const priorityQueue = getPriorityQueue(assignedMembers).slice(0, 5);
+  const priorityRows = priorityQueue.map((item) => ({
+    id: item.id,
+    name: item.name,
+    probability30Days: item.probability30Days,
+    reasonTags: estimateChurnReasons(item.member).reasons
+      .slice(0, 2)
+      .map((r) => r.tag),
+    suggestedAction: item.suggestedAction,
+    priority: item.priority,
+  }));
   const topPriorityMember = priorityQueue[0]?.member ?? null;
 
   const nextProposalAI = topPriorityMember
@@ -173,8 +159,10 @@ export default async function TrainerPage() {
         </div>
       </div>
 
-      {/* 今日の優先対応 */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
+      <TrainerPriorityQueueMobile rows={priorityRows} />
+
+      {/* 今日の優先対応（PC のみ。スマホは TrainerPriorityQueueMobile） */}
+      <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">今日の優先対応</h2>
         {priorityQueue.length === 0 ? (
           <p className="text-slate-600">優先対応の対象会員はいません</p>
@@ -234,8 +222,8 @@ export default async function TrainerPage() {
         )}
       </div>
 
-      {/* 次回提案AI（優先1名） */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
+      {/* 次回提案AI（優先1名・PC のみ） */}
+      <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
         <h2 className="text-xl font-bold mb-4">次回提案AI</h2>
         {!topPriorityMember ? (
           <p className="text-slate-600">対象会員がいません</p>
@@ -350,8 +338,8 @@ export default async function TrainerPage() {
         )}
       </div>
 
-      {/* セッション履歴への導線 */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+      {/* セッション履歴への導線（PC のみ） */}
+      <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">セッション履歴への導線</h2>
         {memberList[0] ? (
           <div className="space-y-3">
