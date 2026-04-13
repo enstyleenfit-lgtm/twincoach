@@ -4,7 +4,7 @@ import { getPriorityQueue } from "@/lib/priorityQueue";
 import { memberRepository, taskRepository } from "@/lib/repositories";
 import { Member, Task } from "@/types";
 import Link from "next/link";
-import { memberDetailHref } from "@/lib/routeContext";
+import { TodayReservationsSection } from "@/components/dashboard/TodayReservationsSection";
 import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { generateNextActions } from "@/lib/nextActionAI";
 
@@ -143,35 +143,8 @@ export default async function TrainerPage() {
 
       {/* 2カラムレイアウト */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* 今日の予約 */}
-        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
-          <h2 className="text-xl font-bold mb-4">今日の予約</h2>
-          {todayReservations.length > 0 ? (
-            <div className="space-y-3">
-              {todayReservations.map((reservation) => (
-                <div
-                  key={reservation.id}
-                  className="bg-slate-100 border border-slate-200 rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-start gap-3">
-                    <div className="min-w-0">
-                      <Link
-                        href={memberDetailHref("trainer", reservation.memberId)}
-                        className="text-blue-800 font-semibold underline decoration-blue-400/70 underline-offset-2 hover:text-blue-900 hover:decoration-blue-600 active:opacity-80 inline-flex min-h-11 items-center py-1 -my-1 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-1"
-                      >
-                        {reservation.memberName}
-                      </Link>
-                      <p className="text-slate-600 text-sm">{reservation.type}</p>
-                    </div>
-                    <p className="text-blue-700 font-bold">{reservation.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-slate-600 text-center py-8">今日の予約はありません</p>
-          )}
-        </div>
+        {/* 本日の予約（スマホは折りたたみ、md以上は従来どおり常時表示） */}
+        <TodayReservationsSection reservations={todayReservations} />
 
         {/* 介入タスク（PC のみ。スマホは予約・会員確認に集中） */}
         <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6">
