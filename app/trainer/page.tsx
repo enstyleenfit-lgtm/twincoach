@@ -4,7 +4,7 @@ import { getPriorityQueue } from "@/lib/priorityQueue";
 import { memberRepository, taskRepository } from "@/lib/repositories";
 import { Member, Task } from "@/types";
 import Link from "next/link";
-import { TodayReservationsSection } from "@/components/dashboard/TodayReservationsSection";
+import { HacomonoDemoTodayReservations } from "@/components/dashboard/HacomonoDemoTodayReservations";
 import { estimateChurnReasons } from "@/lib/churnReasonAI";
 import { generateNextActions } from "@/lib/nextActionAI";
 
@@ -13,41 +13,6 @@ function getTrainerName(): string {
   // 現時点ではモックとして最初のトレーナーを使用
   // 将来的には認証情報（セッション/クッキー）から取得
   return "山本トレーナー";
-}
-
-// 今日の日付を取得（YYYY-MM-DD形式）
-function getTodayDate(): string {
-  const today = new Date();
-  return today.toISOString().split("T")[0];
-}
-
-// 今日の予約をモック（将来的には予約システムと連携）
-function getTodayReservations(assignedMembers: Member[]): Array<{
-  id: string;
-  memberId: string;
-  memberName: string;
-  time: string;
-  type: string;
-}> {
-  const slots: Array<{ memberId: string; time: string; type: string }> = [
-    { memberId: "1", time: "10:00-11:00", type: "パーソナル" },
-    { memberId: "3", time: "14:00-15:00", type: "グループ" },
-    { memberId: "5", time: "18:00-19:00", type: "パーソナル" },
-  ];
-  const assignedIds = new Set(assignedMembers.map((m) => m.id));
-  return slots
-    .filter((s) => assignedIds.has(s.memberId))
-    .map((s, i) => {
-      const m = assignedMembers.find((x) => x.id === s.memberId);
-      return {
-        id: `today-res-${s.memberId}-${i}`,
-        memberId: s.memberId,
-        memberName: m?.name ?? "",
-        time: s.time,
-        type: s.type,
-      };
-    })
-    .filter((r) => r.memberName);
 }
 
 // セッション履歴をモック（将来的にはセッション履歴システムと連携）
@@ -133,9 +98,6 @@ export default async function TrainerPage() {
     })
     .slice(0, 10);
 
-  // 今日の予約（担当会員に紐づくモックスロットのみ）
-  const todayReservations = getTodayReservations(assignedMembers);
-
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8">TwinCoach 店舗</h1>
@@ -144,7 +106,7 @@ export default async function TrainerPage() {
       {/* 2カラムレイアウト */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* 本日の予約（スマホは折りたたみ、md以上は従来どおり常時表示） */}
-        <TodayReservationsSection reservations={todayReservations} />
+        <HacomonoDemoTodayReservations />
 
         {/* 介入タスク（PC のみ。スマホは予約・会員確認に集中） */}
         <div className="hidden lg:block bg-white border border-slate-200 shadow-sm rounded-lg p-6">
