@@ -1,18 +1,13 @@
-import Link from "next/link";
 import { MemberListBackLink } from "@/components/members/MemberListBackLink";
 import { memberRepository, visitRepository, interventionRepository } from "@/lib/repositories";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
-import { getDualMembers, getRecommendedNextPlan } from "@/lib/planTransition";
+import { getRecommendedNextPlan } from "@/lib/planTransition";
 import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPrediction";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
-import { estimateChurnReasons } from "@/lib/churnReasonAI";
-import { generateNextActions } from "@/lib/nextActionAI";
-import { MemberSuccessSessionInsight } from "@/components/successSession/MemberSuccessSessionInsight";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { MemberSessionsClient } from "@/components/members/MemberSessionsClient";
-import { MemberNextActionsClient } from "@/components/members/MemberNextActionsClient";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -60,7 +55,7 @@ export default async function MemberDetailPage({
           ← 会員一覧に戻る
         </MemberListBackLink>
         <h1 className="text-4xl font-bold mb-8">Member Not Found</h1>
-        <p className="text-slate-600">The member with ID "{id}" could not be found.</p>
+        <p className="text-slate-600">The member with ID {id} could not be found.</p>
       </div>
     );
   }
@@ -73,176 +68,8 @@ export default async function MemberDetailPage({
 
       <h1 className="text-4xl font-bold mb-8">{member.name}</h1>
 
-      {/* 過去5回セッション（CSV取り込み・ローカル保存） */}
-      <MemberSessionsClient memberName={member.name} />
-
-      {/* 収益リスク */}
-      {(() => {
-        const forecast = getRevenueRiskForecast(member);
-        return (
-          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">収益リスク</h2>
-            <p className="text-slate-600 text-xs mb-4">
-              退会確率をもとに、失う可能性のある売上を試算しています
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">月額売上</div>
-                <div className="text-2xl font-bold text-slate-900">
-                  ¥{forecast.monthlyRevenue.toLocaleString()}
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">年間売上</div>
-                <div className="text-2xl font-bold text-slate-900">
-                  ¥{forecast.annualRevenue.toLocaleString()}
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">30日退会確率</div>
-                <div className="text-2xl font-bold text-red-600">
-                  {forecast.probability30Days}%
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">60日退会確率</div>
-                <div className="text-2xl font-bold text-red-600">
-                  {forecast.probability60Days}%
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-red-500/40 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">30日期待損失額</div>
-                <div className="text-2xl font-bold text-red-600">
-                  ¥{forecast.expectedLoss30Days.toLocaleString()}
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-red-500/40 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">60日期待損失額</div>
-                <div className="text-2xl font-bold text-red-600">
-                  ¥{forecast.expectedLoss60Days.toLocaleString()}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* 会員LTV */}
-      {(() => {
-        const ltv = estimateMemberLTV(member);
-        const ltvLevel = getLTVLevel(ltv.riskAdjustedLTV);
-        return (
-          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-2">会員LTV</h2>
-            <p className="text-slate-600 text-xs mb-4">
-              TwinCoachが会員行動データから推定した将来売上です
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">推定LTV</div>
-                <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
-                  ¥{ltv.estimatedLTV.toLocaleString()}
-                </div>
-                <div className="text-slate-500 text-xs mt-1">
-                  継続予測: {ltv.expectedMonths}ヶ月
-                </div>
-              </div>
-              <div className={`bg-slate-50 border rounded-lg p-4 ${
-                ltvLevel === "high" ? "border-green-500/40" :
-                ltvLevel === "medium" ? "border-yellow-500/40" :
-                "border-red-500/40"
-              }`}>
-                <div className="text-slate-600 text-sm mb-1">リスク調整後LTV</div>
-                <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
-                  ¥{ltv.riskAdjustedLTV.toLocaleString()}
-                </div>
-                <div className="text-slate-500 text-xs mt-1">
-                  <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getLTVLevelBadgeColor(ltvLevel)}`}>
-                    {ltvLevel === "high" ? "高LTV" : ltvLevel === "medium" ? "中LTV" : "低LTV"}
-                  </span>
-                </div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">月額売上</div>
-                <div className="text-2xl font-bold text-slate-900">
-                  ¥{ltv.monthlyValue.toLocaleString()}
-                </div>
-                <div className="text-slate-500 text-xs mt-1">/月</div>
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <div className="text-slate-600 text-sm mb-1">継続予測月数</div>
-                <div className="text-2xl font-bold text-slate-900">
-                  {ltv.expectedMonths}
-                </div>
-                <div className="text-slate-500 text-xs mt-1">ヶ月</div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* 退会理由AI */}
-      {(() => {
-        const churnReasons = estimateChurnReasons(member);
-        const nextActions = generateNextActions(member, undefined, churnReasons);
-        return (
-          <>
-            <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-2">退会理由AI</h2>
-              <p className="text-slate-600 text-xs mb-4">
-                会員の行動データとリスク情報から、想定される退会理由を推定しています
-              </p>
-              {churnReasons.reasons.length === 0 ? (
-                <p className="text-slate-600 text-sm">退会要因は見つかりませんでした</p>
-              ) : (
-                <div className="space-y-3">
-                  {churnReasons.primaryReason && (
-                    <div className="text-sm">
-                      <span className="text-slate-600">主因: </span>
-                      <span className="text-slate-900 font-semibold">{churnReasons.primaryReason}</span>
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    {churnReasons.reasons.map((reason, index: number) => (
-                      <div
-                        key={index}
-                        className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${
-                                reason.severity === "high"
-                                  ? "text-red-700 bg-red-400/10 border-red-400/25"
-                                  : "text-yellow-300 bg-yellow-400/10 border-yellow-400/25"
-                              }`}
-                            >
-                              {reason.tag}
-                            </span>
-                            <span className="text-slate-500 text-xs">{reason.category}</span>
-                          </div>
-                          <span className="text-slate-800 text-xs font-semibold">
-                            {Math.round(reason.confidence * 100)}%
-                          </span>
-                        </div>
-                        <p className="mt-1 text-slate-600 text-xs">{reason.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <MemberNextActionsClient
-              memberId={member.id}
-              fallbackSuggestion={nextActions}
-            />
-
-            <MemberSuccessSessionInsight member={member} />
-          </>
-        );
-      })()}
-
+      <div className="flex flex-col">
+      <div className="order-1">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">会員情報</h2>
@@ -490,6 +317,119 @@ export default async function MemberDetailPage({
             </div>
           </div>
         </div>
+      </div>
+      </div>
+
+      {/* 過去5回セッション（CSV取り込み・ローカル保存） */}
+      <div className="order-2">
+      <MemberSessionsClient memberName={member.name} />
+      </div>
+
+      {/* 収益リスク */}
+      {(() => {
+        const forecast = getRevenueRiskForecast(member);
+        return (
+          <div className="order-3 bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-4">収益リスク</h2>
+            <p className="text-slate-600 text-xs mb-4">
+              退会確率をもとに、失う可能性のある売上を試算しています
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">月額売上</div>
+                <div className="text-2xl font-bold text-slate-900">
+                  ¥{forecast.monthlyRevenue.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">年間売上</div>
+                <div className="text-2xl font-bold text-slate-900">
+                  ¥{forecast.annualRevenue.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">30日退会確率</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {forecast.probability30Days}%
+                </div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">60日退会確率</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {forecast.probability60Days}%
+                </div>
+              </div>
+              <div className="bg-slate-50 border border-red-500/40 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">30日期待損失額</div>
+                <div className="text-2xl font-bold text-red-600">
+                  ¥{forecast.expectedLoss30Days.toLocaleString()}
+                </div>
+              </div>
+              <div className="bg-slate-50 border border-red-500/40 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">60日期待損失額</div>
+                <div className="text-2xl font-bold text-red-600">
+                  ¥{forecast.expectedLoss60Days.toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* 会員LTV */}
+      {(() => {
+        const ltv = estimateMemberLTV(member);
+        const ltvLevel = getLTVLevel(ltv.riskAdjustedLTV);
+        return (
+          <div className="order-4 bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold mb-2">会員LTV</h2>
+            <p className="text-slate-600 text-xs mb-4">
+              TwinCoachが会員行動データから推定した将来売上です
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">推定LTV</div>
+                <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
+                  ¥{ltv.estimatedLTV.toLocaleString()}
+                </div>
+                <div className="text-slate-500 text-xs mt-1">
+                  継続予測: {ltv.expectedMonths}ヶ月
+                </div>
+              </div>
+              <div className={`bg-slate-50 border rounded-lg p-4 ${
+                ltvLevel === "high" ? "border-green-500/40" :
+                ltvLevel === "medium" ? "border-yellow-500/40" :
+                "border-red-500/40"
+              }`}>
+                <div className="text-slate-600 text-sm mb-1">リスク調整後LTV</div>
+                <div className={`text-2xl font-bold ${getLTVLevelColor(ltvLevel)}`}>
+                  ¥{ltv.riskAdjustedLTV.toLocaleString()}
+                </div>
+                <div className="text-slate-500 text-xs mt-1">
+                  <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${getLTVLevelBadgeColor(ltvLevel)}`}>
+                    {ltvLevel === "high" ? "高LTV" : ltvLevel === "medium" ? "中LTV" : "低LTV"}
+                  </span>
+                </div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">月額売上</div>
+                <div className="text-2xl font-bold text-slate-900">
+                  ¥{ltv.monthlyValue.toLocaleString()}
+                </div>
+                <div className="text-slate-500 text-xs mt-1">/月</div>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div className="text-slate-600 text-sm mb-1">継続予測月数</div>
+                <div className="text-2xl font-bold text-slate-900">
+                  {ltv.expectedMonths}
+                </div>
+                <div className="text-slate-500 text-xs mt-1">ヶ月</div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       </div>
 
       {/* デュアル移行最適化 */}
