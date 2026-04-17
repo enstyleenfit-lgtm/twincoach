@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { createClientSupabase } from "@/lib/supabase/client";
 import { useState } from "react";
+import { PREFERRED_APP_ROLE_STORAGE_KEY } from "@/components/sidebar/useResolvedAppRole";
+import { DEMO_ROLE_COOKIE_NAME } from "@/lib/authz/demoSession";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -13,6 +15,15 @@ export function LogoutButton() {
     try {
       const supabase = createClientSupabase();
       await supabase.auth.signOut();
+      try {
+        window.localStorage.removeItem(PREFERRED_APP_ROLE_STORAGE_KEY);
+      } catch {
+        // noop
+      }
+      const secure = typeof window !== "undefined" && window.location.protocol === "https:";
+      document.cookie = `${DEMO_ROLE_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax${
+        secure ? "; Secure" : ""
+      }`;
       router.push("/login");
       router.refresh();
     } catch (error) {
