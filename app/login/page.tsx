@@ -75,12 +75,16 @@ export default function LoginPage() {
       <div className="mx-auto max-w-5xl px-6 py-10 md:py-16">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10 items-center">
           <section className="space-y-4">
-            <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-600">
-              TwinCoach Platform
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">TwinCoach</h1>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
+              TwinCoach
+            </h1>
+            <p className="text-sm md:text-base font-medium tracking-wide text-slate-700">
+              Retention &amp; Revenue OS
+            </p>
             <p className="text-slate-600 text-sm md:text-base leading-relaxed">
-              継続率改善と収益改善を支えるジム運営プラットフォーム。現場の記録を、次の対応と経営判断につなげます。
+              現場の記録を、
+              <br />
+              次の対応と経営判断につなげる
             </p>
             <div className="rounded-xl border border-slate-200 bg-white p-4">
               <p className="text-xs font-semibold text-slate-500 mb-2">デモ用アカウント</p>
