@@ -99,13 +99,22 @@ body {
     animation-delay: 130ms;
   }
 
-  .tc-login-page .tc-login-motion-hint {
-    animation: tc-login-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: 200ms;
-  }
-
   .tc-login-page .tc-login-motion-card {
     animation: tc-login-card-rise 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-delay: 120ms;
+  }
+
+  .tc-login-page .tc-login-motion-form-head {
+    animation: tc-login-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 160ms;
+  }
+
+  .tc-login-page .tc-login-motion-roles {
+    animation: tc-login-rise 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 200ms;
+  }
+
+  .tc-login-page .tc-login-motion-alert {
+    animation: tc-login-rise 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 }
