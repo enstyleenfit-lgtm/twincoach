@@ -26,7 +26,10 @@ export function RoleBasedShell({ children }: Props) {
   if (isLoginPage) {
     return (
       <TrialStoreProvider>
-        <div className="min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden">
+        <div
+          data-tc-shell="login-bare"
+          className="min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden"
+        >
           {children}
         </div>
       </TrialStoreProvider>

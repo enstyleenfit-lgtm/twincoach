@@ -6,6 +6,10 @@ import {
   roleHomePath,
 } from "@/lib/authz/demoSession";
 
+function isLoginPath(pathname: string) {
+  return pathname === "/login" || pathname === "/login/";
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const demoRoleRaw = request.cookies.get(DEMO_ROLE_COOKIE_NAME)?.value;
@@ -47,7 +51,7 @@ export async function middleware(request: NextRequest) {
   const isAuthenticated = Boolean(user) || Boolean(demoRole);
 
   // ログインページは認証不要（ただし認証済みなら role に応じて遷移）
-  if (pathname === "/login") {
+  if (isLoginPath(pathname)) {
     if (demoRole) {
       return NextResponse.redirect(new URL(roleHomePath(demoRole), request.url));
     }

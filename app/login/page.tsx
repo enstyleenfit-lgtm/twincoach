@@ -20,6 +20,12 @@ const DEMO_LOGIN_RULES: Array<{
   { password: "3", role: "store", roleLabel: "店舗", destination: "/stores" },
 ];
 
+const DEPLOY_SHA =
+  typeof process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA === "string" &&
+  process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.length > 0
+    ? process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA.slice(0, 7)
+    : "local";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,14 +34,9 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.info(
-        "%cTwinCoach%c ログイン画面 → %capp/login/page.tsx",
-        "font-weight:700;color:#0f172a;",
-        "color:#64748b;",
-        "font-family:ui-monospace,monospace;color:#0369a1;",
-      );
-    }
+    console.info(
+      `[TwinCoach login] app/login/page.tsx | deploy=${DEPLOY_SHA} | NODE_ENV=${process.env.NODE_ENV}`,
+    );
   }, []);
 
   const persistDemoSession = (role: DemoAppRole) => {
@@ -78,100 +79,76 @@ export default function LoginPage() {
 
   return (
     <div
-      className="tc-login-page relative min-h-dvh overflow-hidden bg-gradient-to-br from-white via-slate-50/90 to-slate-100/50 text-slate-900"
+      className="tc-login-page relative flex min-h-dvh flex-col overflow-hidden bg-gradient-to-br from-cyan-200 via-sky-100 to-indigo-200 text-slate-900 ring-8 ring-indigo-800 ring-inset"
       data-tc-renderer="app/login/page.tsx"
     >
-      {/* 画面上部の識別用アクセント（全幅・軽量） */}
+      {/* 一時的・誰が見ても別画面だと分かる識別バー（本番デプロイ照合用 SHA 付き） */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-1 bg-gradient-to-r from-sky-200/80 via-slate-300/70 to-indigo-200/70"
-        aria-hidden
-      />
-      {/* ごく薄いぼかしオーブ（装飾のみ・pointer-events なし） */}
-      <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        aria-hidden
+        className="relative z-[50] flex flex-none flex-col items-center justify-center gap-1 border-b-4 border-indigo-950 bg-amber-300 px-4 py-3 text-center shadow-md"
+        data-tc-login-banner="new-login-v1"
       >
-        <div className="absolute -left-[20%] top-[10%] h-[min(28rem,55vw)] w-[min(28rem,55vw)] rounded-full bg-sky-100/25 blur-3xl" />
-        <div className="absolute -right-[15%] top-[35%] h-[min(22rem,45vw)] w-[min(22rem,45vw)] rounded-full bg-slate-200/30 blur-3xl" />
-        <div className="absolute bottom-[-10%] left-[30%] h-[min(20rem,40vw)] w-[min(20rem,40vw)] rounded-full bg-blue-50/40 blur-3xl" />
+        <p className="text-lg font-black tracking-wide text-indigo-950 md:text-xl">
+          NEW LOGIN（識別用・後で削除可）
+        </p>
+        <p className="text-xs font-semibold text-indigo-900 md:text-sm">
+          <span data-tc-deploy-sha={DEPLOY_SHA}>{DEPLOY_SHA}</span>
+          <span className="mx-2 text-indigo-950/50">|</span>
+          <span className="font-mono text-[11px] md:text-xs">data-tc-renderer=&quot;app/login/page.tsx&quot;</span>
+        </p>
       </div>
 
-      <div className="relative z-[1] mx-auto flex min-h-dvh max-w-6xl flex-col justify-center px-6 py-16 md:px-10 md:py-20 lg:py-24">
-        <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 xl:gap-24">
-          {/* 左：ブランド */}
-          <header className="flex flex-col gap-6 md:gap-8">
-            <div className="tc-login-motion-brand space-y-6 md:space-y-8">
-              <h1 className="tc-login-motion-title text-[2.75rem] font-semibold leading-[1.08] tracking-tight text-slate-900 md:text-6xl md:leading-[1.05]">
-                TwinCoach
-              </h1>
-              <p className="tc-login-motion-subtitle text-lg font-medium tracking-tight text-slate-600 md:text-xl">
-                Retention &amp; Revenue OS
-              </p>
-              <p className="tc-login-motion-body max-w-xl text-lg leading-[1.75] text-slate-500 md:text-xl md:leading-[1.8]">
-                現場の記録を、
-                <br />
-                次の対応と経営判断につなげる
-              </p>
-            </div>
+      <div
+        className="pointer-events-none absolute inset-0 overflow-hidden opacity-90"
+        aria-hidden
+      >
+        <div className="absolute -left-[15%] top-[20%] h-64 w-64 rounded-full bg-white/40 blur-3xl" />
+        <div className="absolute -right-[10%] bottom-[15%] h-72 w-72 rounded-full bg-indigo-300/30 blur-3xl" />
+      </div>
 
-            <div className="tc-login-motion-hint max-w-md rounded-2xl border border-slate-200/80 bg-white/60 px-5 py-4 backdrop-blur-sm md:px-6 md:py-5">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Demo
-              </p>
-              <p className="mt-2 text-sm text-slate-600">
-                パスワード{" "}
-                <span className="font-semibold text-slate-800">1</span> /{" "}
-                <span className="font-semibold text-slate-800">2</span> /{" "}
-                <span className="font-semibold text-slate-800">3</span>
-                で本部・オーナー・店舗へ分岐します。
-              </p>
-              <ul className="mt-4 space-y-2">
-                {DEMO_LOGIN_RULES.map((rule) => (
-                  <li
-                    key={rule.password}
-                    className="group flex items-center justify-between gap-4 rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 transition-all duration-200 hover:border-slate-300/90 hover:bg-white hover:shadow-sm"
-                  >
-                    <span className="text-sm font-medium text-slate-700">
-                      {rule.roleLabel}
-                    </span>
-                    <span className="inline-flex min-w-[2rem] items-center justify-center rounded-lg border border-slate-200/90 bg-slate-50 px-2.5 py-1 text-xs font-semibold tabular-nums text-slate-700 transition-transform duration-200 group-hover:border-slate-300 group-hover:shadow-[0_1px_0_rgba(15,23,42,0.06)]">
-                      {rule.password}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+      <div className="relative z-[1] flex flex-1 flex-col items-center justify-center px-5 py-10 md:px-8 md:py-14">
+        <div className="mx-auto w-full max-w-xl space-y-10 text-center">
+          <header className="tc-login-motion-brand space-y-5 md:space-y-6">
+            <h1 className="tc-login-motion-title text-4xl font-bold tracking-tight text-slate-900 md:text-6xl">
+              TwinCoach
+            </h1>
+            <p className="tc-login-motion-subtitle text-lg font-semibold text-slate-700 md:text-2xl">
+              Retention &amp; Revenue OS
+            </p>
+            <p className="tc-login-motion-body mx-auto max-w-md text-base leading-relaxed text-slate-600 md:text-lg">
+              現場の記録を、
+              <br />
+              次の対応と経営判断につなげる
+            </p>
           </header>
 
-          {/* 右：フォームカード */}
-          <div className="tc-login-motion-card mx-auto w-full max-w-md lg:mx-0 lg:max-w-none lg:justify-self-end">
-            <div className="rounded-3xl border border-slate-200/90 bg-white/85 p-8 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.12)] backdrop-blur-md md:p-10">
-              <div className="mb-8 border-b border-slate-100 pb-6">
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+          <div className="tc-login-motion-card w-full">
+            <div className="rounded-[1.75rem] border-4 border-indigo-800 bg-white p-8 shadow-[0_32px_64px_-24px_rgba(30,27,75,0.45)] md:p-12">
+              <div className="mb-8 border-b-2 border-indigo-100 pb-6 text-left">
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-500">
                   Sign in
                 </p>
-                <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-900 md:text-2xl">
-                  アカウントでログイン
+                <h2 className="mt-2 text-2xl font-bold text-slate-900 md:text-3xl">
+                  ログイン
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                <p className="mt-2 text-sm text-slate-600 md:text-base">
                   デモ環境です。メールは任意の形式で入力できます。
                 </p>
               </div>
 
               {error ? (
                 <div
-                  className="mb-6 rounded-xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-red-700"
+                  className="mb-6 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
                   role="alert"
                 >
                   {error}
                 </div>
               ) : null}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6 text-left">
                 <div className="space-y-2">
                   <label
                     htmlFor="login-email"
-                    className="block text-xs font-medium uppercase tracking-wide text-slate-500"
+                    className="block text-sm font-semibold text-slate-700"
                   >
                     メールアドレス
                   </label>
@@ -183,7 +160,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
                     disabled={loading}
-                    className="tc-login-input w-full rounded-xl border border-slate-200/90 bg-white/90 px-4 py-3.5 text-[15px] text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.04)] outline-none transition-[border-color,box-shadow,transform,background-color] duration-200 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12),0_8px_24px_-12px_rgba(15,23,42,0.12)] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="tc-login-input w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-4 py-4 text-base text-slate-900 outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:shadow-[0_0_0_4px_rgba(99,102,241,0.25)] disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="name@company.jp"
                   />
                 </div>
@@ -191,7 +168,7 @@ export default function LoginPage() {
                 <div className="space-y-2">
                   <label
                     htmlFor="login-password"
-                    className="block text-xs font-medium uppercase tracking-wide text-slate-500"
+                    className="block text-sm font-semibold text-slate-700"
                   >
                     パスワード
                   </label>
@@ -203,7 +180,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="current-password"
                     disabled={loading}
-                    className="tc-login-input w-full rounded-xl border border-slate-200/90 bg-white/90 px-4 py-3.5 text-[15px] text-slate-900 shadow-[0_1px_0_rgba(15,23,42,0.04)] outline-none transition-[border-color,box-shadow,transform,background-color] duration-200 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12),0_8px_24px_-12px_rgba(15,23,42,0.12)] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="tc-login-input w-full rounded-xl border-2 border-slate-300 bg-slate-50 px-4 py-4 text-base text-slate-900 outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:shadow-[0_0_0_4px_rgba(99,102,241,0.25)] disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder="1 / 2 / 3"
                   />
                 </div>
@@ -211,16 +188,43 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="tc-login-submit w-full rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white shadow-[0_1px_0_rgba(255,255,255,0.08)_inset] outline-none transition-[transform,box-shadow,background-color,opacity] duration-200 hover:bg-slate-800 hover:shadow-[0_12px_28px_-16px_rgba(15,23,42,0.35)] active:translate-y-px active:shadow-[0_4px_12px_-8px_rgba(15,23,42,0.25)] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="tc-login-submit w-full rounded-xl border-2 border-indigo-900 bg-indigo-700 px-4 py-4 text-base font-bold text-white shadow-lg outline-none transition-[transform,background-color,box-shadow] duration-200 hover:bg-indigo-800 hover:shadow-xl active:translate-y-px disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {loading ? "ログイン中…" : "ログイン"}
                 </button>
               </form>
+
+              <div className="tc-login-motion-hint mt-10 rounded-2xl border-2 border-indigo-200 bg-indigo-50/80 p-5 text-left">
+                <p className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                  Demo
+                </p>
+                <p className="mt-2 text-sm font-medium text-slate-700">
+                  パスワード{" "}
+                  <span className="font-bold text-indigo-900">1</span> /{" "}
+                  <span className="font-bold text-indigo-900">2</span> /{" "}
+                  <span className="font-bold text-indigo-900">3</span>
+                  で本部・オーナー・店舗へ分岐します。
+                </p>
+                <ul className="mt-4 space-y-2">
+                  {DEMO_LOGIN_RULES.map((rule) => (
+                    <li
+                      key={rule.password}
+                      className="group flex items-center justify-between gap-4 rounded-xl border-2 border-white bg-white px-4 py-3 shadow-sm transition-all duration-200 hover:border-indigo-200 hover:shadow-md"
+                    >
+                      <span className="text-sm font-semibold text-slate-800">
+                        {rule.roleLabel}
+                      </span>
+                      <span className="inline-flex min-w-[2.25rem] items-center justify-center rounded-lg border-2 border-indigo-200 bg-indigo-50 px-3 py-1.5 text-sm font-bold tabular-nums text-indigo-900 transition-transform duration-200 group-hover:scale-105">
+                        {rule.password}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
     </div>
   );
 }
