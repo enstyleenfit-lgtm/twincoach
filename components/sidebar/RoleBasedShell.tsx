@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { HQSidebar } from "@/components/sidebar/HQSidebar";
 import {
   MobileTrainerTabBar,
@@ -16,7 +17,21 @@ import { TrialStoreProvider } from "@/components/store/TrialStoreProvider";
 type Props = { children: ReactNode };
 
 export function RoleBasedShell({ children }: Props) {
+  const pathname = usePathname();
   const role = useResolvedAppRole();
+  const isLoginPage =
+    pathname === "/login" || pathname === "/login/";
+
+  /** ログインはアプリシェル（サイドバー・トップバー）を出さず全画面で表示する */
+  if (isLoginPage) {
+    return (
+      <TrialStoreProvider>
+        <div className="min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden">
+          {children}
+        </div>
+      </TrialStoreProvider>
+    );
+  }
 
   const sidebar =
     role === "hq" ? (

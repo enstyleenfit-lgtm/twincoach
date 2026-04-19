@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { persistPreferredAppRole, type AppShellRole } from "@/components/sidebar/useResolvedAppRole";
 import {
@@ -26,6 +26,17 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === "development") {
+      console.info(
+        "%cTwinCoach%c ログイン画面 → %capp/login/page.tsx",
+        "font-weight:700;color:#0f172a;",
+        "color:#64748b;",
+        "font-family:ui-monospace,monospace;color:#0369a1;",
+      );
+    }
+  }, []);
 
   const persistDemoSession = (role: DemoAppRole) => {
     const secure = typeof window !== "undefined" && window.location.protocol === "https:";
@@ -66,7 +77,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-[calc(100dvh-0px)] overflow-hidden bg-gradient-to-br from-white via-slate-50/90 to-slate-100/50 text-slate-900">
+    <div
+      className="tc-login-page relative min-h-dvh overflow-hidden bg-gradient-to-br from-white via-slate-50/90 to-slate-100/50 text-slate-900"
+      data-tc-renderer="app/login/page.tsx"
+    >
+      {/* 画面上部の識別用アクセント（全幅・軽量） */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 z-[2] h-1 bg-gradient-to-r from-sky-200/80 via-slate-300/70 to-indigo-200/70"
+        aria-hidden
+      />
       {/* ごく薄いぼかしオーブ（装飾のみ・pointer-events なし） */}
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -77,25 +96,25 @@ export default function LoginPage() {
         <div className="absolute bottom-[-10%] left-[30%] h-[min(20rem,40vw)] w-[min(20rem,40vw)] rounded-full bg-blue-50/40 blur-3xl" />
       </div>
 
-      <div className="relative z-[1] mx-auto flex min-h-[calc(100dvh-0px)] max-w-6xl flex-col justify-center px-6 py-16 md:px-10 md:py-20 lg:py-24">
+      <div className="relative z-[1] mx-auto flex min-h-dvh max-w-6xl flex-col justify-center px-6 py-16 md:px-10 md:py-20 lg:py-24">
         <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 xl:gap-24">
           {/* 左：ブランド */}
           <header className="flex flex-col gap-6 md:gap-8">
-            <div className="motion-brand space-y-6 md:space-y-8">
-              <h1 className="text-[2.75rem] font-semibold leading-[1.08] tracking-tight text-slate-900 md:text-6xl md:leading-[1.05] motion-brand-title">
+            <div className="tc-login-motion-brand space-y-6 md:space-y-8">
+              <h1 className="tc-login-motion-title text-[2.75rem] font-semibold leading-[1.08] tracking-tight text-slate-900 md:text-6xl md:leading-[1.05]">
                 TwinCoach
               </h1>
-              <p className="text-lg font-medium tracking-tight text-slate-600 md:text-xl motion-brand-subtitle">
+              <p className="tc-login-motion-subtitle text-lg font-medium tracking-tight text-slate-600 md:text-xl">
                 Retention &amp; Revenue OS
               </p>
-              <p className="max-w-xl text-lg leading-[1.75] text-slate-500 md:text-xl md:leading-[1.8] motion-brand-body">
+              <p className="tc-login-motion-body max-w-xl text-lg leading-[1.75] text-slate-500 md:text-xl md:leading-[1.8]">
                 現場の記録を、
                 <br />
                 次の対応と経営判断につなげる
               </p>
             </div>
 
-            <div className="motion-brand-hint max-w-md rounded-2xl border border-slate-200/80 bg-white/60 px-5 py-4 backdrop-blur-sm md:px-6 md:py-5">
+            <div className="tc-login-motion-hint max-w-md rounded-2xl border border-slate-200/80 bg-white/60 px-5 py-4 backdrop-blur-sm md:px-6 md:py-5">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Demo
               </p>
@@ -125,7 +144,7 @@ export default function LoginPage() {
           </header>
 
           {/* 右：フォームカード */}
-          <div className="motion-login-card mx-auto w-full max-w-md lg:mx-0 lg:max-w-none lg:justify-self-end">
+          <div className="tc-login-motion-card mx-auto w-full max-w-md lg:mx-0 lg:max-w-none lg:justify-self-end">
             <div className="rounded-3xl border border-slate-200/90 bg-white/85 p-8 shadow-[0_24px_60px_-24px_rgba(15,23,42,0.12)] backdrop-blur-md md:p-10">
               <div className="mb-8 border-b border-slate-100 pb-6">
                 <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
@@ -202,60 +221,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <style jsx global>{`
-        @media (prefers-reduced-motion: no-preference) {
-          .motion-brand {
-            animation: tc-brand-wrap 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
-          }
-          .motion-brand-title {
-            animation: tc-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-          }
-          .motion-brand-subtitle {
-            animation: tc-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-            animation-delay: 70ms;
-          }
-          .motion-brand-body {
-            animation: tc-rise 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
-            animation-delay: 130ms;
-          }
-          .motion-brand-hint {
-            animation: tc-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
-            animation-delay: 200ms;
-          }
-          .motion-login-card {
-            animation: tc-card-rise 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
-            animation-delay: 120ms;
-          }
-        }
-        @keyframes tc-brand-wrap {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes tc-rise {
-          from {
-            opacity: 0;
-            transform: translateY(14px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes tc-card-rise {
-          from {
-            opacity: 0;
-            transform: translateY(18px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

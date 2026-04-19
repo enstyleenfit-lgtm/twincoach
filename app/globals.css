@@ -47,3 +47,65 @@ body {
     border: none !important;
   }
 }
+
+/* ── app/login/page.tsx 専用：軽い入場モーション（CSS のみ・常時ループなし） ── */
+@keyframes tc-login-brand-wrap {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tc-login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tc-login-card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tc-login-page .tc-login-motion-brand {
+    animation: tc-login-brand-wrap 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .tc-login-page .tc-login-motion-title {
+    animation: tc-login-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .tc-login-page .tc-login-motion-subtitle {
+    animation: tc-login-rise 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 70ms;
+  }
+
+  .tc-login-page .tc-login-motion-body {
+    animation: tc-login-rise 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 130ms;
+  }
+
+  .tc-login-page .tc-login-motion-hint {
+    animation: tc-login-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 200ms;
+  }
+
+  .tc-login-page .tc-login-motion-card {
+    animation: tc-login-card-rise 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: 120ms;
+  }
+}
