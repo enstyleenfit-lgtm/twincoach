@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export type AppShellRole = "hq" | "owner" | "store" | "trainer";
@@ -30,7 +30,7 @@ export function useResolvedAppRole(): AppShellRole {
   const pathname = usePathname();
   const [preferredRole, setPreferredRole] = useState<AppShellRole | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
       const raw = window.localStorage.getItem(PREFERRED_APP_ROLE_STORAGE_KEY);
       if (raw === "hq" || raw === "owner" || raw === "store" || raw === "trainer") {

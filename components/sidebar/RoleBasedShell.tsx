@@ -4,7 +4,8 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { HQSidebar } from "@/components/sidebar/HQSidebar";
 import {
-  MobileTrainerTabBar,
+  MobileShellTabBar,
+  shouldShowMobileTabBar,
   TRAINER_MOBILE_MAIN_PADDING,
 } from "@/components/sidebar/MobileTrainerTabBar";
 import { OwnerSidebar } from "@/components/sidebar/OwnerSidebar";
@@ -58,13 +59,13 @@ export function RoleBasedShell({ children }: Props) {
         </div>
         <main
           className={`min-h-0 min-w-0 w-full max-w-full flex-1 basis-0 shrink overflow-x-hidden overflow-y-auto ${
-            role === "trainer" ? TRAINER_MOBILE_MAIN_PADDING : ""
+            shouldShowMobileTabBar(role) ? TRAINER_MOBILE_MAIN_PADDING : ""
           }`}
         >
           <AppTopBar />
           {children}
         </main>
-        {role === "trainer" ? <MobileTrainerTabBar /> : null}
+        {shouldShowMobileTabBar(role) ? <MobileShellTabBar role={role} /> : null}
       </div>
     </TrialStoreProvider>
   );
