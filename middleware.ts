@@ -26,10 +26,10 @@ function isStoreScopePath(pathname: string) {
 
 function isPathAllowedForDemoRole(pathname: string, role: "hq" | "owner" | "store") {
   if (role === "hq") {
-    return pathname === "/hq" || pathname.startsWith("/hq/");
+    return (pathname === "/hq" || pathname.startsWith("/hq/")) || isStoreScopePath(pathname);
   }
   if (role === "owner") {
-    return pathname === "/owner" || pathname.startsWith("/owner/");
+    return (pathname === "/owner" || pathname.startsWith("/owner/")) || isStoreScopePath(pathname);
   }
   return isStoreScopePath(pathname);
 }
