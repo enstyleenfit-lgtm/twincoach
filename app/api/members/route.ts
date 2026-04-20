@@ -17,9 +17,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "store_id is required" }, { status: 400 });
     }
 
-    await requireStoreAccess({ storeId, requiredRoles: ["trainer", "owner", "hq", "staff"] });
+    const access = await requireStoreAccess({ storeId, requiredRoles: ["trainer", "owner", "hq", "staff"] });
     const members = await memberRepository.getAllForStore(storeId);
-    await logAudit({ storeId, action: "members.list" });
+    await logAudit({ storeId: access.store.id, action: "members.list" });
     return NextResponse.json(members);
   } catch (error) {
     if (error instanceof AuthzError) {
@@ -43,11 +43,11 @@ export async function POST(request: NextRequest) {
     if (!storeId) {
       return NextResponse.json({ error: "store_id is required" }, { status: 400 });
     }
-    await requireStoreAccess({ storeId, requiredRoles: ["trainer", "owner", "hq", "staff"] });
+    const access = await requireStoreAccess({ storeId, requiredRoles: ["trainer", "owner", "hq", "staff"] });
 
     const body: MemberCreateInput = await request.json();
     // server-side で store 変更を防ぐ（UI改ざん対策）
-    const payload: MemberCreateInput = { ...body, storeName: body.storeName };
+    const payload: MemberCreateInput = { ...body, storeName: access.store.name };
     const newMember = await memberRepository.createMember(payload);
     return NextResponse.json(newMember, { status: 201 });
   } catch (error) {

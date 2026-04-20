@@ -10,6 +10,30 @@ function isLoginPath(pathname: string) {
   return pathname === "/login" || pathname === "/login/";
 }
 
+function isStoreScopePath(pathname: string) {
+  return (
+    pathname === "/stores" ||
+    pathname.startsWith("/stores/") ||
+    pathname.startsWith("/store/") ||
+    pathname === "/members" ||
+    pathname.startsWith("/members/") ||
+    pathname === "/tasks" ||
+    pathname.startsWith("/tasks/") ||
+    pathname === "/session-input" ||
+    pathname.startsWith("/session-input/")
+  );
+}
+
+function isPathAllowedForDemoRole(pathname: string, role: "hq" | "owner" | "store") {
+  if (role === "hq") {
+    return pathname === "/hq" || pathname.startsWith("/hq/");
+  }
+  if (role === "owner") {
+    return pathname === "/owner" || pathname.startsWith("/owner/");
+  }
+  return isStoreScopePath(pathname);
+}
+
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const demoRoleRaw = request.cookies.get(DEMO_ROLE_COOKIE_NAME)?.value;
@@ -66,6 +90,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // デモ権限では到達可能ルートを厳密に制限する
+  if (demoRole && !isPathAllowedForDemoRole(pathname, demoRole)) {
+    return NextResponse.redirect(new URL(roleHomePath(demoRole), request.url));
+  }
+
   return response;
 }
 
@@ -78,7 +107,7 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
 

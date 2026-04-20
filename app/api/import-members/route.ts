@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     if (!storeId) {
       return NextResponse.json({ error: "store_id is required" }, { status: 400 });
     }
-    await requireStoreAccess({ storeId, requiredRoles: ["owner", "hq"] });
+    const access = await requireStoreAccess({ storeId, requiredRoles: ["owner", "hq"] });
 
     const body: MemberCreateInput[] = await request.json();
 
@@ -39,8 +39,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // memberRepository.createMembersBulk を使用して一括保存
-    const result = await memberRepository.createMembersBulk(body);
+    // memberRepository.createMembersBulk を使用して一括保存（storeName はサーバー側で強制）
+    const scopedBody = body.map((item) => ({ ...item, storeName: access.store.name }));
+    const result = await memberRepository.createMembersBulk(scopedBody);
 
     const importResult: ImportResult = {
       successCount: result.successCount,
