@@ -35,7 +35,7 @@ export function RoleSwitchControl() {
           オーナー
         </Link>
         <Link
-          href="/stores"
+          href="/members"
           onClick={() => persistPreferredAppRole("store")}
           className={`${btn} ${currentRole === "store" ? on : off}`}
         >

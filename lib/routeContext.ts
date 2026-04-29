@@ -53,6 +53,7 @@ export function trainerDetailHref(seg: AppRouteSegment, trainerName: string): st
 export function storesListHref(seg: AppRouteSegment): string {
   if (seg === "hq") return "/hq/stores";
   if (seg === "owner") return "/owner/stores";
+  if (seg === "store") return "/members";
   return "/stores";
 }
 
