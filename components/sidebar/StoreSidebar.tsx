@@ -37,15 +37,6 @@ export function StoreSidebar() {
         <ul className="space-y-2">
           <li>
             <Link
-              href="/stores"
-              className={linkClass("/stores")}
-              onClick={() => persistPreferredAppRole("store")}
-            >
-              店舗一覧
-            </Link>
-          </li>
-          <li>
-            <Link
               href="/members"
               className={linkClass("/members")}
               onClick={() => persistPreferredAppRole("store")}

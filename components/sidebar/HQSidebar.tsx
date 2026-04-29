@@ -64,15 +64,6 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href="/stores"
-              className={linkClass("/stores")}
-              onClick={() => persistPreferredAppRole("hq")}
-            >
-              店舗運用画面
-            </Link>
-          </li>
-          <li>
-            <Link
               href={trainers}
               className={linkClass(trainers)}
               onClick={() => persistPreferredAppRole("hq")}

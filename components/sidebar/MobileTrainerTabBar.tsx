@@ -133,13 +133,6 @@ const TRAINER_TABS: TabDef[] = [
 
 const STORE_TABS: TabDef[] = [
   {
-    href: "/stores",
-    label: "店舗一覧",
-    Icon: IconBuilding,
-    active: (p) => p.startsWith("/stores") || p.startsWith("/store/"),
-    persistRole: "store",
-  },
-  {
     href: "/members",
     label: "会員一覧",
     Icon: IconUsers,

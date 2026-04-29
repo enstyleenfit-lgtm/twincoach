@@ -12,8 +12,6 @@ function isLoginPath(pathname: string) {
 
 function isStoreScopePath(pathname: string) {
   return (
-    pathname === "/stores" ||
-    pathname.startsWith("/stores/") ||
     pathname.startsWith("/store/") ||
     pathname === "/members" ||
     pathname.startsWith("/members/") ||

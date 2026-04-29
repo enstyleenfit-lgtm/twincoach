@@ -9,6 +9,5 @@ export function isDemoRole(value: string | undefined | null): value is DemoAppRo
 export function roleHomePath(role: DemoAppRole): string {
   if (role === "hq") return "/hq";
   if (role === "owner") return "/owner";
-  // 店舗は店舗一覧（/stores）を入口にする
-  return "/stores";
+  return "/members";
 }

@@ -58,15 +58,6 @@ export function OwnerSidebar() {
           </li>
           <li>
             <Link
-              href="/stores"
-              className={linkClass("/stores")}
-              onClick={() => persistPreferredAppRole("owner")}
-            >
-              店舗運用画面
-            </Link>
-          </li>
-          <li>
-            <Link
               href={trainers}
               className={linkClass(trainers)}
               onClick={() => persistPreferredAppRole("owner")}
