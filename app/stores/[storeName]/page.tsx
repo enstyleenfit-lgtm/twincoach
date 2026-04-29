@@ -11,7 +11,7 @@ import { getReservationHeatmapData } from "@/lib/reservationHeatmap";
 import { ReservationHeatmap } from "@/components/ReservationHeatmap";
 import { getFirst90DaysRiskSummary } from "@/lib/first90Days";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
-import { getStoreRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
+import { getRevenueDefenseSimulation } from "@/lib/revenueDefenseSimulation";
 import { generateRevenueImprovementPlan } from "@/lib/revenueImprovementAI";
 import { getStoreActionPlan } from "@/lib/storeActionPlan";
 import { getStoreSuccessFactors } from "@/lib/storeSuccessAI";
@@ -57,25 +57,19 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   const { storeName } = await params;
   const decodedStoreIdOrName = decodeURIComponent(storeName);
 
-  // データ取得（一覧/比較用途）
-  const allMembers = await memberRepository.getAll();
+  // 店舗スコープの会員・タスクのみ取得（全会員取得は行わない）
+  const storeMembers = await memberRepository.getAllForStore(decodedStoreIdOrName);
 
-  // 店舗詳細用途（store_id 優先、モック時は storeName fallback）
-  const scopedMembers = await memberRepository.getAllForStore(decodedStoreIdOrName);
-  const storeMembers =
-    scopedMembers.length > 0
-      ? scopedMembers
-      : allMembers.filter((member: Member) => member.storeName === decodedStoreIdOrName);
-
-  // タスクも同様に store_id 優先
+  // タスクは store_id 優先。モック環境では getAllForStore が空を返すため、
+  // storeMembers に含まれる会員のIDセットで絞り込む
   const scopedTasks = await taskRepository.getAllForStore(decodedStoreIdOrName);
+  const storeMemberIds = new Set(storeMembers.map((m) => m.id));
   const storeTasks =
     scopedTasks.length > 0
       ? scopedTasks
-      : (await taskRepository.getAll()).filter((task: Task) => {
-          const member = allMembers.find((m: Member) => m.id === task.memberId);
-          return member?.storeName === decodedStoreIdOrName;
-        });
+      : (await taskRepository.getAll()).filter((task: Task) =>
+          storeMemberIds.has(task.memberId)
+        );
 
   // 基本統計
   const totalMembers = storeMembers.length;
@@ -168,24 +162,18 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   const first90DaysHighRiskCount = first90DaysSummary.highRiskFirst90DaysMembers.length;
 
   // 収益防衛シミュレーション（店舗版）
-  const storeRevenueDefenseSimulation = getStoreRevenueDefenseSimulation(
-    allMembers,
-    decodedStoreIdOrName
-  );
+  const storeRevenueDefenseSimulation = getRevenueDefenseSimulation(storeMembers);
 
-  const storeRevenueImprovementPlan = generateRevenueImprovementPlan(
-    allMembers,
-    decodedStoreIdOrName
-  );
+  const storeRevenueImprovementPlan = generateRevenueImprovementPlan(storeMembers);
 
   // 店舗別アクションプラン
-  const storeActionPlan = getStoreActionPlan(allMembers, decodedStoreIdOrName);
+  const storeActionPlan = getStoreActionPlan(storeMembers, decodedStoreIdOrName);
 
   // 予約詰まり時間帯ヒートマップ（店舗専用）
   const storeReservationHeatmap = getReservationHeatmapData(storeMembers);
 
   // 成功要因分析（他店舗が参考にすべき成功要因）
-  const storeSuccessFactors = getStoreSuccessFactors(allMembers, decodedStoreIdOrName);
+  const storeSuccessFactors = getStoreSuccessFactors(storeMembers, decodedStoreIdOrName);
 
   // 介入優先キュー（タスクを優先度順にソート）
   const interventionQueue = storeTasks
