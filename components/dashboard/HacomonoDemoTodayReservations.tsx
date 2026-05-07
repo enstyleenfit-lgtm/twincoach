@@ -58,7 +58,7 @@ function HacomonoDemoTodayReservationsInner() {
   return (
     <ExpandableSection title="本日の予約" summary={summary} defaultOpen={false}>
       <p className="text-[11px] text-slate-500 mb-3 leading-relaxed px-0.5">
-        <span className="font-medium text-slate-600">hacomono 連携想定デモ</span>
+        <span className="font-medium text-slate-600">hacomono予約連携</span>
         ・表示店舗: {selectedStore.name}・{PATTERN_LABEL[pattern]}（シナリオ {pattern}
         {queryOverride ? "・URL指定" : ""}）
       </p>

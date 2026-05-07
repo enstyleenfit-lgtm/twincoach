@@ -30,7 +30,6 @@ type Props = {
 };
 
 export default function MembersClient({ initialMembers }: Props) {
-  console.log("[render-check] app/members/MembersClient.tsx rendered");
   const seg = useAppRouteSegment();
   const [members, setMembers] = useState<Member[]>([]);
   const [isMobile, setIsMobile] = useState(false);
@@ -62,7 +61,7 @@ export default function MembersClient({ initialMembers }: Props) {
 
       {members.length === 0 ? (
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
-          <p className="text-slate-600">デモ用の会員データを読み込み中...</p>
+          <p className="text-slate-600">会員データがありません</p>
         </div>
       ) : (
         <>

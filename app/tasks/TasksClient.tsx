@@ -255,8 +255,6 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
     () => new Set()
   );
 
-  console.log("[render-check] app/tasks/TasksClient.tsx rendered");
-
   const handleStartTask = (taskId: string) => {
     setTaskStatuses((prev) => ({
       ...prev,

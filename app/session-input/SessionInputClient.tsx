@@ -1003,7 +1003,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                   d.note.trim() ? "border-emerald-500/40" : "border-slate-200"
                 }`}
               />
-              <div className="mt-2 text-[11px] text-slate-500">将来：音声入力に対応する前提の構造です。</div>
             </div>
           ) : (
             <div className="text-[11px] text-slate-600">タップでメモ入力</div>

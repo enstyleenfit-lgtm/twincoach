@@ -4,7 +4,6 @@ import { getStoreScopeId } from "@/lib/authz/serverScope";
 import MembersClient from "./MembersClient";
 
 export default async function MembersPage() {
-  console.log("[render-check] app/members/page.tsx rendered");
   const scopeStoreId = await getStoreScopeId();
   const raw = scopeStoreId
     ? await memberRepository.getAllForStore(scopeStoreId)

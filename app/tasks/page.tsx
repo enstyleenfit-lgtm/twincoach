@@ -3,7 +3,6 @@ import { getStoreScopeId } from "@/lib/authz/serverScope";
 import TasksClient from "./TasksClient";
 
 export default async function TasksPage() {
-  console.log("[render-check] app/tasks/page.tsx rendered");
   const scopeStoreId = await getStoreScopeId();
 
   let initialTasks, initialMembers;
