@@ -159,11 +159,6 @@ function MobileTaskExpandableRow({
       <DetailField label="作成理由">
         {taskCreationReason(task, member)}
       </DetailField>
-      <DetailField label="対応履歴">
-        <span className="text-slate-500">
-          タスク単位の対応履歴は未連携です。
-        </span>
-      </DetailField>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {task.status === "pending" && (

@@ -95,7 +95,7 @@ export function HQSidebar() {
               className={linkClass(pocSummary)}
               onClick={() => persistPreferredAppRole("hq")}
             >
-              PoCサマリー
+              導入効果
             </Link>
           </li>
         </ul>
