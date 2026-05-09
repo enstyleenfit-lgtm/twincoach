@@ -27,8 +27,8 @@ export function PriceRevisionChart({
   isPercentage = false,
 }: PriceRevisionChartProps) {
   return (
-    <div className="w-full h-64">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full">
+      <ResponsiveContainer width="100%" height={256}>
         <BarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="name" stroke="#64748b" tick={{ fill: "#64748b" }} />

@@ -19,8 +19,8 @@ export type RiskTrendDatum = {
 
 export function RiskTrendChart({ data }: { data: RiskTrendDatum[] }) {
   return (
-    <div className="h-64 w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full">
+      <ResponsiveContainer width="100%" height={256}>
         <BarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis dataKey="name" stroke="#64748b" tick={{ fill: "#64748b" }} />
