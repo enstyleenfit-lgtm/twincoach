@@ -32,7 +32,7 @@ function isPathAllowedForDemoRole(pathname: string, role: "hq" | "owner" | "stor
   return isStoreScopePath(pathname);
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const demoRoleRaw = request.cookies.get(DEMO_ROLE_COOKIE_NAME)?.value;
   const demoRole = isDemoRole(demoRoleRaw) ? demoRoleRaw : null;
@@ -108,4 +108,3 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
-
