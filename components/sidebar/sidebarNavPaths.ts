@@ -10,6 +10,7 @@ export const HQ_SIDEBAR_LINKS = {
   priceRevision: "/hq/price-revision",
   pocSummary: "/hq/poc-summary",
   billing: "/hq/billing",
+  inventory: "/hq/inventory",
 } as const;
 
 export const OWNER_SIDEBAR_LINKS = {
@@ -20,4 +21,12 @@ export const OWNER_SIDEBAR_LINKS = {
   tasks: "/owner/tasks",
   reports: "/owner/reports",
   billing: "/owner/billing",
+  inventory: "/owner/inventory",
+} as const;
+
+export const STORE_SIDEBAR_LINKS = {
+  members: "/members",
+  tasks: "/tasks",
+  sessionInput: "/session-input",
+  inventory: "/store/inventory",
 } as const;

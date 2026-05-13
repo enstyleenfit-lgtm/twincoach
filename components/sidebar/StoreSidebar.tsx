@@ -14,6 +14,7 @@ import {
   sidebarTitle,
 } from "@/components/sidebar/sidebarNavClasses";
 import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole";
+import { STORE_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
 
 export function StoreSidebar() {
   const pathname = usePathname();
@@ -60,6 +61,15 @@ export function StoreSidebar() {
               onClick={() => persistPreferredAppRole("store")}
             >
               セッション入力
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={STORE_SIDEBAR_LINKS.inventory}
+              className={linkClass(STORE_SIDEBAR_LINKS.inventory)}
+              onClick={() => persistPreferredAppRole("store")}
+            >
+              在庫管理
             </Link>
           </li>
         </ul>

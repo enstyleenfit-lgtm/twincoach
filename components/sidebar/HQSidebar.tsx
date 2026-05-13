@@ -26,6 +26,7 @@ export function HQSidebar() {
     priceRevision,
     pocSummary,
     billing,
+    inventory,
   } = HQ_SIDEBAR_LINKS;
 
   const linkClass = (href: string) => {
@@ -106,6 +107,15 @@ export function HQSidebar() {
               onClick={() => persistPreferredAppRole("hq")}
             >
               売上管理
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={inventory}
+              className={linkClass(inventory)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
+              在庫管理
             </Link>
           </li>
         </ul>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { AppShellRole } from "@/components/sidebar/useResolvedAppRole";
 import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole";
-import { HQ_SIDEBAR_LINKS, OWNER_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
+import { HQ_SIDEBAR_LINKS, OWNER_SIDEBAR_LINKS, STORE_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
 
 /** RoleBasedShell の main に付与（タブ高さ＋safe-area 分） */
 export const TRAINER_MOBILE_MAIN_PADDING = "pb-20 lg:pb-0";
@@ -163,6 +163,13 @@ const STORE_TABS: TabDef[] = [
     active: (p) => p.startsWith("/session-input"),
     persistRole: "store",
   },
+  {
+    href: STORE_SIDEBAR_LINKS.inventory,
+    label: "在庫管理",
+    Icon: IconBilling,
+    active: (p) => p.startsWith(STORE_SIDEBAR_LINKS.inventory),
+    persistRole: "store",
+  },
 ];
 
 const OWNER_DASH = OWNER_SIDEBAR_LINKS.dashboard;
@@ -211,6 +218,13 @@ const OWNER_TABS: TabDef[] = [
     active: (p) => p.startsWith(OWNER_SIDEBAR_LINKS.billing),
     persistRole: "owner",
   },
+  {
+    href: OWNER_SIDEBAR_LINKS.inventory,
+    label: "在庫管理",
+    Icon: IconBilling,
+    active: (p) => p.startsWith(OWNER_SIDEBAR_LINKS.inventory),
+    persistRole: "owner",
+  },
 ];
 
 const HQ_TABS: TabDef[] = [
@@ -254,6 +268,13 @@ const HQ_TABS: TabDef[] = [
     label: "売上管理",
     Icon: IconBilling,
     active: (p) => p.startsWith(HQ_SIDEBAR_LINKS.billing),
+    persistRole: "hq",
+  },
+  {
+    href: HQ_SIDEBAR_LINKS.inventory,
+    label: "在庫管理",
+    Icon: IconBilling,
+    active: (p) => p.startsWith(HQ_SIDEBAR_LINKS.inventory),
     persistRole: "hq",
   },
 ];
