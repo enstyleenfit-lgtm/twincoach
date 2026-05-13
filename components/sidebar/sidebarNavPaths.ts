@@ -9,6 +9,7 @@ export const HQ_SIDEBAR_LINKS = {
   reports: "/hq/reports",
   priceRevision: "/hq/price-revision",
   pocSummary: "/hq/poc-summary",
+  billing: "/hq/billing",
 } as const;
 
 export const OWNER_SIDEBAR_LINKS = {
@@ -18,4 +19,5 @@ export const OWNER_SIDEBAR_LINKS = {
   members: "/owner/members",
   tasks: "/owner/tasks",
   reports: "/owner/reports",
+  billing: "/owner/billing",
 } as const;

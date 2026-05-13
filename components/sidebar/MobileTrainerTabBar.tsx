@@ -92,6 +92,16 @@ function IconChart({ className }: { className?: string }) {
   );
 }
 
+function IconBilling({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.75" />
+      <path d="M2 10h20" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+      <path d="M6 15h4M16 15h2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 type TabDef = {
   href: string;
   label: string;
@@ -194,6 +204,13 @@ const OWNER_TABS: TabDef[] = [
     active: (p) => p.startsWith(OWNER_SIDEBAR_LINKS.reports),
     persistRole: "owner",
   },
+  {
+    href: OWNER_SIDEBAR_LINKS.billing,
+    label: "売上管理",
+    Icon: IconBilling,
+    active: (p) => p.startsWith(OWNER_SIDEBAR_LINKS.billing),
+    persistRole: "owner",
+  },
 ];
 
 const HQ_TABS: TabDef[] = [
@@ -230,6 +247,13 @@ const HQ_TABS: TabDef[] = [
     label: "価格改定",
     Icon: IconTasks,
     active: (p) => p.startsWith(HQ_SIDEBAR_LINKS.priceRevision),
+    persistRole: "hq",
+  },
+  {
+    href: HQ_SIDEBAR_LINKS.billing,
+    label: "売上管理",
+    Icon: IconBilling,
+    active: (p) => p.startsWith(HQ_SIDEBAR_LINKS.billing),
     persistRole: "hq",
   },
 ];

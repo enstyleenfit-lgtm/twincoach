@@ -18,7 +18,7 @@ import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole
 
 export function OwnerSidebar() {
   const pathname = usePathname();
-  const { dashboard, stores, trainers, members, tasks, reports } =
+  const { dashboard, stores, trainers, members, tasks, reports, billing } =
     OWNER_SIDEBAR_LINKS;
 
   const linkClass = (href: string) => {
@@ -90,6 +90,15 @@ export function OwnerSidebar() {
               onClick={() => persistPreferredAppRole("owner")}
             >
               レポート
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={billing}
+              className={linkClass(billing)}
+              onClick={() => persistPreferredAppRole("owner")}
+            >
+              売上管理
             </Link>
           </li>
         </ul>
