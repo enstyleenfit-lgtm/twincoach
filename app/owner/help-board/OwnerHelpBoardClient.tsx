@@ -170,7 +170,7 @@ export function OwnerHelpBoardClient({
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">応援掲示板</h1>
         <p className="mt-1 text-sm text-slate-500">自店舗の募集と、他店舗への応援状況</p>

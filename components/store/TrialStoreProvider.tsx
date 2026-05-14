@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   TRIAL_STORE_DEFAULT_ID,
   TRIAL_SELECTED_STORE_STORAGE_KEY,
@@ -26,6 +27,7 @@ type TrialStoreContextValue = {
 const TrialStoreContext = createContext<TrialStoreContextValue | null>(null);
 
 export function TrialStoreProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
   const [selectedId, setSelectedIdState] = useState<string>(TRIAL_STORE_DEFAULT_ID);
 
   useEffect(() => {
@@ -33,6 +35,7 @@ export function TrialStoreProvider({ children }: { children: ReactNode }) {
       const raw = window.localStorage.getItem(TRIAL_SELECTED_STORE_STORAGE_KEY);
       if (raw && TRIAL_STORES.some((s) => s.id === raw)) {
         setSelectedIdState(raw);
+        document.cookie = `tc_store_id=${raw}; path=/; max-age=86400`;
       }
     } catch {
       // noop
@@ -44,10 +47,12 @@ export function TrialStoreProvider({ children }: { children: ReactNode }) {
     setSelectedIdState(id);
     try {
       window.localStorage.setItem(TRIAL_SELECTED_STORE_STORAGE_KEY, id);
+      document.cookie = `tc_store_id=${id}; path=/; max-age=86400`;
     } catch {
       // noop
     }
-  }, []);
+    router.refresh();
+  }, [router]);
 
   const selectedStore = useMemo(() => {
     return TRIAL_STORES.find((s) => s.id === selectedId) ?? TRIAL_STORES[0];
