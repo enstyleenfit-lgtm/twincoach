@@ -102,6 +102,20 @@ function IconBilling({ className }: { className?: string }) {
   );
 }
 
+function IconBoard({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+      />
+      <path d="M8 10h.01M12 10h.01M16 10h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 type TabDef = {
   href: string;
   label: string;
@@ -168,6 +182,13 @@ const STORE_TABS: TabDef[] = [
     label: "在庫管理",
     Icon: IconBilling,
     active: (p) => p.startsWith(STORE_SIDEBAR_LINKS.inventory),
+    persistRole: "store",
+  },
+  {
+    href: STORE_SIDEBAR_LINKS.helpBoard,
+    label: "応援掲示板",
+    Icon: IconBoard,
+    active: (p) => p.startsWith(STORE_SIDEBAR_LINKS.helpBoard),
     persistRole: "store",
   },
 ];

@@ -11,6 +11,7 @@ export const HQ_SIDEBAR_LINKS = {
   pocSummary: "/hq/poc-summary",
   billing: "/hq/billing",
   inventory: "/hq/inventory",
+  helpBoard: "/hq/help-board",
 } as const;
 
 export const OWNER_SIDEBAR_LINKS = {
@@ -22,6 +23,7 @@ export const OWNER_SIDEBAR_LINKS = {
   reports: "/owner/reports",
   billing: "/owner/billing",
   inventory: "/owner/inventory",
+  helpBoard: "/owner/help-board",
 } as const;
 
 export const STORE_SIDEBAR_LINKS = {
@@ -29,4 +31,5 @@ export const STORE_SIDEBAR_LINKS = {
   tasks: "/tasks",
   sessionInput: "/session-input",
   inventory: "/store/inventory",
+  helpBoard: "/store/help-board",
 } as const;

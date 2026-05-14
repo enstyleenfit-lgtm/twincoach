@@ -72,6 +72,15 @@ export function StoreSidebar() {
               在庫管理
             </Link>
           </li>
+          <li>
+            <Link
+              href={STORE_SIDEBAR_LINKS.helpBoard}
+              className={linkClass(STORE_SIDEBAR_LINKS.helpBoard)}
+              onClick={() => persistPreferredAppRole("store")}
+            >
+              応援掲示板
+            </Link>
+          </li>
         </ul>
       </nav>
       <div className={sidebarFooter}>
