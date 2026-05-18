@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
-import type { HelpRequest, HelpApplication } from "@/lib/helpBoardMockData";
+import type { HelpRequest, HelpApplication, HelpType, ShiftSlot } from "@/lib/helpBoardMockData";
 import { getApplicationsForRequest } from "@/lib/helpBoardMockData";
 
 type Props = {
@@ -50,18 +50,38 @@ function AppStatusBadge({ status }: { status: string }) {
   );
 }
 
+type FormState = {
+  date: string;
+  shiftSlot: ShiftSlot;
+  helpType: HelpType;
+  requiredCount: string;
+  description: string;
+};
+
+const EMPTY_FORM: FormState = {
+  date: "",
+  shiftSlot: "午前",
+  helpType: "欠員補充",
+  requiredCount: "1",
+  description: "",
+};
+
 function RequestRow({
   req,
   isExpanded,
   onToggle,
   showApps,
   highlightApplicantStoreId,
+  isApplied,
+  onApply,
 }: {
   req: HelpRequest;
   isExpanded: boolean;
   onToggle: () => void;
   showApps: boolean;
   highlightApplicantStoreId?: string;
+  isApplied?: boolean;
+  onApply?: () => void;
 }) {
   const apps = getApplicationsForRequest(req.requestId);
   const ownApp = highlightApplicantStoreId
@@ -90,6 +110,8 @@ function RequestRow({
         <td className="px-5 py-4 text-center">
           {showApps && apps.length > 0 ? (
             <span className="text-sm font-semibold text-blue-600">{apps.length}件</span>
+          ) : isApplied ? (
+            <AppStatusBadge status={ownApp?.status ?? "応募中"} />
           ) : ownApp ? (
             <AppStatusBadge status={ownApp.status} />
           ) : (
@@ -128,11 +150,29 @@ function RequestRow({
                   )}
                 </>
               )}
-              {ownApp && (
-                <div className="mt-2 flex items-center justify-between gap-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                  <p className="text-sm font-medium text-blue-700">自店舗の応募</p>
-                  <AppStatusBadge status={ownApp.status} />
-                </div>
+              {!showApps && (
+                isApplied ? (
+                  <div className="mt-2 flex items-center justify-between gap-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+                    <p className="text-sm font-medium text-blue-700">
+                      {ownApp ? "自店舗の応募" : "応募済み"}
+                    </p>
+                    <AppStatusBadge status={ownApp?.status ?? "応募中"} />
+                  </div>
+                ) : ownApp ? (
+                  <div className="mt-2 flex items-center justify-between gap-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+                    <p className="text-sm font-medium text-blue-700">自店舗の応募</p>
+                    <AppStatusBadge status={ownApp.status} />
+                  </div>
+                ) : (
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onApply?.(); }}
+                      className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition-colors"
+                    >
+                      応募する
+                    </button>
+                  </div>
+                )
               )}
             </div>
           </td>
@@ -148,14 +188,51 @@ export function OwnerHelpBoardClient({
   otherOpenRequests,
   ownApplications,
 }: Props) {
+  const [localOwnRequests, setLocalOwnRequests] = useState<HelpRequest[]>(ownRequests);
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(
+    () => new Set(ownApplications.map((a) => a.requestId))
+  );
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const toggle = (id: string) =>
     setExpandedId((prev) => (prev === id ? null : id));
 
-  const ownOpenCount = ownRequests.filter((r) => r.status === "募集中").length;
-  const ownConfirmedCount = ownRequests.filter((r) => r.status === "確定済み").length;
-  const ownPendingApps = ownApplications.filter((a) => a.status === "応募中").length;
+  const storeName = ownRequests[0]?.storeName ?? "自店舗";
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newReq: HelpRequest = {
+      requestId: `req-new-${Date.now()}`,
+      storeId,
+      storeName,
+      date: form.date,
+      shiftSlot: form.shiftSlot,
+      helpType: form.helpType,
+      requiredCount: parseInt(form.requiredCount, 10) || 1,
+      description: form.description,
+      status: "募集中",
+      postedAt: new Date().toISOString().slice(0, 10),
+      postedBy: "オーナー",
+      source: "manual",
+    };
+    setLocalOwnRequests((prev) => [newReq, ...prev]);
+    setForm(EMPTY_FORM);
+    setShowForm(false);
+  };
+
+  const handleApply = (requestId: string) => {
+    setAppliedIds((prev) => new Set([...prev, requestId]));
+  };
+
+  const newlyAppliedCount = [...appliedIds].filter(
+    (id) => !ownApplications.some((a) => a.requestId === id)
+  ).length;
+  const ownOpenCount = localOwnRequests.filter((r) => r.status === "募集中").length;
+  const ownConfirmedCount = localOwnRequests.filter((r) => r.status === "確定済み").length;
+  const ownPendingApps =
+    ownApplications.filter((a) => a.status === "応募中").length + newlyAppliedCount;
 
   const tableHead = (
     <thead className="border-b border-slate-200 bg-slate-50">
@@ -203,8 +280,97 @@ export function OwnerHelpBoardClient({
 
       {/* Own requests */}
       <div className="mb-6">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">自店舗の募集</h2>
-        {ownRequests.length === 0 ? (
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-slate-700">自店舗の募集</h2>
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+          >
+            {showForm ? "閉じる" : "+ 募集を投稿"}
+          </button>
+        </div>
+
+        {showForm && (
+          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">日付</label>
+                  <input
+                    type="date"
+                    required
+                    value={form.date}
+                    onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">時間帯</label>
+                  <select
+                    value={form.shiftSlot}
+                    onChange={(e) => setForm((f) => ({ ...f, shiftSlot: e.target.value as ShiftSlot }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                  >
+                    <option>午前</option>
+                    <option>午後</option>
+                    <option>終日</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">種別</label>
+                  <select
+                    value={form.helpType}
+                    onChange={(e) => setForm((f) => ({ ...f, helpType: e.target.value as HelpType }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                  >
+                    <option>欠員補充</option>
+                    <option>代行出勤</option>
+                    <option>短時間サポート</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">必要人数</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    required
+                    value={form.requiredCount}
+                    onChange={(e) => setForm((f) => ({ ...f, requiredCount: e.target.value }))}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">概要メモ</label>
+                <textarea
+                  rows={2}
+                  value={form.description}
+                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="募集の詳細を入力してください"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none resize-none"
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowForm(false); setForm(EMPTY_FORM); }}
+                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                >
+                  キャンセル
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                >
+                  投稿する
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {localOwnRequests.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
             現在、募集はありません。
           </div>
@@ -213,7 +379,7 @@ export function OwnerHelpBoardClient({
             <table className="w-full">
               {tableHead}
               <tbody className="divide-y divide-slate-100">
-                {ownRequests.map((req) => (
+                {localOwnRequests.map((req) => (
                   <RequestRow
                     key={req.requestId}
                     req={req}
@@ -251,6 +417,8 @@ export function OwnerHelpBoardClient({
                     onToggle={() => toggle(req.requestId)}
                     showApps={false}
                     highlightApplicantStoreId={storeId}
+                    isApplied={appliedIds.has(req.requestId)}
+                    onApply={() => handleApply(req.requestId)}
                   />
                 ))}
               </tbody>
