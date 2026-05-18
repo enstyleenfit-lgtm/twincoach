@@ -45,14 +45,23 @@ function OrderStatusBadge({ status }: { status: PurchaseOrder["status"] }) {
 
 export function OwnerInventoryClient({ storeId, storeName, inventory, orders }: Props) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [localOrders, setLocalOrders] = useState<PurchaseOrder[]>(orders);
 
   const lowStockItems = inventory.filter(isLowStock);
-  const pendingOrders = orders.filter(
+  const pendingOrders = localOrders.filter(
     (o) => o.status === "requested" || o.status === "approved" || o.status === "shipped"
   );
 
   const getOrdersForProduct = (productId: string) =>
-    orders.filter((o) => o.productId === productId);
+    localOrders.filter((o) => o.productId === productId);
+
+  const handleApprove = (orderId: string) => {
+    setLocalOrders((prev) =>
+      prev.map((o): PurchaseOrder =>
+        o.orderId === orderId ? { ...o, status: "approved" } : o
+      )
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -103,7 +112,7 @@ export function OwnerInventoryClient({ storeId, storeName, inventory, orders }: 
       <div className="mb-6">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">
           在庫一覧
-          <span className="ml-2 text-xs font-normal text-slate-400">行をクリックで発注履歴を確認</span>
+          <span className="ml-2 text-xs font-normal text-slate-400">行をクリックで発注履歴・承認操作</span>
         </h2>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full">
@@ -170,6 +179,7 @@ export function OwnerInventoryClient({ storeId, storeName, inventory, orders }: 
                                     <th className="pb-2 text-center text-xs font-medium text-slate-500">ステータス</th>
                                     <th className="pb-2 text-left text-xs font-medium text-slate-500">申請日</th>
                                     <th className="pb-2 text-left text-xs font-medium text-slate-500">備考</th>
+                                    <th className="pb-2 text-right text-xs font-medium text-slate-500">操作</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -179,6 +189,18 @@ export function OwnerInventoryClient({ storeId, storeName, inventory, orders }: 
                                       <td className="py-2 text-center"><OrderStatusBadge status={o.status} /></td>
                                       <td className="py-2 text-sm text-slate-500">{o.requestedAt}</td>
                                       <td className="py-2 text-sm text-slate-500">{o.note ?? "—"}</td>
+                                      <td className="py-2 text-right">
+                                        {o.status === "requested" ? (
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); handleApprove(o.orderId); }}
+                                            className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                                          >
+                                            承認する
+                                          </button>
+                                        ) : (
+                                          <span className="text-xs text-slate-400">—</span>
+                                        )}
+                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -209,6 +231,7 @@ export function OwnerInventoryClient({ storeId, storeName, inventory, orders }: 
                   <th className="px-5 py-3.5 text-center text-xs font-semibold text-slate-600">ステータス</th>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">申請日</th>
                   <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">備考</th>
+                  <th className="px-5 py-3.5 text-right text-xs font-semibold text-slate-600">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -219,6 +242,18 @@ export function OwnerInventoryClient({ storeId, storeName, inventory, orders }: 
                     <td className="px-5 py-3.5 text-center"><OrderStatusBadge status={o.status} /></td>
                     <td className="px-5 py-3.5 text-sm text-slate-500">{o.requestedAt}</td>
                     <td className="px-5 py-3.5 text-sm text-slate-500">{o.note ?? "—"}</td>
+                    <td className="px-5 py-3.5 text-right">
+                      {o.status === "requested" ? (
+                        <button
+                          onClick={() => handleApprove(o.orderId)}
+                          className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          承認する
+                        </button>
+                      ) : (
+                        <span className="text-xs text-slate-400">—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

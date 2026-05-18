@@ -9,7 +9,6 @@ import type {
 import {
   isLowStock,
   getInventoryByStore,
-  getOrdersByStore,
   CATEGORY_LABEL,
   ORDER_STATUS_LABEL,
 } from "@/lib/inventoryMockData";
@@ -51,23 +50,34 @@ function OrderStatusBadge({ status }: { status: PurchaseOrder["status"] }) {
 
 export function HQInventoryClient({ summaries, allInventory, allOrders }: Props) {
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [localOrders, setLocalOrders] = useState<PurchaseOrder[]>(allOrders);
 
   const alertStoreCount = summaries.filter((s) => s.lowStockCount > 0).length;
-  const pendingOrderCount = allOrders.filter(
+  const pendingOrderCount = localOrders.filter(
     (o) => o.status === "requested" || o.status === "approved"
   ).length;
   const totalLowStockItems = summaries.reduce((s, r) => s + r.lowStockCount, 0);
-  const totalOrderCount = allOrders.length;
+  const totalOrderCount = localOrders.length;
 
   const selectedSummary = selectedStoreId
     ? summaries.find((s) => s.storeId === selectedStoreId) ?? null
     : null;
   const detailItems = selectedStoreId ? getInventoryByStore(selectedStoreId) : [];
-  const detailOrders = selectedStoreId ? getOrdersByStore(selectedStoreId) : [];
+  const detailOrders = selectedStoreId
+    ? localOrders.filter((o) => o.storeId === selectedStoreId)
+    : [];
 
-  const pendingOrders = allOrders.filter(
+  const pendingOrders = localOrders.filter(
     (o) => o.status === "requested" || o.status === "approved" || o.status === "shipped"
   );
+
+  const handleApprove = (orderId: string) => {
+    setLocalOrders((prev) =>
+      prev.map((o): PurchaseOrder =>
+        o.orderId === orderId ? { ...o, status: "approved" } : o
+      )
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -225,6 +235,7 @@ export function HQInventoryClient({ summaries, allInventory, allOrders }: Props)
                         <th className="px-4 py-3 text-center text-xs font-semibold text-slate-600">ステータス</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">申請日</th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-slate-600">備考</th>
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-slate-600">操作</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -235,6 +246,18 @@ export function HQInventoryClient({ summaries, allInventory, allOrders }: Props)
                           <td className="px-4 py-3 text-center"><OrderStatusBadge status={o.status} /></td>
                           <td className="px-4 py-3 text-sm text-slate-500">{o.requestedAt}</td>
                           <td className="px-4 py-3 text-sm text-slate-500">{o.note ?? "—"}</td>
+                          <td className="px-4 py-3 text-right">
+                            {o.status === "requested" ? (
+                              <button
+                                onClick={() => handleApprove(o.orderId)}
+                                className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                              >
+                                承認する
+                              </button>
+                            ) : (
+                              <span className="text-xs text-slate-400">—</span>
+                            )}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -269,6 +292,7 @@ export function HQInventoryClient({ summaries, allInventory, allOrders }: Props)
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">申請日</th>
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">申請者</th>
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">備考</th>
+                    <th className="px-5 py-3.5 text-right text-xs font-semibold text-slate-600">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -281,6 +305,18 @@ export function HQInventoryClient({ summaries, allInventory, allOrders }: Props)
                       <td className="px-5 py-3.5 text-sm text-slate-500">{o.requestedAt}</td>
                       <td className="px-5 py-3.5 text-sm text-slate-500">{o.requestedBy}</td>
                       <td className="px-5 py-3.5 text-sm text-slate-500">{o.note ?? "—"}</td>
+                      <td className="px-5 py-3.5 text-right">
+                        {o.status === "requested" ? (
+                          <button
+                            onClick={() => handleApprove(o.orderId)}
+                            className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                          >
+                            承認する
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

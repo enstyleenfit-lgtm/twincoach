@@ -27,14 +27,60 @@ function OrderStatusBadge({ status }: { status: PurchaseOrder["status"] }) {
 
 export function StoreInventoryClient({ storeId, storeName, inventory, orders }: Props) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [localInventory, setLocalInventory] = useState<InventoryItem[]>(inventory);
+  const [localOrders, setLocalOrders] = useState<PurchaseOrder[]>(orders);
+  const [stockInput, setStockInput] = useState("");
+  const [orderQty, setOrderQty] = useState("");
+  const [orderNote, setOrderNote] = useState("");
 
-  const lowStockItems = inventory.filter(isLowStock);
-  const pendingOrders = orders.filter(
+  const lowStockItems = localInventory.filter(isLowStock);
+  const pendingOrders = localOrders.filter(
     (o) => o.status === "requested" || o.status === "approved" || o.status === "shipped"
   );
 
   const getOrdersForProduct = (productId: string) =>
-    orders.filter((o) => o.productId === productId);
+    localOrders.filter((o) => o.productId === productId);
+
+  const handleExpand = (itemId: string) => {
+    setStockInput("");
+    setOrderQty("");
+    setOrderNote("");
+    setExpandedItemId((prev) => (prev === itemId ? null : itemId));
+  };
+
+  const handleStockUpdate = (item: InventoryItem) => {
+    const qty = parseInt(stockInput, 10);
+    if (isNaN(qty) || qty < 0) return;
+    setLocalInventory((prev) =>
+      prev.map((i) =>
+        i.itemId === item.itemId
+          ? { ...i, stockQuantity: qty, lastUpdated: new Date().toISOString().slice(0, 10) }
+          : i
+      )
+    );
+    setStockInput("");
+  };
+
+  const handleOrderSubmit = (item: InventoryItem) => {
+    const qty = parseInt(orderQty, 10);
+    if (isNaN(qty) || qty <= 0) return;
+    const newOrder: PurchaseOrder = {
+      orderId: `order-${Date.now()}`,
+      storeId,
+      storeName,
+      productId: item.productId,
+      productName: item.productName,
+      requestedQuantity: qty,
+      unit: item.unit,
+      status: "requested",
+      requestedAt: new Date().toISOString().slice(0, 10),
+      requestedBy: "スタッフ",
+      note: orderNote.trim() || undefined,
+    };
+    setLocalOrders((prev) => [newOrder, ...prev]);
+    setOrderQty("");
+    setOrderNote("");
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -47,7 +93,7 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
       <div className="mb-6 grid grid-cols-2 gap-4">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium text-slate-500">管理品目数</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{inventory.length}品目</p>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{localInventory.length}品目</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium text-slate-500">不足アラート</p>
@@ -63,7 +109,7 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium text-slate-500">発注総数</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{orders.length}件</p>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{localOrders.length}件</p>
         </div>
       </div>
 
@@ -90,7 +136,7 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
       <div className="mb-6">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">
           在庫一覧
-          <span className="ml-2 text-xs font-normal text-slate-400">タップで発注状況を確認</span>
+          <span className="ml-2 text-xs font-normal text-slate-400">タップで在庫更新・発注申請</span>
         </h2>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full">
@@ -103,7 +149,7 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {inventory.map((item) => {
+              {localInventory.map((item) => {
                 const low = isLowStock(item);
                 const isExpanded = expandedItemId === item.itemId;
                 const productOrders = getOrdersForProduct(item.productId);
@@ -111,7 +157,7 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
                 return (
                   <Fragment key={item.itemId}>
                     <tr
-                      onClick={() => setExpandedItemId((prev) => prev === item.itemId ? null : item.itemId)}
+                      onClick={() => handleExpand(item.itemId)}
                       className={`cursor-pointer transition-colors ${low ? "bg-red-50/50" : ""} ${isExpanded ? "bg-slate-50" : "hover:bg-slate-50"}`}
                     >
                       <td className="px-4 py-3.5">
@@ -137,25 +183,85 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
                     </tr>
                     {isExpanded && (
                       <tr>
-                        <td colSpan={4} className="bg-slate-50 px-4 pb-4 pt-0">
-                          <div className="rounded-lg border border-slate-200 bg-white p-4">
-                            <p className="mb-3 text-xs font-semibold text-slate-600">発注申請履歴</p>
-                            {productOrders.length === 0 ? (
-                              <p className="text-xs text-slate-400">発注履歴はありません。</p>
-                            ) : (
-                              <div className="space-y-2">
-                                {productOrders.map((o) => (
-                                  <div key={o.orderId} className="flex items-center justify-between gap-4 rounded-lg border border-slate-100 px-3 py-2.5">
-                                    <div>
-                                      <p className="text-sm font-semibold text-slate-900">{o.requestedQuantity} {o.unit}</p>
-                                      <p className="text-xs text-slate-400">{o.requestedAt} · {o.requestedBy}</p>
-                                      {o.note && <p className="mt-0.5 text-xs text-slate-500">{o.note}</p>}
-                                    </div>
-                                    <OrderStatusBadge status={o.status} />
-                                  </div>
-                                ))}
+                        <td colSpan={4} className="bg-slate-50 px-4 pb-4 pt-2">
+                          <div className="space-y-3">
+                            {/* Stock update */}
+                            <div className="rounded-lg border border-slate-200 bg-white p-4">
+                              <p className="mb-3 text-xs font-semibold text-slate-600">在庫数を更新</p>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-slate-500">現在：{item.stockQuantity}{item.unit}</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={stockInput}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => setStockInput(e.target.value)}
+                                  placeholder="新しい在庫数"
+                                  className="w-32 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none"
+                                />
+                                <span className="text-xs text-slate-500">{item.unit}</span>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleStockUpdate(item); }}
+                                  disabled={stockInput === "" || parseInt(stockInput, 10) < 0}
+                                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+                                >
+                                  更新する
+                                </button>
                               </div>
-                            )}
+                            </div>
+
+                            {/* Order request form */}
+                            <div className="rounded-lg border border-slate-200 bg-white p-4">
+                              <p className="mb-3 text-xs font-semibold text-slate-600">発注申請</p>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={orderQty}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => setOrderQty(e.target.value)}
+                                  placeholder="申請数量"
+                                  className="w-28 rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none"
+                                />
+                                <span className="text-xs text-slate-500">{item.unit}</span>
+                                <input
+                                  type="text"
+                                  value={orderNote}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => setOrderNote(e.target.value)}
+                                  placeholder="メモ（任意）"
+                                  className="flex-1 min-w-[9rem] rounded-md border border-slate-300 px-3 py-1.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-500 focus:outline-none"
+                                />
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleOrderSubmit(item); }}
+                                  disabled={orderQty === "" || parseInt(orderQty, 10) <= 0}
+                                  className="rounded-md bg-slate-800 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40 transition-colors"
+                                >
+                                  申請する
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Order history */}
+                            <div className="rounded-lg border border-slate-200 bg-white p-4">
+                              <p className="mb-3 text-xs font-semibold text-slate-600">発注申請履歴</p>
+                              {productOrders.length === 0 ? (
+                                <p className="text-xs text-slate-400">発注履歴はありません。</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {productOrders.map((o) => (
+                                    <div key={o.orderId} className="flex items-center justify-between gap-4 rounded-lg border border-slate-100 px-3 py-2.5">
+                                      <div>
+                                        <p className="text-sm font-semibold text-slate-900">{o.requestedQuantity} {o.unit}</p>
+                                        <p className="text-xs text-slate-400">{o.requestedAt} · {o.requestedBy}</p>
+                                        {o.note && <p className="mt-0.5 text-xs text-slate-500">{o.note}</p>}
+                                      </div>
+                                      <OrderStatusBadge status={o.status} />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
                       </tr>
