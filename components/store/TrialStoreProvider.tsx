@@ -36,11 +36,12 @@ export function TrialStoreProvider({ children }: { children: ReactNode }) {
       if (raw && TRIAL_STORES.some((s) => s.id === raw)) {
         setSelectedIdState(raw);
         document.cookie = `tc_store_id=${raw}; path=/; max-age=86400`;
+        router.refresh();
       }
     } catch {
       // noop
     }
-  }, []);
+  }, [router]);
 
   const setSelectedId = useCallback((id: string) => {
     if (!TRIAL_STORES.some((s) => s.id === id)) return;

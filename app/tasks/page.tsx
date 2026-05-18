@@ -1,5 +1,6 @@
 import { memberRepository, taskRepository } from "@/lib/repositories";
 import { getStoreScopeId } from "@/lib/authz/serverScope";
+import { getTrialStoreNameForData } from "@/lib/trialStore";
 import TasksClient from "./TasksClient";
 
 export default async function TasksPage() {
@@ -7,9 +8,10 @@ export default async function TasksPage() {
 
   let initialTasks, initialMembers;
   if (scopeStoreId) {
-    // store ロール: 自店舗データのみ取得
-    initialMembers = await memberRepository.getAllForStore(scopeStoreId);
-    const scopedTasks = await taskRepository.getAllForStore(scopeStoreId);
+    // store ロール: 自店舗データのみ取得（Cookie は ASCII storeId → 日本語 storeName に変換）
+    const filterName = getTrialStoreNameForData(scopeStoreId);
+    initialMembers = await memberRepository.getAllForStore(filterName);
+    const scopedTasks = await taskRepository.getAllForStore(filterName);
     if (scopedTasks.length > 0) {
       initialTasks = scopedTasks;
     } else {

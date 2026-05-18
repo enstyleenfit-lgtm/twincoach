@@ -1033,18 +1033,21 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
               前回コピー
             </button>
           </div>
-          {/* PC（lg 以上）: 会員 | 前回コピー（従来） */}
-          <div className="hidden lg:flex flex-row gap-3 items-end">
-            <div className="min-w-0 flex-1">{memberSelect}</div>
-            <div className="shrink-0 self-end">
-              <button
-                type="button"
-                onClick={handleCopyLast}
-                className="h-12 px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
-              >
-                前回コピー
-              </button>
+          {/* PC（lg 以上）: 会員 | 前回コピー → トレーナー */}
+          <div className="hidden lg:block">
+            <div className="flex flex-row gap-3 items-end mb-3">
+              <div className="min-w-0 flex-1">{memberSelect}</div>
+              <div className="shrink-0 self-end">
+                <button
+                  type="button"
+                  onClick={handleCopyLast}
+                  className="h-12 px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
+                >
+                  前回コピー
+                </button>
+              </div>
             </div>
+            <div>{trainerFields}</div>
           </div>
         </div>
 
@@ -1094,10 +1097,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                 className="w-full min-h-[100px] rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 resize-y"
               />
             </label>
-          </div>
-
-          <div className="hidden lg:block rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            {trainerFields}
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
