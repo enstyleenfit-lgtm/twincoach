@@ -12,39 +12,52 @@ import { ContextualStoreLink } from "@/components/navigation/ContextualStoreLink
 import { getTrainerMetrics } from "@/lib/trainerMetrics";
 import { generateRevenueImprovementPlan } from "@/lib/revenueImprovementAI";
 import { getStoreActionPlan } from "@/lib/storeActionPlan";
-import { getCurrentStoreIdFromCookies } from "@/lib/authz/storeContext";
+import { OWNER_STORE_IDS, getTrialStoreNameForData } from "@/lib/trialStore";
 
 export default async function OwnerPage() {
-  const ownerStoreId = await getCurrentStoreIdFromCookies();
+  // 管轄2店舗分の会員を並列取得（Cookie依存なし）
+  const membersByStore = await Promise.all(
+    OWNER_STORE_IDS.map((id) =>
+      memberRepository.getAllForStore(getTrialStoreNameForData(id))
+    )
+  );
+  const allMembers = membersByStore.flat();
 
-  // オーナーは所属店舗のみを取得（モック互換のため name fallback 付き）
-  const storeMembers = ownerStoreId
-    ? await memberRepository.getAllForStore(ownerStoreId)
-    : [];
-  const ownerStoreName =
-    storeMembers[0]?.storeName ??
-    "店舗未選択";
-
-  // 自店舗の集計
-  const storeSummaries = getStoreSummaries(storeMembers);
-  const storeSummary = storeSummaries.find(s => s.storeName === ownerStoreName) || {
-    storeName: ownerStoreName,
-    totalMembers: 0,
-    highRiskMembers: 0,
-    mediumRiskMembers: 0,
-    lowRiskMembers: 0,
-    monthlyRevenue: 0,
-    monthlyRevenueAtRisk: 0,
-    annualRevenueAtRisk: 0,
-    expectedLoss30Days: 0,
-    estimatedRetentionRate: 0,
-  };
+  // 管轄店舗合算の集計
+  const storeSummaries = getStoreSummaries(allMembers);
+  const totalMembersForWeight = storeSummaries.reduce((s, r) => s + r.totalMembers, 0);
+  const storeSummary = storeSummaries.reduce(
+    (acc, s) => ({
+      totalMembers: acc.totalMembers + s.totalMembers,
+      highRiskMembers: acc.highRiskMembers + s.highRiskMembers,
+      mediumRiskMembers: acc.mediumRiskMembers + s.mediumRiskMembers,
+      lowRiskMembers: acc.lowRiskMembers + s.lowRiskMembers,
+      monthlyRevenue: acc.monthlyRevenue + s.monthlyRevenue,
+      monthlyRevenueAtRisk: acc.monthlyRevenueAtRisk + s.monthlyRevenueAtRisk,
+      annualRevenueAtRisk: acc.annualRevenueAtRisk + s.annualRevenueAtRisk,
+      expectedLoss30Days: acc.expectedLoss30Days + s.expectedLoss30Days,
+      estimatedRetentionRate:
+        acc.estimatedRetentionRate +
+        (totalMembersForWeight > 0 ? s.estimatedRetentionRate * (s.totalMembers / totalMembersForWeight) : 0),
+    }),
+    {
+      totalMembers: 0,
+      highRiskMembers: 0,
+      mediumRiskMembers: 0,
+      lowRiskMembers: 0,
+      monthlyRevenue: 0,
+      monthlyRevenueAtRisk: 0,
+      annualRevenueAtRisk: 0,
+      expectedLoss30Days: 0,
+      estimatedRetentionRate: 0,
+    }
+  );
 
   const highRiskCount = storeSummary.highRiskMembers;
   const nextMonthLoss = storeSummary.expectedLoss30Days;
 
-  // 高リスク会員
-  const highRiskMembers = storeMembers
+  // 高リスク会員（2店舗合算、上位10件）
+  const highRiskMembers = allMembers
     .map((m: Member) => ({
       member: m,
       risk: calculateRiskScore(m),
@@ -54,39 +67,39 @@ export default async function OwnerPage() {
     .sort((a, b) => b.risk.score - a.risk.score)
     .slice(0, 10);
 
-  const priorityToday = getPriorityQueue(storeMembers).slice(0, 5);
+  const priorityToday = getPriorityQueue(allMembers).slice(0, 5);
 
-  const totalLoss60Days = storeMembers.reduce((sum, m) => {
+  const totalLoss60Days = allMembers.reduce((sum, m) => {
     const f = getRevenueRiskForecast(m);
     return sum + f.expectedLoss60Days;
   }, 0);
 
-  const annualDanger = storeMembers
+  const annualDanger = allMembers
     .filter((m) => calculateRiskScore(m).level === "high")
     .reduce((sum, m) => sum + getRevenueRiskForecast(m).annualRevenue, 0);
 
-  const topStoresByLoss = getStoreSummaries(storeMembers)
+  const topStoresByLoss = storeSummaries
     .slice()
     .sort((a, b) => b.expectedLoss30Days - a.expectedLoss30Days)
     .slice(0, 5);
 
-  const trainerRetention = getTrainerMetrics(storeMembers)
+  const trainerRetention = getTrainerMetrics(allMembers)
     .slice()
     .sort((a, b) => a.estimatedRetentionRate - b.estimatedRetentionRate)
     .slice(0, 5);
 
-  const revenueImprovementPlan = generateRevenueImprovementPlan(storeMembers, ownerStoreName);
-  const storeActionPlan = getStoreActionPlan(storeMembers, ownerStoreName);
+  const revenueImprovementPlan = generateRevenueImprovementPlan(allMembers, "管轄店舗");
+  const storeActionPlan = getStoreActionPlan(allMembers, "管轄店舗");
 
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold mb-8">オーナーダッシュボード</h1>
-      <p className="text-slate-600 mb-8">店舗: {ownerStoreName}</p>
+      <p className="text-slate-600 mb-8">管轄店舗：{OWNER_STORE_IDS.length}店舗合算</p>
 
       {/* KPIカード */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
-          <h3 className="text-slate-600 text-sm mb-2">自店舗売上（月間）</h3>
+          <h3 className="text-slate-600 text-sm mb-2">管轄店舗売上（月間）</h3>
           <p className="text-3xl font-bold text-slate-900">
             ¥{storeSummary.monthlyRevenue.toLocaleString()}
           </p>
@@ -112,7 +125,6 @@ export default async function OwnerPage() {
       </div>
 
       {/* 高リスク会員 */}
-
       <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">高リスク会員</h2>
         {highRiskMembers.length > 0 ? (
@@ -264,17 +276,8 @@ export default async function OwnerPage() {
               storeName={store.storeName}
               className="rounded-lg border border-slate-200 bg-slate-50/80 p-5 hover:border-slate-300 transition-colors"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-slate-900 font-semibold truncate">
-                    {store.storeName}
-                  </div>
-                  {store.storeName === ownerStoreName ? (
-                    <div className="text-emerald-800 text-[11px] mt-1 font-semibold">
-                      自店舗
-                    </div>
-                  ) : null}
-                </div>
+              <div className="text-slate-900 font-semibold truncate">
+                {store.storeName}
               </div>
               <div className="mt-4 text-sm">
                 <div className="flex items-center justify-between">
@@ -416,4 +419,3 @@ export default async function OwnerPage() {
     </div>
   );
 }
-
