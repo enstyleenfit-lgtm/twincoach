@@ -62,7 +62,7 @@ export function RoleBasedShell({ children }: Props) {
             shouldShowMobileTabBar(role) ? TRAINER_MOBILE_MAIN_PADDING : ""
           }`}
         >
-          <AppTopBar />
+          <AppTopBar role={role} />
           {children}
         </main>
         {shouldShowMobileTabBar(role) ? <MobileShellTabBar role={role} /> : null}

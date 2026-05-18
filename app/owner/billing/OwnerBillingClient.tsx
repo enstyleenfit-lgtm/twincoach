@@ -4,7 +4,7 @@ import { Fragment, useState } from "react";
 import type { StoreMonthlyRevenue, MemberPaymentRecord } from "@/lib/financialMockData";
 
 type Props = {
-  storeRevenue: StoreMonthlyRevenue | undefined;
+  storeRevenues: StoreMonthlyRevenue[];
   memberPayments: MemberPaymentRecord[];
   displayMonth: string;
 };
@@ -31,23 +31,18 @@ function StatusBadge({ status }: { status: MemberPaymentRecord["status"] }) {
   );
 }
 
-export function OwnerBillingClient({ storeRevenue, memberPayments, displayMonth }: Props) {
+export function OwnerBillingClient({ storeRevenues, memberPayments, displayMonth }: Props) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const storeName = storeRevenue?.storeName ?? "店舗";
-  const totalRevenue = storeRevenue?.totalRevenue ?? 0;
-  const collectedAmount = storeRevenue?.collectedAmount ?? 0;
-  const unpaidAmount = storeRevenue?.unpaidAmount ?? 0;
-  const unpaidCount = storeRevenue?.unpaidCount ?? 0;
-  const memberCount = storeRevenue?.memberCount ?? 0;
+  const totalRevenue = storeRevenues.reduce((s, r) => s + r.totalRevenue, 0);
+  const totalCollected = storeRevenues.reduce((s, r) => s + r.collectedAmount, 0);
+  const totalUnpaid = storeRevenues.reduce((s, r) => s + r.unpaidAmount, 0);
+  const totalUnpaidCount = storeRevenues.reduce((s, r) => s + r.unpaidCount, 0);
+  const totalMemberCount = storeRevenues.reduce((s, r) => s + r.memberCount, 0);
 
   const unpaidMembers = memberPayments.filter(
     (m) => m.status === "unpaid" || m.status === "overdue"
   );
-
-  const handleRowClick = (memberId: string) => {
-    setExpandedId((prev) => (prev === memberId ? null : memberId));
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -55,7 +50,7 @@ export function OwnerBillingClient({ storeRevenue, memberPayments, displayMonth 
         <div>
           <h1 className="text-2xl font-bold text-slate-900">売上管理</h1>
           <p className="mt-1 text-sm text-slate-500">
-            {storeName} · {displayMonth}
+            管轄{storeRevenues.length}店舗合算 · {displayMonth}
           </p>
         </div>
         <span className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">
@@ -67,47 +62,84 @@ export function OwnerBillingClient({ storeRevenue, memberPayments, displayMonth 
         </span>
       </div>
 
-      {/* KPI cards */}
+      {/* 合算KPI */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">月間売上</p>
+          <p className="text-xs font-medium text-slate-500">月間売上合計</p>
           <p className="mt-2 text-2xl font-bold text-slate-900">
             ¥{totalRevenue.toLocaleString()}
           </p>
-          <p className="mt-1 text-xs text-slate-400">{memberCount}会員</p>
+          <p className="mt-1 text-xs text-slate-400">{totalMemberCount}会員</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium text-slate-500">入金済み</p>
           <p className="mt-2 text-2xl font-bold text-emerald-700">
-            ¥{collectedAmount.toLocaleString()}
+            ¥{totalCollected.toLocaleString()}
           </p>
           <p className="mt-1 text-xs text-slate-400">
             {totalRevenue > 0
-              ? `${((collectedAmount / totalRevenue) * 100).toFixed(1)}% 回収済み`
+              ? `${((totalCollected / totalRevenue) * 100).toFixed(1)}% 回収済み`
               : "—"}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium text-slate-500">未払い合計</p>
-          <p className={`mt-2 text-2xl font-bold ${unpaidAmount > 0 ? "text-red-600" : "text-slate-400"}`}>
-            {unpaidAmount > 0 ? `¥${unpaidAmount.toLocaleString()}` : "¥0"}
+          <p className={`mt-2 text-2xl font-bold ${totalUnpaid > 0 ? "text-red-600" : "text-slate-400"}`}>
+            {totalUnpaid > 0 ? `¥${totalUnpaid.toLocaleString()}` : "¥0"}
           </p>
           <p className="mt-1 text-xs text-slate-400">
             {totalRevenue > 0
-              ? `売上の${((unpaidAmount / totalRevenue) * 100).toFixed(1)}%`
+              ? `売上の${((totalUnpaid / totalRevenue) * 100).toFixed(1)}%`
               : "—"}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-xs font-medium text-slate-500">未払い件数</p>
-          <p className={`mt-2 text-2xl font-bold ${unpaidCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
-            {unpaidCount}件
+          <p className={`mt-2 text-2xl font-bold ${totalUnpaidCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
+            {totalUnpaidCount}件
           </p>
-          <p className="mt-1 text-xs text-slate-400">全{memberCount}会員中</p>
+          <p className="mt-1 text-xs text-slate-400">全{totalMemberCount}会員中</p>
         </div>
       </div>
 
-      {/* Unpaid member table */}
+      {/* 店舗別内訳 */}
+      <div className="mb-8">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">店舗別内訳</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {storeRevenues.map((r) => (
+            <div
+              key={r.storeId}
+              className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+            >
+              <p className="text-sm font-semibold text-slate-900 mb-3">{r.storeName}</p>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">月間売上</span>
+                  <span className="font-semibold text-slate-900">¥{r.totalRevenue.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">入金済み</span>
+                  <span className="font-semibold text-emerald-700">¥{r.collectedAmount.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">未払い</span>
+                  <span className={`font-semibold ${r.unpaidAmount > 0 ? "text-red-600" : "text-slate-400"}`}>
+                    {r.unpaidAmount > 0 ? `¥${r.unpaidAmount.toLocaleString()}` : "¥0"}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">未払い件数</span>
+                  <span className={`font-semibold ${r.unpaidCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
+                    {r.unpaidCount}件 / {r.memberCount}会員
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 未払い・延滞会員（2店舗合算） */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-slate-700">
           未払い・延滞会員
@@ -130,6 +162,7 @@ export function OwnerBillingClient({ storeRevenue, memberPayments, displayMonth 
                 <thead className="border-b border-slate-200 bg-slate-50">
                   <tr>
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">会員名</th>
+                    <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">店舗</th>
                     <th className="px-5 py-3.5 text-left text-xs font-semibold text-slate-600">プラン</th>
                     <th className="px-5 py-3.5 text-right text-xs font-semibold text-slate-600">月額</th>
                     <th className="px-5 py-3.5 text-center text-xs font-semibold text-slate-600">状態</th>
@@ -140,7 +173,7 @@ export function OwnerBillingClient({ storeRevenue, memberPayments, displayMonth 
                   {unpaidMembers.map((m) => (
                     <Fragment key={m.memberId}>
                       <tr
-                        onClick={() => handleRowClick(m.memberId)}
+                        onClick={() => setExpandedId((prev) => (prev === m.memberId ? null : m.memberId))}
                         className={`cursor-pointer transition-colors ${
                           expandedId === m.memberId ? "bg-slate-50" : "hover:bg-slate-50"
                         }`}
@@ -162,6 +195,7 @@ export function OwnerBillingClient({ storeRevenue, memberPayments, displayMonth 
                             <span className="text-sm font-medium text-slate-900">{m.memberName}</span>
                           </div>
                         </td>
+                        <td className="px-5 py-3.5 text-sm text-slate-500">{m.storeName}</td>
                         <td className="px-5 py-3.5 text-sm text-slate-600">{m.plan}</td>
                         <td className="px-5 py-3.5 text-right text-sm text-slate-700">
                           ¥{m.monthlyFee.toLocaleString()}
@@ -175,7 +209,7 @@ export function OwnerBillingClient({ storeRevenue, memberPayments, displayMonth 
                       </tr>
                       {expandedId === m.memberId && (
                         <tr>
-                          <td colSpan={5} className="bg-slate-50 px-5 pb-4 pt-0">
+                          <td colSpan={6} className="bg-slate-50 px-5 pb-4 pt-0">
                             <div className="rounded-lg border border-slate-200 bg-white p-4">
                               <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
                                 <div>

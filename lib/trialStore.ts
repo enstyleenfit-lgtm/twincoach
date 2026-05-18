@@ -13,6 +13,9 @@ export const TRIAL_STORE_DEFAULT_ID = "ningyocho";
 
 export const TRIAL_SELECTED_STORE_STORAGE_KEY = "twincoach:trialSelectedStoreId:v1";
 
+/** オーナーが管轄する店舗ID一覧（tc_store_id Cookieに依存しない固定定義） */
+export const OWNER_STORE_IDS: string[] = TRIAL_STORES.map((s) => s.id);
+
 /**
  * モックデータ上の storeName は「◯◯店」で管理しているため、
  * 試験用店舗切替（id/name）からフィルタ用の storeName を解決する。

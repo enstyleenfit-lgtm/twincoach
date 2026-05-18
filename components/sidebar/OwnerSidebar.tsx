@@ -53,7 +53,7 @@ export function OwnerSidebar() {
               className={linkClass(stores)}
               onClick={() => persistPreferredAppRole("owner")}
             >
-              店舗一覧
+              店舗管理
             </Link>
           </li>
           <li>
