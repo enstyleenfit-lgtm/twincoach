@@ -1014,7 +1014,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden py-4 sm:py-6 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:pl-6 sm:pr-6">
-      <div className="w-full max-w-3xl mx-auto min-w-0">
+      <div className="w-full max-w-3xl lg:max-w-5xl mx-auto min-w-0">
         <header className="mb-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-balance">セッション入力</h1>
           <p className="text-slate-600 text-base mt-1">タップで完了。種目は選択フローから選べます。</p>

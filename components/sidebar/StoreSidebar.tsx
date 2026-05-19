@@ -98,6 +98,15 @@ export function StoreSidebar() {
         <ul className="space-y-2">
           <li>
             <Link
+              href="/session-input"
+              className={linkClass("/session-input")}
+              onClick={() => persistPreferredAppRole("store")}
+            >
+              セッション入力
+            </Link>
+          </li>
+          <li>
+            <Link
               href="/members"
               className={linkClass("/members")}
               onClick={() => persistPreferredAppRole("store")}
@@ -112,15 +121,6 @@ export function StoreSidebar() {
               onClick={() => persistPreferredAppRole("store")}
             >
               タスク
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/session-input"
-              className={linkClass("/session-input")}
-              onClick={() => persistPreferredAppRole("store")}
-            >
-              セッション入力
             </Link>
           </li>
           <li>
