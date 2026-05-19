@@ -9,5 +9,5 @@ export function isDemoRole(value: string | undefined | null): value is DemoAppRo
 export function roleHomePath(role: DemoAppRole): string {
   if (role === "hq") return "/hq";
   if (role === "owner") return "/owner";
-  return "/members";
+  return "/session-input";
 }
