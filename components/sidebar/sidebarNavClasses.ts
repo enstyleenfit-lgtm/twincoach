@@ -1,6 +1,6 @@
 /** ライトテーマ左ナビ共通クラス */
 export const sidebarAside =
-  "w-64 flex-shrink-0 flex flex-col border-r border-slate-200 bg-white shadow-sm";
+  "w-56 flex-shrink-0 flex flex-col border-r border-slate-200 bg-white shadow-sm overflow-y-auto";
 export const sidebarHeader = "border-b border-slate-200/80 p-6 bg-slate-50/60";
 export const sidebarFooter = "border-t border-slate-200 p-4";
 export const sidebarTitle = "text-lg font-bold text-slate-900";

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/components/LogoutButton";
 import { RoleSwitchControl } from "@/components/sidebar/RoleSwitchControl";
 import { OWNER_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
+import { OWNER_STORE_IDS } from "@/lib/trialStore";
 import {
   sidebarAside,
   sidebarFooter,
@@ -35,6 +36,9 @@ export function OwnerSidebar() {
       <div className={sidebarHeader}>
         <h1 className={sidebarTitle}>TwinCoach オーナー</h1>
         <RoleSwitchControl />
+        <span className="mt-2 inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+          管轄店舗：{OWNER_STORE_IDS.length}店舗
+        </span>
       </div>
       <nav className="flex-1 p-4">
         <ul className="space-y-2">

@@ -44,6 +44,9 @@ export function HQSidebar() {
       <div className={sidebarHeader}>
         <h1 className={sidebarTitle}>TwinCoach HQ</h1>
         <RoleSwitchControl />
+        <span className="mt-2 inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+          全店舗管理
+        </span>
       </div>
       <nav className="flex-1 p-4">
         <ul className="space-y-2">

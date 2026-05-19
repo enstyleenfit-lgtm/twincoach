@@ -50,10 +50,10 @@ export function RoleBasedShell({ children }: Props) {
 
   return (
     <TrialStoreProvider>
-      <div className="flex min-h-dvh w-full min-w-0 max-w-full overflow-x-hidden bg-slate-50 text-slate-900">
+      <div className="flex h-dvh w-full min-w-0 max-w-full overflow-hidden bg-slate-50 text-slate-900">
         <div
           data-app-sidebar-slot
-          className="max-lg:hidden lg:flex lg:w-64 lg:flex-shrink-0"
+          className="max-lg:hidden lg:flex lg:w-56 lg:flex-shrink-0"
         >
           {sidebar}
         </div>
@@ -62,7 +62,9 @@ export function RoleBasedShell({ children }: Props) {
             shouldShowMobileTabBar(role) ? TRAINER_MOBILE_MAIN_PADDING : ""
           }`}
         >
-          <AppTopBar role={role} />
+          <div className="lg:hidden">
+            <AppTopBar role={role} />
+          </div>
           {children}
         </main>
         {shouldShowMobileTabBar(role) ? <MobileShellTabBar role={role} /> : null}
