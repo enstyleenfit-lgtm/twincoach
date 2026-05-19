@@ -4,17 +4,22 @@ import { Fragment, useState } from "react";
 import type { HelpRequest, HelpApplication, HelpType, ShiftSlot } from "@/lib/helpBoardMockData";
 import { getApplicationsForRequest } from "@/lib/helpBoardMockData";
 
-type Props = {
+type StoreHelpData = {
   storeId: string;
-  ownRequests: HelpRequest[];
+  storeName: string;
+  requests: HelpRequest[];
+  applications: HelpApplication[];
+};
+
+type Props = {
+  stores: StoreHelpData[];
   otherOpenRequests: HelpRequest[];
-  ownApplications: HelpApplication[];
 };
 
 function RequestStatusBadge({ status }: { status: HelpRequest["status"] }) {
   const styles = {
-    募集中:   "bg-amber-50 text-amber-700 ring-amber-600/20",
-    確定済み: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    募集中:    "bg-amber-50 text-amber-700 ring-amber-600/20",
+    確定済み:  "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
     キャンセル: "bg-slate-100 text-slate-500 ring-slate-400/20",
   } as const;
   return (
@@ -26,8 +31,8 @@ function RequestStatusBadge({ status }: { status: HelpRequest["status"] }) {
 
 function HelpTypeBadge({ type }: { type: HelpRequest["helpType"] }) {
   const styles = {
-    "欠員補充": "bg-red-50 text-red-700 ring-red-600/20",
-    "代行出勤": "bg-blue-50 text-blue-700 ring-blue-600/20",
+    "欠員補充":     "bg-red-50 text-red-700 ring-red-600/20",
+    "代行出勤":     "bg-blue-50 text-blue-700 ring-blue-600/20",
     "短時間サポート": "bg-violet-50 text-violet-700 ring-violet-600/20",
   } as const;
   return (
@@ -71,7 +76,7 @@ function RequestRow({
   isExpanded,
   onToggle,
   showApps,
-  highlightApplicantStoreId,
+  ownerStoreIds,
   isApplied,
   onApply,
 }: {
@@ -79,13 +84,13 @@ function RequestRow({
   isExpanded: boolean;
   onToggle: () => void;
   showApps: boolean;
-  highlightApplicantStoreId?: string;
+  ownerStoreIds?: string[];
   isApplied?: boolean;
   onApply?: () => void;
 }) {
   const apps = getApplicationsForRequest(req.requestId);
-  const ownApp = highlightApplicantStoreId
-    ? apps.find((a) => a.applicantStoreId === highlightApplicantStoreId)
+  const ownApp = ownerStoreIds?.length
+    ? apps.find((a) => ownerStoreIds.includes(a.applicantStoreId))
     : undefined;
 
   return (
@@ -154,13 +159,13 @@ function RequestRow({
                 isApplied ? (
                   <div className="mt-2 flex items-center justify-between gap-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
                     <p className="text-sm font-medium text-blue-700">
-                      {ownApp ? "自店舗の応募" : "応募済み"}
+                      {ownApp ? "管轄店舗の応募" : "応募済み"}
                     </p>
                     <AppStatusBadge status={ownApp?.status ?? "応募中"} />
                   </div>
                 ) : ownApp ? (
                   <div className="mt-2 flex items-center justify-between gap-4 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                    <p className="text-sm font-medium text-blue-700">自店舗の応募</p>
+                    <p className="text-sm font-medium text-blue-700">管轄店舗の応募</p>
                     <AppStatusBadge status={ownApp.status} />
                   </div>
                 ) : (
@@ -182,31 +187,42 @@ function RequestRow({
   );
 }
 
-export function OwnerHelpBoardClient({
-  storeId,
-  ownRequests,
-  otherOpenRequests,
-  ownApplications,
-}: Props) {
-  const [localOwnRequests, setLocalOwnRequests] = useState<HelpRequest[]>(ownRequests);
+export function OwnerHelpBoardClient({ stores, otherOpenRequests }: Props) {
+  const allInitialApplications = stores.flatMap((s) => s.applications);
+  const ownerStoreIds = stores.map((s) => s.storeId);
+  const ownerRequestIds = new Set(stores.flatMap((s) => s.requests.map((r) => r.requestId)));
+
+  const [localStoreRequests, setLocalStoreRequests] = useState<Record<string, HelpRequest[]>>(
+    () => Object.fromEntries(stores.map((s) => [s.storeId, s.requests]))
+  );
   const [appliedIds, setAppliedIds] = useState<Set<string>>(
-    () => new Set(ownApplications.map((a) => a.requestId))
+    () => new Set(allInitialApplications.map((a) => a.requestId))
   );
   const [showForm, setShowForm] = useState(false);
+  const [formStoreId, setFormStoreId] = useState<string>(stores[0]?.storeId ?? "");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const toggle = (id: string) =>
-    setExpandedId((prev) => (prev === id ? null : id));
+  const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
 
-  const storeName = ownRequests[0]?.storeName ?? "自店舗";
+  const allLocalRequests = Object.values(localStoreRequests).flat();
+  const totalOwnRequests = allLocalRequests.length;
+  const ownOpenCount = allLocalRequests.filter((r) => r.status === "募集中").length;
+  const newlyAppliedCount = [...appliedIds].filter(
+    (id) => !allInitialApplications.some((a) => a.requestId === id)
+  ).length;
+  const ownPendingApps =
+    allInitialApplications.filter(
+      (a) => a.status === "応募中" && !ownerRequestIds.has(a.requestId)
+    ).length + newlyAppliedCount;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const selectedStore = stores.find((s) => s.storeId === formStoreId);
     const newReq: HelpRequest = {
       requestId: `req-new-${Date.now()}`,
-      storeId,
-      storeName,
+      storeId: formStoreId,
+      storeName: selectedStore?.storeName ?? formStoreId,
       date: form.date,
       shiftSlot: form.shiftSlot,
       helpType: form.helpType,
@@ -217,7 +233,10 @@ export function OwnerHelpBoardClient({
       postedBy: "オーナー",
       source: "manual",
     };
-    setLocalOwnRequests((prev) => [newReq, ...prev]);
+    setLocalStoreRequests((prev) => ({
+      ...prev,
+      [formStoreId]: [newReq, ...(prev[formStoreId] ?? [])],
+    }));
     setForm(EMPTY_FORM);
     setShowForm(false);
   };
@@ -225,14 +244,6 @@ export function OwnerHelpBoardClient({
   const handleApply = (requestId: string) => {
     setAppliedIds((prev) => new Set([...prev, requestId]));
   };
-
-  const newlyAppliedCount = [...appliedIds].filter(
-    (id) => !ownApplications.some((a) => a.requestId === id)
-  ).length;
-  const ownOpenCount = localOwnRequests.filter((r) => r.status === "募集中").length;
-  const ownConfirmedCount = localOwnRequests.filter((r) => r.status === "確定済み").length;
-  const ownPendingApps =
-    ownApplications.filter((a) => a.status === "応募中").length + newlyAppliedCount;
 
   const tableHead = (
     <thead className="border-b border-slate-200 bg-slate-50">
@@ -250,27 +261,30 @@ export function OwnerHelpBoardClient({
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">応援掲示板</h1>
-        <p className="mt-1 text-sm text-slate-500">自店舗の募集と、他店舗への応援状況</p>
+        <p className="mt-1 text-sm text-slate-500">管轄店舗の募集状況と、他店舗への応援状況</p>
       </div>
 
       {/* KPI */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
+      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">自店舗の募集中</p>
+          <p className="text-xs font-medium text-slate-500">管轄店舗数</p>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{stores.length}店舗</p>
+          <p className="mt-1 text-xs text-slate-400">管理対象</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-medium text-slate-500">自店舗募集数</p>
+          <p className="mt-2 text-2xl font-bold text-slate-900">{totalOwnRequests}件</p>
+          <p className="mt-1 text-xs text-slate-400">累計投稿</p>
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-medium text-slate-500">募集中件数</p>
           <p className={`mt-2 text-2xl font-bold ${ownOpenCount > 0 ? "text-amber-600" : "text-slate-400"}`}>
             {ownOpenCount}件
           </p>
           <p className="mt-1 text-xs text-slate-400">対応待ち</p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">自店舗の確定済み</p>
-          <p className={`mt-2 text-2xl font-bold ${ownConfirmedCount > 0 ? "text-emerald-600" : "text-slate-400"}`}>
-            {ownConfirmedCount}件
-          </p>
-          <p className="mt-1 text-xs text-slate-400">対応確定</p>
-        </div>
-        <div className="col-span-2 lg:col-span-1 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-xs font-medium text-slate-500">他店舗への応募中</p>
+          <p className="text-xs font-medium text-slate-500">応募中件数</p>
           <p className={`mt-2 text-2xl font-bold ${ownPendingApps > 0 ? "text-blue-600" : "text-slate-400"}`}>
             {ownPendingApps}件
           </p>
@@ -278,7 +292,7 @@ export function OwnerHelpBoardClient({
         </div>
       </div>
 
-      {/* Own requests */}
+      {/* 自店舗の募集 */}
       <div className="mb-6">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-700">自店舗の募集</h2>
@@ -293,7 +307,19 @@ export function OwnerHelpBoardClient({
         {showForm && (
           <div className="mb-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">投稿店舗</label>
+                  <select
+                    value={formStoreId}
+                    onChange={(e) => setFormStoreId(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                  >
+                    {stores.map((s) => (
+                      <option key={s.storeId} value={s.storeId}>{s.storeName}</option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-600 mb-1">日付</label>
                   <input
@@ -370,31 +396,44 @@ export function OwnerHelpBoardClient({
           </div>
         )}
 
-        {localOwnRequests.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-            現在、募集はありません。
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <table className="w-full">
-              {tableHead}
-              <tbody className="divide-y divide-slate-100">
-                {localOwnRequests.map((req) => (
-                  <RequestRow
-                    key={req.requestId}
-                    req={req}
-                    isExpanded={expandedId === req.requestId}
-                    onToggle={() => toggle(req.requestId)}
-                    showApps
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {/* 店舗ごとのセクション */}
+        <div className="space-y-4">
+          {stores.map((store) => {
+            const storeRequests = localStoreRequests[store.storeId] ?? [];
+            return (
+              <div key={store.storeId}>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {store.storeName}
+                </p>
+                {storeRequests.length === 0 ? (
+                  <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                    現在、募集はありません。
+                  </div>
+                ) : (
+                  <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <table className="w-full">
+                      {tableHead}
+                      <tbody className="divide-y divide-slate-100">
+                        {storeRequests.map((req) => (
+                          <RequestRow
+                            key={req.requestId}
+                            req={req}
+                            isExpanded={expandedId === req.requestId}
+                            onToggle={() => toggle(req.requestId)}
+                            showApps
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Other stores' open requests */}
+      {/* 他店舗の応募可能案件 */}
       <div>
         <h2 className="mb-3 text-sm font-semibold text-slate-700">
           他店舗の応募可能案件
@@ -416,7 +455,7 @@ export function OwnerHelpBoardClient({
                     isExpanded={expandedId === req.requestId}
                     onToggle={() => toggle(req.requestId)}
                     showApps={false}
-                    highlightApplicantStoreId={storeId}
+                    ownerStoreIds={ownerStoreIds}
                     isApplied={appliedIds.has(req.requestId)}
                     onApply={() => handleApply(req.requestId)}
                   />

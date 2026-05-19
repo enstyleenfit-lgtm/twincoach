@@ -1,23 +1,26 @@
-import { getCurrentStoreIdFromCookies } from "@/lib/authz/storeContext";
 import {
   getRequestsByStore,
-  getOpenRequestsExcluding,
   getApplicationsByStore,
+  getOpenRequests,
 } from "@/lib/helpBoardMockData";
+import { OWNER_STORE_IDS, getTrialStoreNameForData } from "@/lib/trialStore";
 import { OwnerHelpBoardClient } from "./OwnerHelpBoardClient";
 
 export default async function OwnerHelpBoardPage() {
-  const storeId = (await getCurrentStoreIdFromCookies()) ?? "ningyocho";
-  const ownRequests = getRequestsByStore(storeId);
-  const otherOpenRequests = getOpenRequestsExcluding(storeId);
-  const ownApplications = getApplicationsByStore(storeId);
+  const ownerStoreIdSet = new Set(OWNER_STORE_IDS);
+
+  const stores = OWNER_STORE_IDS.map((storeId) => {
+    const requests = getRequestsByStore(storeId);
+    const applications = getApplicationsByStore(storeId);
+    const storeName = requests[0]?.storeName ?? getTrialStoreNameForData(storeId);
+    return { storeId, storeName, requests, applications };
+  });
+
+  const otherOpenRequests = getOpenRequests().filter(
+    (r) => !ownerStoreIdSet.has(r.storeId)
+  );
 
   return (
-    <OwnerHelpBoardClient
-      storeId={storeId}
-      ownRequests={ownRequests}
-      otherOpenRequests={otherOpenRequests}
-      ownApplications={ownApplications}
-    />
+    <OwnerHelpBoardClient stores={stores} otherOpenRequests={otherOpenRequests} />
   );
 }
