@@ -11,24 +11,30 @@ type Props = {
 export function TrainersListBody({ trainerNames }: Props) {
   const seg = useAppRouteSegment();
 
+  if (trainerNames.length === 0) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-8 text-center">
+        <p className="text-slate-500 text-sm">トレーナーが見つかりません</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
-      {trainerNames.length === 0 ? (
-        <p className="text-slate-600 text-center py-8">トレーナーが見つかりません</p>
-      ) : (
-        <ul className="space-y-2">
-          {trainerNames.map((trainerName) => (
-            <li key={trainerName}>
-              <Link
-                href={trainerDetailHref(seg, trainerName)}
-                className="block px-4 py-3 rounded-lg border border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100/80 hover:text-slate-900 transition-colors"
-              >
-                {trainerName}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+      {trainerNames.map((trainerName) => (
+        <Link
+          key={trainerName}
+          href={trainerDetailHref(seg, trainerName)}
+          className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:bg-slate-50 hover:border-slate-300 transition-colors text-center"
+        >
+          <div className="w-14 h-14 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xl font-bold text-slate-500 shrink-0">
+            {trainerName.charAt(0)}
+          </div>
+          <span className="text-sm font-medium text-slate-800 leading-snug break-all">
+            {trainerName}
+          </span>
+        </Link>
+      ))}
     </div>
   );
 }
