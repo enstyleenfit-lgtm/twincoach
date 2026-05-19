@@ -62,11 +62,11 @@ export default async function HQPage() {
         : "LOW";
 
   return (
-    <div className="p-8 md:p-12 max-w-6xl mx-auto">
-      <h1 className="text-3xl md:text-4xl font-bold mb-2 tracking-tight">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+      <h1 className="text-2xl font-bold text-slate-900 mb-1">
         HQダッシュボード
       </h1>
-      <p className="text-slate-500 text-sm mb-12 md:mb-14">
+      <p className="text-slate-500 text-sm mb-10">
         全店舗のパフォーマンスとリスクの要約
       </p>
 
@@ -149,26 +149,26 @@ export default async function HQPage() {
 
       {/* KPIカード */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-slate-600 text-sm mb-2">全店舗売上（月間）</h3>
-          <p className="text-3xl font-bold text-slate-900">
+          <p className="text-2xl font-bold text-slate-900">
             ¥{totalRevenue.toLocaleString()}
           </p>
         </div>
-        <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-slate-600 text-sm mb-2">全店舗継続率</h3>
-          <p className="text-3xl font-bold text-emerald-700">
+          <p className="text-2xl font-bold text-emerald-700">
             {retentionMetrics.estimatedRetentionRate}%
           </p>
         </div>
-        <div className="bg-white border border-red-500/30 rounded-lg p-6">
+        <div className="rounded-xl border border-red-500/30 bg-white p-5 shadow-sm">
           <h3 className="text-slate-600 text-sm mb-2">高リスク会員数</h3>
-          <p className="text-3xl font-bold text-red-600">{highRiskMembersCount}</p>
+          <p className="text-2xl font-bold text-red-600">{highRiskMembersCount}</p>
           <p className="text-slate-500 text-xs mt-2">優先介入対象</p>
         </div>
-        <div className="bg-white border border-red-500/30 rounded-lg p-6">
+        <div className="rounded-xl border border-red-500/30 bg-white p-5 shadow-sm">
           <h3 className="text-slate-600 text-sm mb-2">来月損失予測</h3>
-          <p className="text-3xl font-bold text-red-600">
+          <p className="text-2xl font-bold text-red-600">
             ¥{nextMonthLoss.toLocaleString()}
           </p>
           <p className="text-slate-500 text-xs mt-2">30日期待損失の合計</p>

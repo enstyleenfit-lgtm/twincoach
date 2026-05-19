@@ -49,7 +49,7 @@ export default function StoresClient({ initialMembers }: Props) {
           ← ダッシュボードに戻る
         </Link>
       </div>
-      <h1 className="text-4xl font-bold mb-8">店舗一覧</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">店舗一覧</h1>
 
       {isLoading ? (
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">

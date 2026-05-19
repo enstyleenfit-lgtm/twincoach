@@ -76,7 +76,7 @@ export function OwnerInventoryClient({ stores }: Props) {
   ).length;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">在庫管理</h1>
         <p className="mt-1 text-sm text-slate-500">管轄店舗：{stores.length}店舗合算</p>

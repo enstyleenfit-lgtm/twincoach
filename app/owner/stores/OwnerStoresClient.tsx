@@ -31,7 +31,7 @@ export default function OwnerStoresClient({ stores }: Props) {
   const totalRevenue = stores.reduce((s, d) => s + d.monthlyRevenue, 0);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
       <div className="mb-6">
         <Link
           href="/owner"
@@ -42,7 +42,7 @@ export default function OwnerStoresClient({ stores }: Props) {
       </div>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">店舗管理</h1>
+        <h1 className="text-2xl font-bold text-slate-900">店舗管理</h1>
         <p className="text-slate-500 text-sm mt-1">管轄店舗：{stores.length}店舗</p>
       </div>
 

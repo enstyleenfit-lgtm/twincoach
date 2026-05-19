@@ -57,7 +57,7 @@ export default function MembersClient({ initialMembers }: Props) {
           ← ダッシュボードに戻る
         </Link>
       </div>
-      <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8">会員一覧</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">会員一覧</h1>
 
       {members.length === 0 ? (
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">

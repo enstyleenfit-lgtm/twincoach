@@ -258,7 +258,7 @@ export function OwnerHelpBoardClient({ stores, otherOpenRequests }: Props) {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">応援掲示板</h1>
         <p className="mt-1 text-sm text-slate-500">管轄店舗の募集状況と、他店舗への応援状況</p>
