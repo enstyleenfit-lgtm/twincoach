@@ -23,8 +23,7 @@ export function HQSidebar() {
     stores,
     trainers,
     reports,
-    priceRevision,
-    pocSummary,
+    ltv,
     billing,
     inventory,
     helpBoard,
@@ -88,20 +87,11 @@ export function HQSidebar() {
           </li>
           <li>
             <Link
-              href={priceRevision}
-              className={linkClass(priceRevision)}
+              href={ltv}
+              className={linkClass(ltv)}
               onClick={() => persistPreferredAppRole("hq")}
             >
-              価格改定
-            </Link>
-          </li>
-          <li>
-            <Link
-              href={pocSummary}
-              className={linkClass(pocSummary)}
-              onClick={() => persistPreferredAppRole("hq")}
-            >
-              導入効果
+              LTV管理
             </Link>
           </li>
           <li>

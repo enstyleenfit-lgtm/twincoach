@@ -278,10 +278,10 @@ const HQ_TABS: TabDef[] = [
     persistRole: "hq",
   },
   {
-    href: HQ_SIDEBAR_LINKS.priceRevision,
-    label: "価格改定",
+    href: HQ_SIDEBAR_LINKS.ltv,
+    label: "LTV管理",
     Icon: IconTasks,
-    active: (p) => p.startsWith(HQ_SIDEBAR_LINKS.priceRevision),
+    active: (p) => p.startsWith(HQ_SIDEBAR_LINKS.ltv),
     persistRole: "hq",
   },
   {
