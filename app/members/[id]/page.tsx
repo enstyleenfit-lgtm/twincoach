@@ -8,6 +8,7 @@ import { getChurnPrediction, getChurnPredictionReasons } from "@/lib/churnPredic
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
 import { estimateMemberLTV, getLTVLevel, getLTVLevelColor, getLTVLevelBadgeColor } from "@/lib/ltvPrediction";
 import { MemberSessionsClient } from "@/components/members/MemberSessionsClient";
+import { getCounselingRecordsByMemberId } from "@/lib/mockData";
 
 function getRiskScoreColor(score: number): string {
   if (score >= 80) {
@@ -30,6 +31,23 @@ function getRiskLevelColor(level: "low" | "medium" | "high"): string {
   }
 }
 
+function ScoreBar({ score, inverted = false }: { score: number; inverted?: boolean }) {
+  const effectiveScore = inverted ? 6 - score : score;
+  const colorClass =
+    effectiveScore >= 4 ? "bg-green-400" : effectiveScore >= 3 ? "bg-amber-400" : "bg-red-400";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 bg-slate-100 rounded-full h-2">
+        <div
+          className={`h-2 rounded-full ${colorClass}`}
+          style={{ width: `${(score / 5) * 100}%` }}
+        />
+      </div>
+      <span className="text-xs font-semibold text-slate-600 w-4 text-right">{score}</span>
+    </div>
+  );
+}
+
 export default async function MemberDetailPage({
   params,
 }: {
@@ -39,6 +57,7 @@ export default async function MemberDetailPage({
   const member = await memberRepository.getById(id);
   const visitHistory = await visitRepository.getByMemberId(id);
   const interventionHistory = await interventionRepository.getByMemberId(id);
+  const counselingHistory = getCounselingRecordsByMemberId(id);
 
   // デュアル移行最適化（デュアル会員の場合のみ）
   const isDualMember =
@@ -605,6 +624,90 @@ export default async function MemberDetailPage({
             <p className="text-slate-600 text-sm">介入履歴がありません</p>
           )}
         </div>
+      </div>
+
+      {/* カウンセリング / 心情変化 */}
+      <div className="mt-6 bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+        <h2 className="text-xl font-semibold mb-1">カウンセリング / 心情変化</h2>
+        <p className="text-slate-500 text-xs mb-5">継続意欲・不安度・目標明確度・心情傾向の記録（1〜5）</p>
+        {counselingHistory.length === 0 ? (
+          <p className="text-slate-500 text-sm">カウンセリング記録がありません</p>
+        ) : (
+          <>
+            {/* 直近の記録 */}
+            {(() => {
+              const latest = counselingHistory[0];
+              return (
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xs font-medium text-slate-600">直近の記録</span>
+                    <span className="text-xs text-slate-400">{latest.date}</span>
+                  </div>
+
+                  <div className="mb-4">
+                    <p className="text-slate-500 text-xs mb-1">現在の目標</p>
+                    <p className="text-slate-900 text-sm font-medium">{latest.goal}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 mb-5">
+                    <div>
+                      <p className="text-slate-500 text-xs mb-1.5">継続意欲</p>
+                      <ScoreBar score={latest.motivationScore} />
+                    </div>
+                    <div>
+                      <p className="text-slate-500 text-xs mb-1.5">不安度</p>
+                      <ScoreBar score={latest.anxietyScore} inverted />
+                    </div>
+                    <div>
+                      <p className="text-slate-500 text-xs mb-1.5">目標明確度</p>
+                      <ScoreBar score={latest.goalClarityScore} />
+                    </div>
+                    <div>
+                      <p className="text-slate-500 text-xs mb-1.5">心情傾向</p>
+                      <ScoreBar score={latest.continuityScore} />
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <p className="text-slate-500 text-xs mb-1">メモ</p>
+                    <p className="text-slate-700 text-sm leading-relaxed">{latest.note}</p>
+                  </div>
+
+                  <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
+                    <p className="text-xs font-medium text-slate-600 mb-1">次回アクション</p>
+                    <p className="text-sm text-slate-800">{latest.nextAction}</p>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 過去記録タイムライン */}
+            {counselingHistory.length > 1 && (
+              <div className="border-t border-slate-200 pt-4">
+                <p className="text-xs font-medium text-slate-500 mb-3">過去の記録</p>
+                <div className="space-y-4">
+                  {counselingHistory.slice(1).map((record) => (
+                    <div key={record.id} className="flex gap-4 items-start">
+                      <span className="text-xs text-slate-400 w-24 shrink-0 pt-0.5">{record.date}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap gap-3 mb-1.5">
+                          <span className="text-xs text-slate-500">継続意欲 <span className="font-medium text-slate-700">{record.motivationScore}</span></span>
+                          <span className="text-xs text-slate-400">·</span>
+                          <span className="text-xs text-slate-500">不安度 <span className="font-medium text-slate-700">{record.anxietyScore}</span></span>
+                          <span className="text-xs text-slate-400">·</span>
+                          <span className="text-xs text-slate-500">目標明確度 <span className="font-medium text-slate-700">{record.goalClarityScore}</span></span>
+                          <span className="text-xs text-slate-400">·</span>
+                          <span className="text-xs text-slate-500">心情傾向 <span className="font-medium text-slate-700">{record.continuityScore}</span></span>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">{record.note}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

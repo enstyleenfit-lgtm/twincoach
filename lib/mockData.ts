@@ -1,4 +1,4 @@
-import { Member, Visit, Intervention, Task } from "@/types";
+import { Member, Visit, Intervention, Task, CounselingRecord } from "@/types";
 
 export const members: Member[] = [
   {
@@ -889,6 +889,147 @@ export const tasks: Task[] = [
   },
 ];
 
+// カウンセリング記録（デモデータ）
+export const counselingRecords: CounselingRecord[] = [
+  // 田中太郎 (id: "1") - 高リスク。意欲低下傾向
+  {
+    id: "c1_1",
+    memberId: "1",
+    date: "2024-01-15",
+    goal: "週2回の来店を習慣化し、体力維持を続けること",
+    motivationScore: 2,
+    anxietyScore: 4,
+    goalClarityScore: 3,
+    continuityScore: 2,
+    note: "来店間隔が空きがち。仕事の忙しさを理由に挙げていた。気持ちの落ち込みが見られる。",
+    nextAction: "次回セッションで生活スケジュールを一緒に確認し、現実的な来店頻度を再設定する",
+  },
+  {
+    id: "c1_2",
+    memberId: "1",
+    date: "2024-01-08",
+    goal: "週2回の来店を習慣化し、体力維持を続けること",
+    motivationScore: 3,
+    anxietyScore: 3,
+    goalClarityScore: 3,
+    continuityScore: 3,
+    note: "前回より落ち着いた様子。トレーニング内容には満足している。",
+    nextAction: "モチベーション維持のため、短期目標（1ヶ月の変化）を設定する",
+  },
+  {
+    id: "c1_3",
+    memberId: "1",
+    date: "2023-12-20",
+    goal: "年明けから来店頻度を上げ、体重を3kg減らす",
+    motivationScore: 4,
+    anxietyScore: 2,
+    goalClarityScore: 4,
+    continuityScore: 4,
+    note: "年末に向けて気持ちが前向き。目標を具体化できた。",
+    nextAction: "年明け初回セッションで目標の進捗を確認する",
+  },
+  // 佐藤花子 (id: "2") - 中リスク。来店は安定
+  {
+    id: "c2_1",
+    memberId: "2",
+    date: "2024-01-20",
+    goal: "食事管理と運動を組み合わせて体型を整えること",
+    motivationScore: 3,
+    anxietyScore: 3,
+    goalClarityScore: 4,
+    continuityScore: 3,
+    note: "来店は続いているが、最近やや疲れ気味との発言あり。食事管理への関心は高い。",
+    nextAction: "食事記録を1週間つけてもらい、次回に振り返りを行う",
+  },
+  {
+    id: "c2_2",
+    memberId: "2",
+    date: "2024-01-10",
+    goal: "食事管理と運動を組み合わせて体型を整えること",
+    motivationScore: 4,
+    anxietyScore: 2,
+    goalClarityScore: 4,
+    continuityScore: 4,
+    note: "目標に向かって順調。トレーニングへの意欲が高く、笑顔で来店している。",
+    nextAction: "次のステップとして負荷を少し上げてみる",
+  },
+  // 森田健介 (ningyocho_demo_3) - 高リスク。継続意欲低下
+  {
+    id: "c_nd3_1",
+    memberId: "ningyocho_demo_3",
+    date: "2024-01-20",
+    goal: "体力づくりを続けて健康を維持すること",
+    motivationScore: 2,
+    anxietyScore: 4,
+    goalClarityScore: 2,
+    continuityScore: 2,
+    note: "来店が途絶えがち。「続けるのがしんどい」という発言があった。目標が曖昧になってきている。",
+    nextAction: "フォローコールを実施し、来店のハードルを下げるための対策を提案する",
+  },
+  {
+    id: "c_nd3_2",
+    memberId: "ningyocho_demo_3",
+    date: "2024-01-08",
+    goal: "体力づくりを続けて健康を維持すること",
+    motivationScore: 3,
+    anxietyScore: 3,
+    goalClarityScore: 3,
+    continuityScore: 3,
+    note: "先月より気持ちが落ち着いている様子。仕事の繁忙期が続いているとのこと。",
+    nextAction: "次回は体力測定を実施し、成果を数字で確認してもらう",
+  },
+  // 山田次郎 (id: "4") - 最高リスク。離脱の兆候
+  {
+    id: "c4_1",
+    memberId: "4",
+    date: "2024-01-10",
+    goal: "週に1回でもジムに来る習慣を取り戻す",
+    motivationScore: 1,
+    anxietyScore: 5,
+    goalClarityScore: 2,
+    continuityScore: 1,
+    note: "来店間隔が大きく空いている。「もうやめようかと思っている」という発言あり。高優先でフォローが必要。",
+    nextAction: "48時間以内にフォローコールを実施し、継続に向けた対話を行う",
+  },
+  {
+    id: "c4_2",
+    memberId: "4",
+    date: "2023-12-28",
+    goal: "週に1回でもジムに来る習慣を取り戻す",
+    motivationScore: 2,
+    anxietyScore: 4,
+    goalClarityScore: 2,
+    continuityScore: 2,
+    note: "年末の忙しさで来店頻度が落ちている。モチベーションの低下が見られる。",
+    nextAction: "年始の目標設定セッションを提案する",
+  },
+  // 高橋健太 (id: "6") - 低リスク。意欲・継続ともに高い
+  {
+    id: "c6_1",
+    memberId: "6",
+    date: "2024-01-23",
+    goal: "筋力アップと体脂肪率の改善",
+    motivationScore: 5,
+    anxietyScore: 1,
+    goalClarityScore: 5,
+    continuityScore: 5,
+    note: "目標が明確で意欲が高い。トレーニングを楽しんでいる様子。成果が出始めて手ごたえを感じている。",
+    nextAction: "次のフェーズに向けて、負荷設定と食事管理の見直しを提案する",
+  },
+  {
+    id: "c6_2",
+    memberId: "6",
+    date: "2024-01-15",
+    goal: "筋力アップと体脂肪率の改善",
+    motivationScore: 5,
+    anxietyScore: 1,
+    goalClarityScore: 5,
+    continuityScore: 5,
+    note: "来店頻度・意欲ともに高い。継続の理由として「成果が見えてきた」と話していた。",
+    nextAction: "引き続きプログラムを継続。3ヶ月後の目標達成確認を設定する",
+  },
+];
+
 // Helper functions to get data by member ID
 // 注意: これらの関数は後方互換性のために残していますが、
 // 新しいコードでは lib/repositories 経由でアクセスすることを推奨します
@@ -906,4 +1047,10 @@ export function getInterventionsByMemberId(memberId: string): Intervention[] {
 
 export function getTasksByMemberId(memberId: string): Task[] {
   return tasks.filter((task) => task.memberId === memberId);
+}
+
+export function getCounselingRecordsByMemberId(memberId: string): CounselingRecord[] {
+  return counselingRecords
+    .filter((r) => r.memberId === memberId)
+    .sort((a, b) => b.date.localeCompare(a.date));
 }

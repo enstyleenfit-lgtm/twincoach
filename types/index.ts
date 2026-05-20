@@ -363,6 +363,23 @@ export interface RevenueImprovementPlan {
 }
 
 /**
+ * カウンセリング記録
+ * 会員の心情傾向・継続意欲・目標明確度を記録する（デモデータのみ）
+ */
+export interface CounselingRecord {
+  id: string;
+  memberId: string;
+  date: string; // YYYY-MM-DD
+  goal: string;
+  motivationScore: number; // 1-5 継続意欲
+  anxietyScore: number;    // 1-5 不安度（高いほど不安が強い）
+  goalClarityScore: number; // 1-5 目標明確度
+  continuityScore: number;  // 1-5 心情傾向（高いほどポジティブ）
+  note: string;
+  nextAction: string;
+}
+
+/**
  * セッション履歴（CSVインポート対応）
  * 会員詳細で直近のセッションを表示する用途
  */
