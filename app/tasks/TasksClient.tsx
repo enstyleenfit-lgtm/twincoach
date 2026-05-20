@@ -258,7 +258,22 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
   const [taskStatuses, setTaskStatuses] = useState<Record<string, Task["status"]>>(() =>
     buildStatuses(mergeServerTasks(initialTasks, initialMembers))
   );
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+
+  const toggleGroup = (groupKey: string, taskIds: string[]) => {
+    const isCurrentlyOpen = openGroups.has(groupKey);
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (isCurrentlyOpen) next.delete(groupKey);
+      else next.add(groupKey);
+      return next;
+    });
+    // グループを閉じるとき、そのグループ内で開いていた詳細も閉じる
+    if (isCurrentlyOpen && expandedTaskId !== null && taskIds.includes(expandedTaskId)) {
+      setExpandedTaskId(null);
+    }
+  };
 
   const handleStartTask = (taskId: string) => {
     setTaskStatuses((prev) => ({ ...prev, [taskId]: "in progress" }));
@@ -303,18 +318,24 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
       title: "未対応タスク",
       tasks: pendingTasks,
       accentClass: "text-yellow-700",
+      borderClass: "border-l-yellow-500",
+      countClass: "text-yellow-700",
     },
     {
       key: "inProgress",
       title: "対応中タスク",
       tasks: inProgressTasks,
       accentClass: "text-blue-700",
+      borderClass: "border-l-blue-500",
+      countClass: "text-blue-700",
     },
     {
       key: "done",
       title: "完了タスク",
       tasks: doneTasks,
       accentClass: "text-green-700",
+      borderClass: "border-l-green-500",
+      countClass: "text-green-700",
     },
   ];
 
@@ -327,68 +348,66 @@ export default function TasksClient({ initialTasks, initialMembers }: Props) {
       </div>
 
       <h1 className="text-2xl font-bold text-slate-900 mb-1">介入タスク</h1>
-      <p className="text-slate-500 text-sm mb-8">タスクをクリックすると詳細が展開されます</p>
+      <p className="text-slate-500 text-sm mb-8">ステータスをクリックして一覧を開き、タスクをクリックすると詳細が展開されます</p>
 
-      {/* KPI サマリー */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-slate-500 text-xs mb-2">未対応</p>
-          <p className="text-2xl font-bold text-yellow-700">
-            {pendingTasks.length}
-            <span className="text-sm font-normal text-slate-500 ml-1">件</span>
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-slate-500 text-xs mb-2">対応中</p>
-          <p className="text-2xl font-bold text-blue-700">
-            {inProgressTasks.length}
-            <span className="text-sm font-normal text-slate-500 ml-1">件</span>
-          </p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-slate-500 text-xs mb-2">完了</p>
-          <p className="text-2xl font-bold text-green-700">
-            {doneTasks.length}
-            <span className="text-sm font-normal text-slate-500 ml-1">件</span>
-          </p>
-        </div>
-      </div>
+      {/* 2段アコーディオン */}
+      <div className="space-y-3">
+        {groups.map((group) => {
+          const isOpen = openGroups.has(group.key);
+          const taskIds = group.tasks.map((t) => t.id);
+          return (
+            <div
+              key={group.key}
+              className={`rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden border-l-4 ${group.borderClass}`}
+            >
+              {/* ステータス見出し（クリックで開閉） */}
+              <button
+                type="button"
+                onClick={() => toggleGroup(group.key, taskIds)}
+                aria-expanded={isOpen}
+                className="w-full flex items-center justify-between gap-3 px-5 py-4 min-h-[3.5rem] bg-slate-100/90 hover:bg-slate-100 active:bg-slate-200/90 transition-colors text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/45 focus-visible:ring-inset"
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`text-[15px] font-bold leading-snug ${group.accentClass}`}>
+                    {group.title}
+                  </span>
+                  <span className="text-sm text-slate-500 shrink-0">
+                    （{group.tasks.length}件）
+                  </span>
+                </div>
+                <span className="shrink-0 text-slate-400 text-sm w-6 text-center" aria-hidden>
+                  {isOpen ? "▲" : "▼"}
+                </span>
+              </button>
 
-      {/* ステータスグループ別カードリスト */}
-      <div className="space-y-8">
-        {groups.map((group) => (
-          <div key={group.key}>
-            <div className="flex items-center gap-2 mb-3">
-              <h2 className={`text-sm font-semibold ${group.accentClass}`}>
-                {group.title}
-              </h2>
-              <span className="text-xs text-slate-400">（{group.tasks.length}件）</span>
+              {/* タスク一覧（グループが開いているとき） */}
+              {isOpen && (
+                <div className="border-t border-slate-200 bg-slate-50 px-3 py-3 space-y-2">
+                  {group.tasks.length === 0 ? (
+                    <p className="text-sm text-slate-400 text-center py-4">
+                      該当するタスクはありません
+                    </p>
+                  ) : (
+                    group.tasks.map((task) => {
+                      const member = initialMembers.find((m) => m.id === task.memberId);
+                      return (
+                        <TaskExpandableRow
+                          key={task.id}
+                          task={task}
+                          member={member}
+                          expanded={expandedTaskId === task.id}
+                          onToggleExpand={() => toggleTask(task.id)}
+                          onStart={() => handleStartTask(task.id)}
+                          onDone={() => handleMarkAsDone(task.id)}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              )}
             </div>
-
-            {group.tasks.length === 0 ? (
-              <div className="rounded-xl border border-slate-200 bg-white p-5 text-center shadow-sm">
-                <p className="text-sm text-slate-400">該当するタスクはありません</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {group.tasks.map((task) => {
-                  const member = initialMembers.find((m) => m.id === task.memberId);
-                  return (
-                    <TaskExpandableRow
-                      key={task.id}
-                      task={task}
-                      member={member}
-                      expanded={expandedTaskId === task.id}
-                      onToggleExpand={() => toggleTask(task.id)}
-                      onStart={() => handleStartTask(task.id)}
-                      onDone={() => handleMarkAsDone(task.id)}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
