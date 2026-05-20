@@ -289,6 +289,36 @@ function copyLastSessionRecords(
   });
 }
 
+type DemoHistoryItem = {
+  date: string;
+  bodyPart: "上半身" | "下半身" | "姿勢改善" | "コンディショニング";
+  category: "トレーニング" | "ピラティス";
+  exerciseName: string;
+  weight: number;
+  reps: number;
+  sets: number;
+  note?: string;
+};
+
+const HISTORY_FILTERS = ["全履歴", "上半身", "下半身", "姿勢改善", "コンディショニング"] as const;
+
+const DEMO_HISTORY: DemoHistoryItem[] = [
+  { date: "5/12", bodyPart: "上半身", category: "トレーニング", exerciseName: "ベンチプレス", weight: 60, reps: 10, sets: 3, note: "肩甲骨を引いて肩が前に出ないよう意識" },
+  { date: "5/12", bodyPart: "上半身", category: "トレーニング", exerciseName: "ラットプルダウン", weight: 45, reps: 12, sets: 3 },
+  { date: "5/8",  bodyPart: "上半身", category: "トレーニング", exerciseName: "ショルダープレス", weight: 20, reps: 10, sets: 3, note: "可動域を最大限使う" },
+  { date: "5/8",  bodyPart: "上半身", category: "トレーニング", exerciseName: "ダンベルフライ",  weight: 14, reps: 12, sets: 3 },
+  { date: "5/10", bodyPart: "下半身", category: "トレーニング", exerciseName: "スクワット",     weight: 80, reps: 8,  sets: 4, note: "膝がつま先より前に出ないよう注意" },
+  { date: "5/10", bodyPart: "下半身", category: "トレーニング", exerciseName: "ヒップスラスト", weight: 60, reps: 12, sets: 3 },
+  { date: "5/6",  bodyPart: "下半身", category: "トレーニング", exerciseName: "レッグプレス",   weight: 120, reps: 10, sets: 3 },
+  { date: "5/6",  bodyPart: "下半身", category: "トレーニング", exerciseName: "デッドリフト",   weight: 70, reps: 8,  sets: 3, note: "股関節を引くイメージで" },
+  { date: "5/14", bodyPart: "姿勢改善", category: "トレーニング", exerciseName: "プランク",     weight: 0, reps: 60, sets: 3, note: "体幹キープ60秒" },
+  { date: "5/14", bodyPart: "姿勢改善", category: "ピラティス",   exerciseName: "デッドバグ",   weight: 0, reps: 10, sets: 3 },
+  { date: "5/11", bodyPart: "姿勢改善", category: "トレーニング", exerciseName: "フェイスプル", weight: 20, reps: 15, sets: 3, note: "外旋を意識してゆっくり引く" },
+  { date: "5/15", bodyPart: "コンディショニング", category: "ピラティス", exerciseName: "ハンドレッド",         weight: 0, reps: 100, sets: 1 },
+  { date: "5/15", bodyPart: "コンディショニング", category: "ピラティス", exerciseName: "ロールアップ",         weight: 0, reps: 8,   sets: 3, note: "腰椎から丁寧にひとつずつ" },
+  { date: "5/9",  bodyPart: "コンディショニング", category: "ピラティス", exerciseName: "シングルレッグストレッチ", weight: 0, reps: 10, sets: 3 },
+];
+
 type SessionInputProps = {
   initialMembers: Member[];
 };
@@ -321,6 +351,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   const [conversationNotes, setConversationNotes] = useState("");
   const [status, setStatus] = useState<string>("");
   const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({});
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState<(typeof HISTORY_FILTERS)[number]>("全履歴");
 
   /** 店舗・会員IDの変更時のみ入力をリセット（手入力名のキー入力ではリセットしない） */
   const memberSessionKey = useMemo(
@@ -501,6 +533,34 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setMemoOpen({});
     setConversationNotes(lastSessionForSelectedMember?.conversationNotes ?? "");
     setStatus("前回をコピーしました");
+  };
+
+  const filteredHistory = useMemo(() => {
+    if (historyFilter === "全履歴") return DEMO_HISTORY;
+    return DEMO_HISTORY.filter((item) => item.bodyPart === historyFilter);
+  }, [historyFilter]);
+
+  const handleAddFromHistory = (item: DemoHistoryItem) => {
+    const master = findMasterByName(item.exerciseName);
+    const base = master
+      ? createDraftFromMaster(master, frequentFormIssues)
+      : defaultDraft(item.exerciseName);
+    const draft: ExerciseDraft = {
+      ...base,
+      weight: item.weight,
+      reps: item.reps,
+      sets: item.sets,
+      note: item.note ?? "",
+    };
+    if (!draft1) {
+      setDraft1(draft);
+    } else if (!draft2) {
+      setDraft2(draft);
+    } else {
+      setStatus("種目は2つまで追加できます");
+      return;
+    }
+    setHistoryOpen(false);
   };
 
   const validateDraft = (d: ExerciseDraft): string | null => {
@@ -1066,7 +1126,84 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </div>
 
         <div className="mb-4">
-          <h2 className="text-slate-900 font-semibold text-base mb-2">トレーニング内容</h2>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <h2 className="text-slate-900 font-semibold text-base">トレーニング内容</h2>
+            <button
+              type="button"
+              onClick={() => setHistoryOpen((v) => !v)}
+              className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              {historyOpen ? "閉じる" : "履歴から作成"}
+            </button>
+          </div>
+
+          {/* 履歴パネル */}
+          {historyOpen && (
+            <div className="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              {/* フィルタータブ */}
+              <div className="flex gap-2 flex-wrap px-4 py-3 border-b border-slate-100">
+                {HISTORY_FILTERS.map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setHistoryFilter(f)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      historyFilter === f
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              {/* 履歴カード一覧 */}
+              <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                {filteredHistory.length === 0 ? (
+                  <p className="text-slate-500 text-sm text-center py-6">該当する履歴がありません</p>
+                ) : (
+                  filteredHistory.map((item, idx) => (
+                    <div key={idx} className="p-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <span className="text-xs text-slate-400">{item.date}</span>
+                          <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            {item.bodyPart}
+                          </span>
+                          {item.category === "ピラティス" && (
+                            <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-600">
+                              ピラティス
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-semibold text-slate-900 leading-snug">{item.exerciseName}</p>
+                        {item.weight > 0 ? (
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {item.weight}kg × {item.reps}回 × {item.sets}セット
+                          </p>
+                        ) : (
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {item.reps}回 × {item.sets}セット
+                          </p>
+                        )}
+                        {item.note && (
+                          <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{item.note}</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleAddFromHistory(item)}
+                        className="shrink-0 self-start sm:self-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors whitespace-nowrap"
+                      >
+                        この種目を追加
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
             <MobileExercisePicker heading="種目を選ぶ" onPick={handleMobilePickFirst} />
           </div>
