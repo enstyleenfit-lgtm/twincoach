@@ -175,133 +175,144 @@ export default async function HQPage() {
         </div>
       </div>
 
-      {/* 価格改定影響の要約 */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">価格改定影響の要約</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
-            <p className="text-slate-600 text-xs mb-1">対象会員数</p>
-            <p className="text-2xl font-bold text-slate-900">
-              {priceRevisionImpact.targetMembers.length}
-            </p>
-          </div>
-          <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
-            <p className="text-slate-600 text-xs mb-1">改定後 高リスク</p>
-            <p className="text-2xl font-bold text-red-600">
-              {priceRevisionImpact.highRiskTargetMembers.length}
-            </p>
-          </div>
-          <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
-            <p className="text-slate-600 text-xs mb-1">月間増収見込み</p>
-            <p className="text-2xl font-bold text-emerald-700">
-              ¥{priceRevisionImpact.monthlyRevenueIncrease.toLocaleString()}
-            </p>
-          </div>
-        </div>
-      </div>
+      {/* KPI以下 2カラム */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
-      {/* 店舗ランキング */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">店舗ランキング（月間売上）</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 text-slate-600">順位</th>
-                <th className="text-left py-3 px-4 text-slate-600">店舗名</th>
-                <th className="text-right py-3 px-4 text-slate-600">月間売上</th>
-                <th className="text-right py-3 px-4 text-slate-600">会員数</th>
-                <th className="text-right py-3 px-4 text-slate-600">継続率</th>
-              </tr>
-            </thead>
-            <tbody>
-              {storeRanking.map((store, index) => (
-                <tr key={store.storeName} className="border-b border-slate-200 hover:bg-slate-100/80">
-                  <td className="py-3 px-4">
-                    <span className="text-lg font-bold text-slate-900">{index + 1}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <ContextualStoreLink
-                      storeName={store.storeName}
-                      className="text-blue-700 hover:text-blue-800"
-                    >
-                      {store.storeName}
-                    </ContextualStoreLink>
-                  </td>
-                  <td className="py-3 px-4 text-right text-slate-900">
-                    ¥{store.monthlyRevenue.toLocaleString()}
-                  </td>
-                  <td className="py-3 px-4 text-right text-slate-900">
-                    {store.totalMembers}名
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <span className={`${
-                      store.estimatedRetentionRate >= 80 ? "text-green-700" :
-                      store.estimatedRetentionRate >= 60 ? "text-yellow-700" :
-                      "text-red-600"
-                    }`}>
-                      {store.estimatedRetentionRate.toFixed(1)}%
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 問題店舗 */}
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
-        <h2 className="text-xl font-bold mb-4">問題店舗（高リスク会員が多い店舗）</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 text-slate-600">店舗名</th>
-                <th className="text-right py-3 px-4 text-slate-600">高リスク会員数</th>
-                <th className="text-right py-3 px-4 text-slate-600">収益リスク（月間）</th>
-                <th className="text-right py-3 px-4 text-slate-600">収益リスク（年間）</th>
-                <th className="text-right py-3 px-4 text-slate-600">継続率</th>
-              </tr>
-            </thead>
-            <tbody>
-              {problemStores.length > 0 ? (
-                problemStores.map((store) => (
-                  <tr key={store.storeName} className="border-b border-slate-200 hover:bg-slate-100/80">
-                    <td className="py-3 px-4">
-                      <ContextualStoreLink
-                        storeName={store.storeName}
-                        className="text-blue-700 hover:text-blue-800"
-                      >
-                        {store.storeName}
-                      </ContextualStoreLink>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="text-red-600 font-bold">{store.highRiskMembers}名</span>
-                    </td>
-                    <td className="py-3 px-4 text-right text-red-600">
-                      ¥{store.monthlyRevenueAtRisk.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-right text-red-600">
-                      ¥{store.annualRevenueAtRisk.toLocaleString()}
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="text-red-600">
-                        {store.estimatedRetentionRate.toFixed(1)}%
-                      </span>
-                    </td>
+        {/* 左列：要対応・リスク */}
+        <div>
+          {/* 問題店舗 */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4">問題店舗（高リスク会員が多い店舗）</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left py-3 px-4 text-slate-600">店舗名</th>
+                    <th className="text-right py-3 px-4 text-slate-600">高リスク会員数</th>
+                    <th className="text-right py-3 px-4 text-slate-600">収益リスク（月間）</th>
+                    <th className="text-right py-3 px-4 text-slate-600">収益リスク（年間）</th>
+                    <th className="text-right py-3 px-4 text-slate-600">継続率</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-8 text-center text-slate-600">
-                    問題店舗はありません
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {problemStores.length > 0 ? (
+                    problemStores.map((store) => (
+                      <tr key={store.storeName} className="border-b border-slate-200 hover:bg-slate-100/80">
+                        <td className="py-3 px-4">
+                          <ContextualStoreLink
+                            storeName={store.storeName}
+                            className="text-blue-700 hover:text-blue-800"
+                          >
+                            {store.storeName}
+                          </ContextualStoreLink>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="text-red-600 font-bold">{store.highRiskMembers}名</span>
+                        </td>
+                        <td className="py-3 px-4 text-right text-red-600">
+                          ¥{store.monthlyRevenueAtRisk.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-right text-red-600">
+                          ¥{store.annualRevenueAtRisk.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="text-red-600">
+                            {store.estimatedRetentionRate.toFixed(1)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-slate-600">
+                        問題店舗はありません
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
+
+        {/* 右列：分析・提案 */}
+        <div className="space-y-6">
+          {/* 価格改定影響の要約 */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4">価格改定影響の要約</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
+                <p className="text-slate-600 text-xs mb-1">対象会員数</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {priceRevisionImpact.targetMembers.length}
+                </p>
+              </div>
+              <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
+                <p className="text-slate-600 text-xs mb-1">改定後 高リスク</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {priceRevisionImpact.highRiskTargetMembers.length}
+                </p>
+              </div>
+              <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
+                <p className="text-slate-600 text-xs mb-1">月間増収見込み</p>
+                <p className="text-2xl font-bold text-emerald-700">
+                  ¥{priceRevisionImpact.monthlyRevenueIncrease.toLocaleString()}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 店舗ランキング */}
+          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
+            <h2 className="text-xl font-bold mb-4">店舗ランキング（月間売上）</h2>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left py-3 px-4 text-slate-600">順位</th>
+                    <th className="text-left py-3 px-4 text-slate-600">店舗名</th>
+                    <th className="text-right py-3 px-4 text-slate-600">月間売上</th>
+                    <th className="text-right py-3 px-4 text-slate-600">会員数</th>
+                    <th className="text-right py-3 px-4 text-slate-600">継続率</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {storeRanking.map((store, index) => (
+                    <tr key={store.storeName} className="border-b border-slate-200 hover:bg-slate-100/80">
+                      <td className="py-3 px-4">
+                        <span className="text-lg font-bold text-slate-900">{index + 1}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <ContextualStoreLink
+                          storeName={store.storeName}
+                          className="text-blue-700 hover:text-blue-800"
+                        >
+                          {store.storeName}
+                        </ContextualStoreLink>
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-900">
+                        ¥{store.monthlyRevenue.toLocaleString()}
+                      </td>
+                      <td className="py-3 px-4 text-right text-slate-900">
+                        {store.totalMembers}名
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className={`${
+                          store.estimatedRetentionRate >= 80 ? "text-green-700" :
+                          store.estimatedRetentionRate >= 60 ? "text-yellow-700" :
+                          "text-red-600"
+                        }`}>
+                          {store.estimatedRetentionRate.toFixed(1)}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
