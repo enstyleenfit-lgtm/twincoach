@@ -32,3 +32,8 @@ export const STORE_SIDEBAR_LINKS = {
   inventory: "/store/inventory",
   helpBoard: "/store/help-board",
 } as const;
+
+export const COMMON_SIDEBAR_LINKS = {
+  notifications: "/notifications",
+  settings: "/settings",
+} as const;

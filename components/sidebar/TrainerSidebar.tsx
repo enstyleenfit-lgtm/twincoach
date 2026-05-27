@@ -17,6 +17,7 @@ import {
 } from "@/components/sidebar/sidebarNavClasses";
 import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole";
 import { useTrialStore } from "@/components/store/TrialStoreProvider";
+import { COMMON_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
 
 export function TrainerSidebar() {
   const pathname = usePathname();
@@ -38,6 +39,8 @@ export function TrainerSidebar() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  const { notifications, settings } = COMMON_SIDEBAR_LINKS;
 
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -126,6 +129,25 @@ export function TrainerSidebar() {
               onClick={() => persistPreferredAppRole("trainer")}
             >
               セッション入力
+            </Link>
+          </li>
+          <li className="pt-2 mt-2 border-t border-white/10">
+            <Link
+              href={notifications}
+              className={`${linkClass(notifications)} justify-between`}
+              onClick={() => persistPreferredAppRole("trainer")}
+            >
+              お知らせ
+              <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500/75 px-1 text-[10px] font-bold text-white">2</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={settings}
+              className={linkClass(settings)}
+              onClick={() => persistPreferredAppRole("trainer")}
+            >
+              設定
             </Link>
           </li>
         </ul>

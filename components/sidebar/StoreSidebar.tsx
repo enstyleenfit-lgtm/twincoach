@@ -15,7 +15,7 @@ import {
   sidebarTitle,
 } from "@/components/sidebar/sidebarNavClasses";
 import { persistPreferredAppRole } from "@/components/sidebar/useResolvedAppRole";
-import { STORE_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
+import { STORE_SIDEBAR_LINKS, COMMON_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
 import { useTrialStore } from "@/components/store/TrialStoreProvider";
 
 export function StoreSidebar() {
@@ -38,6 +38,8 @@ export function StoreSidebar() {
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
+
+  const { notifications, settings } = COMMON_SIDEBAR_LINKS;
 
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -135,6 +137,25 @@ export function StoreSidebar() {
               onClick={() => persistPreferredAppRole("store")}
             >
               応援掲示板
+            </Link>
+          </li>
+          <li className="pt-2 mt-2 border-t border-white/10">
+            <Link
+              href={notifications}
+              className={`${linkClass(notifications)} justify-between`}
+              onClick={() => persistPreferredAppRole("store")}
+            >
+              お知らせ
+              <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500/75 px-1 text-[10px] font-bold text-white">2</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={settings}
+              className={linkClass(settings)}
+              onClick={() => persistPreferredAppRole("store")}
+            >
+              設定
             </Link>
           </li>
         </ul>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/components/LogoutButton";
 import { RoleSwitchControl } from "@/components/sidebar/RoleSwitchControl";
-import { HQ_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
+import { HQ_SIDEBAR_LINKS, COMMON_SIDEBAR_LINKS } from "@/components/sidebar/sidebarNavPaths";
 import {
   sidebarAside,
   sidebarFooter,
@@ -28,6 +28,7 @@ export function HQSidebar() {
     inventory,
     helpBoard,
   } = HQ_SIDEBAR_LINKS;
+  const { notifications, settings } = COMMON_SIDEBAR_LINKS;
 
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -115,6 +116,25 @@ export function HQSidebar() {
               onClick={() => persistPreferredAppRole("hq")}
             >
               応援掲示板
+            </Link>
+          </li>
+          <li className="pt-2 mt-2 border-t border-white/10">
+            <Link
+              href={notifications}
+              className={`${linkClass(notifications)} justify-between`}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
+              お知らせ
+              <span className="flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500/75 px-1 text-[10px] font-bold text-white">2</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={settings}
+              className={linkClass(settings)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
+              設定
             </Link>
           </li>
         </ul>

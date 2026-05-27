@@ -102,6 +102,20 @@ function IconBilling({ className }: { className?: string }) {
   );
 }
 
+function IconBell({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function IconBoard({ className }: { className?: string }) {
   return (
     <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -153,6 +167,13 @@ const TRAINER_TABS: TabDef[] = [
     active: (p) => p.startsWith("/session-input"),
     persistRole: "trainer",
   },
+  {
+    href: "/notifications",
+    label: "お知らせ",
+    Icon: IconBell,
+    active: (p) => p.startsWith("/notifications"),
+    persistRole: "trainer",
+  },
 ];
 
 const STORE_TABS: TabDef[] = [
@@ -189,6 +210,13 @@ const STORE_TABS: TabDef[] = [
     label: "応援掲示板",
     Icon: IconBoard,
     active: (p) => p.startsWith(STORE_SIDEBAR_LINKS.helpBoard),
+    persistRole: "store",
+  },
+  {
+    href: "/notifications",
+    label: "お知らせ",
+    Icon: IconBell,
+    active: (p) => p.startsWith("/notifications"),
     persistRole: "store",
   },
 ];
@@ -246,6 +274,13 @@ const OWNER_TABS: TabDef[] = [
     active: (p) => p.startsWith(OWNER_SIDEBAR_LINKS.inventory),
     persistRole: "owner",
   },
+  {
+    href: "/notifications",
+    label: "お知らせ",
+    Icon: IconBell,
+    active: (p) => p.startsWith("/notifications"),
+    persistRole: "owner",
+  },
 ];
 
 const HQ_TABS: TabDef[] = [
@@ -296,6 +331,13 @@ const HQ_TABS: TabDef[] = [
     label: "在庫管理",
     Icon: IconBilling,
     active: (p) => p.startsWith(HQ_SIDEBAR_LINKS.inventory),
+    persistRole: "hq",
+  },
+  {
+    href: "/notifications",
+    label: "お知らせ",
+    Icon: IconBell,
+    active: (p) => p.startsWith("/notifications"),
     persistRole: "hq",
   },
 ];
