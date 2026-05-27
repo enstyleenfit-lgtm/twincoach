@@ -1,10 +1,9 @@
-import { getStoreSummaries, type StoreSummary } from "@/lib/storeSummary";
+import { getStoreSummaries } from "@/lib/storeSummary";
 import { calculateRetentionMetrics } from "@/lib/retentionMetrics";
 import { memberRepository } from "@/lib/repositories";
 import { generateHQActionPlan } from "@/lib/hqActionAI";
 import { calculateRiskScore } from "@/lib/riskScore";
 import { getRevenueRiskForecast } from "@/lib/revenueForecast";
-import { getPriceRevisionImpact } from "@/lib/priceRevisionImpact";
 import { ContextualStoreLink } from "@/components/navigation/ContextualStoreLink";
 
 export default async function HQPage() {
@@ -15,7 +14,6 @@ export default async function HQPage() {
   // 全店舗の集計
   const storeSummaries = getStoreSummaries(members);
   const totalRevenue = storeSummaries.reduce((sum, store) => sum + store.monthlyRevenue, 0);
-  const totalRevenueAtRisk = storeSummaries.reduce((sum, store) => sum + store.monthlyRevenueAtRisk, 0);
   const highRiskMembersCount = members.filter(
     (m) => calculateRiskScore(m).level === "high"
   ).length;
@@ -24,11 +22,9 @@ export default async function HQPage() {
     const forecast = getRevenueRiskForecast(m);
     return sum + forecast.expectedLoss30Days;
   }, 0);
-  
+
   // 全店舗継続率
   const retentionMetrics = calculateRetentionMetrics(members);
-
-  const priceRevisionImpact = getPriceRevisionImpact(members);
 
   // 店舗ランキング（月間売上順）
   const storeRanking = [...storeSummaries]
@@ -66,86 +62,9 @@ export default async function HQPage() {
       <h1 className="text-2xl font-bold text-slate-900 mb-1">
         HQダッシュボード
       </h1>
-      <p className="text-slate-500 text-sm mb-10">
+      <p className="text-slate-500 text-sm mb-8">
         全店舗のパフォーマンスとリスクの要約
       </p>
-
-      {/* 本部向け改善提案AI */}
-      <section className="mb-14 md:mb-14">
-        <div className="mb-4 md:mb-6">
-          <h2 className="text-xl md:text-2xl font-semibold text-slate-700 tracking-wide">
-            本部向け改善提案AI
-          </h2>
-          <p className="text-slate-500 text-sm mt-2 leading-relaxed">
-            店舗比較・収益リスク・価格改定モニター・予約リスク・収益改善AIを統合した今月の優先事項です。
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-8 md:p-10 ring-1 ring-emerald-500/10 shadow-2xl shadow-black/50">
-          <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
-            <div className="space-y-3 min-w-0 flex-1">
-              <p className="text-xs uppercase tracking-[0.2em] text-slate-500 font-medium">
-                最重要課題
-              </p>
-              <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 leading-snug">
-                {hqActionPlan.topIssue}
-              </p>
-            </div>
-            <div
-              className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-bold tracking-wider ${priorityBadgeClass}`}
-            >
-              優先度：{priorityLabelJa}
-            </div>
-          </div>
-
-          <p className="text-slate-700 text-base md:text-lg leading-relaxed mb-10 max-w-3xl">
-            {hqActionPlan.summary}
-          </p>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-600 mb-4 tracking-wide">
-                今月やるべきこと（Top 3）
-              </h3>
-              <ul className="space-y-4">
-                {hqActionPlan.actions.map((action, i) => (
-                  <li key={i} className="flex gap-4 text-slate-900">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/10 text-emerald-700 text-sm font-bold">
-                      {i + 1}
-                    </span>
-                    <span className="text-base leading-relaxed pt-0.5">{action}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 bg-slate-100/90 p-6 md:p-8">
-              <h3 className="text-sm font-semibold text-slate-600 mb-5 tracking-wide">
-                優先対応店舗（Top 3）
-              </h3>
-              {hqActionPlan.priorityStores.length > 0 ? (
-                <ol className="space-y-4">
-                  {hqActionPlan.priorityStores.map((name, i) => (
-                    <li key={name} className="flex items-center gap-4">
-                      <span className="text-slate-500 font-mono text-sm w-6">
-                        {i + 1}.
-                      </span>
-                      <ContextualStoreLink
-                        storeName={name}
-                        className="text-lg font-semibold text-slate-900 hover:text-emerald-700 transition-colors border-b border-transparent hover:border-emerald-400/50 pb-0.5"
-                      >
-                        {name}
-                      </ContextualStoreLink>
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p className="text-slate-500 text-sm">該当店舗を特定できませんでした</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* KPIカード */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -179,7 +98,7 @@ export default async function HQPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
 
         {/* 左列：要対応・リスク */}
-        <div>
+        <div className="space-y-6">
           {/* 問題店舗 */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4">問題店舗（高リスク会員が多い店舗）</h2>
@@ -233,35 +152,85 @@ export default async function HQPage() {
               </table>
             </div>
           </div>
-        </div>
 
-        {/* 右列：分析・提案 */}
-        <div className="space-y-6">
-          {/* 価格改定影響の要約 */}
-          <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">価格改定影響の要約</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
-                <p className="text-slate-600 text-xs mb-1">対象会員数</p>
-                <p className="text-2xl font-bold text-slate-900">
-                  {priceRevisionImpact.targetMembers.length}
+          {/* 本部向け改善提案AI */}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-6 md:p-8 ring-1 ring-emerald-500/10 shadow-2xl shadow-black/50">
+            <div className="mb-4 md:mb-6">
+              <h2 className="text-lg md:text-xl font-semibold text-slate-700 tracking-wide">
+                本部向け改善提案AI
+              </h2>
+              <p className="text-slate-500 text-sm mt-1 leading-relaxed">
+                店舗比較・収益リスク・予約リスク・収益改善AIを統合した今月の優先事項です。
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+              <div className="space-y-2 min-w-0 flex-1">
+                <p className="text-xs uppercase tracking-[0.2em] text-slate-500 font-medium">
+                  最重要課題
+                </p>
+                <p className="text-xl md:text-2xl font-bold text-slate-900 leading-snug">
+                  {hqActionPlan.topIssue}
                 </p>
               </div>
-              <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
-                <p className="text-slate-600 text-xs mb-1">改定後 高リスク</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {priceRevisionImpact.highRiskTargetMembers.length}
-                </p>
+              <div
+                className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-bold tracking-wider ${priorityBadgeClass}`}
+              >
+                優先度：{priorityLabelJa}
               </div>
-              <div className="bg-slate-100/80 border border-slate-200 rounded-lg p-4">
-                <p className="text-slate-600 text-xs mb-1">月間増収見込み</p>
-                <p className="text-2xl font-bold text-emerald-700">
-                  ¥{priceRevisionImpact.monthlyRevenueIncrease.toLocaleString()}
-                </p>
+            </div>
+
+            <p className="text-slate-700 text-sm leading-relaxed mb-8">
+              {hqActionPlan.summary}
+            </p>
+
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-600 mb-4 tracking-wide">
+                  今月やるべきこと（Top 3）
+                </h3>
+                <ul className="space-y-4">
+                  {hqActionPlan.actions.map((action, i) => (
+                    <li key={i} className="flex gap-4 text-slate-900">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/10 text-emerald-700 text-sm font-bold">
+                        {i + 1}
+                      </span>
+                      <span className="text-sm leading-relaxed pt-1">{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-slate-100/90 p-5">
+                <h3 className="text-sm font-semibold text-slate-600 mb-4 tracking-wide">
+                  優先対応店舗（Top 3）
+                </h3>
+                {hqActionPlan.priorityStores.length > 0 ? (
+                  <ol className="space-y-3">
+                    {hqActionPlan.priorityStores.map((name, i) => (
+                      <li key={name} className="flex items-center gap-4">
+                        <span className="text-slate-500 font-mono text-sm w-6">
+                          {i + 1}.
+                        </span>
+                        <ContextualStoreLink
+                          storeName={name}
+                          className="text-base font-semibold text-slate-900 hover:text-emerald-700 transition-colors border-b border-transparent hover:border-emerald-400/50 pb-0.5"
+                        >
+                          {name}
+                        </ContextualStoreLink>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="text-slate-500 text-sm">該当店舗を特定できませんでした</p>
+                )}
               </div>
             </div>
           </div>
+        </div>
 
+        {/* 右列：分析 */}
+        <div className="space-y-6">
           {/* 店舗ランキング */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-6">
             <h2 className="text-xl font-bold mb-4">店舗ランキング（月間売上）</h2>
@@ -317,4 +286,3 @@ export default async function HQPage() {
     </div>
   );
 }
-
