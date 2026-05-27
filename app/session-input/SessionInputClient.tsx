@@ -767,7 +767,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         <button
           type="button"
           onClick={handleSaveSameAsLast}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-4 text-sm font-bold text-slate-800 mb-3"
+          className="w-full rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-4 text-sm font-bold text-slate-800 mb-3"
         >
           前回と同じで保存
         </button>
@@ -775,7 +775,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       <button
         type="button"
         onClick={handleSave}
-        className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-slate-900 py-4 text-sm font-bold"
+        className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-white py-4 text-sm font-bold"
       >
         保存
       </button>
@@ -833,7 +833,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   const exerciseDraftCard = (d: ExerciseDraft, slot: "first" | "second") => (
     <div
       key={d.localId}
-      className={`bg-white border rounded-2xl p-4 ${
+      className={`bg-white border rounded-xl p-4 ${
         d.weight > 0 || d.reps > 0 ? "border-emerald-500/40" : "border-slate-200"
       }`}
     >
@@ -1126,15 +1126,17 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </div>
 
         <div className="mb-4">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <h2 className="text-slate-900 font-semibold text-base">トレーニング内容</h2>
-            <button
-              type="button"
-              onClick={() => setHistoryOpen((v) => !v)}
-              className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
-            >
-              {historyOpen ? "閉じる" : "履歴から作成"}
-            </button>
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 mb-2">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-slate-900 font-semibold text-base">トレーニング内容</h2>
+              <button
+                type="button"
+                onClick={() => setHistoryOpen((v) => !v)}
+                className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
+              >
+                {historyOpen ? "閉じる" : "履歴から作成"}
+              </button>
+            </div>
           </div>
 
           {/* 履歴パネル */}
@@ -1223,7 +1225,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
           {draft2 ? exerciseDraftCard(draft2, "second") : null}
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-4">
             <label className="block">
               <span className="text-slate-500 text-xs mb-1 block">その他種目（手入力）・補足種目メモ</span>
               <textarea
