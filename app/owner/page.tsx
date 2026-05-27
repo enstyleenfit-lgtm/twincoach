@@ -99,25 +99,25 @@ export default async function OwnerPage() {
       {/* KPIカード */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">管轄店舗売上（月間）</h3>
+          <h3 className="text-sm font-medium text-slate-500 mb-2">管轄店舗売上（月間）</h3>
           <p className="text-2xl font-bold text-slate-900">
             ¥{storeSummary.monthlyRevenue.toLocaleString()}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">推定継続率</h3>
-          <p className="text-2xl font-bold text-red-600">
+          <h3 className="text-sm font-medium text-slate-500 mb-2">推定継続率</h3>
+          <p className="text-2xl font-bold text-emerald-600">
             {storeSummary.estimatedRetentionRate.toFixed(1)}%
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">高リスク会員数</h3>
+          <h3 className="text-sm font-medium text-slate-500 mb-2">高リスク会員数</h3>
           <p className="text-2xl font-bold text-red-600">
             {highRiskCount}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">来月損失予測</h3>
+          <h3 className="text-sm font-medium text-slate-500 mb-2">来月損失予測</h3>
           <p className="text-2xl font-bold text-red-600">
             ¥{nextMonthLoss.toLocaleString()}
           </p>

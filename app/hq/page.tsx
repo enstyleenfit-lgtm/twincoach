@@ -150,28 +150,28 @@ export default async function HQPage() {
       {/* KPIカード */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">全店舗売上（月間）</h3>
+          <h3 className="text-sm font-medium text-slate-500 mb-2">全店舗売上（月間）</h3>
           <p className="text-2xl font-bold text-slate-900">
             ¥{totalRevenue.toLocaleString()}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">全店舗継続率</h3>
-          <p className="text-2xl font-bold text-emerald-700">
+          <h3 className="text-sm font-medium text-slate-500 mb-2">全店舗継続率</h3>
+          <p className="text-2xl font-bold text-emerald-600">
             {retentionMetrics.estimatedRetentionRate}%
           </p>
         </div>
-        <div className="rounded-xl border border-red-500/30 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">高リスク会員数</h3>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-medium text-slate-500 mb-2">高リスク会員数</h3>
           <p className="text-2xl font-bold text-red-600">{highRiskMembersCount}</p>
-          <p className="text-slate-500 text-xs mt-2">優先介入対象</p>
+          <p className="text-xs text-slate-500 mt-2">優先介入対象</p>
         </div>
-        <div className="rounded-xl border border-red-500/30 bg-white p-5 shadow-sm">
-          <h3 className="text-slate-600 text-sm mb-2">来月損失予測</h3>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-medium text-slate-500 mb-2">来月損失予測</h3>
           <p className="text-2xl font-bold text-red-600">
             ¥{nextMonthLoss.toLocaleString()}
           </p>
-          <p className="text-slate-500 text-xs mt-2">30日期待損失の合計</p>
+          <p className="text-xs text-slate-500 mt-2">30日期待損失の合計</p>
         </div>
       </div>
 
