@@ -11,6 +11,7 @@ export const HQ_SIDEBAR_LINKS = {
   billing: "/hq/billing",
   inventory: "/hq/inventory",
   helpBoard: "/hq/help-board",
+  import: "/hq/import",
 } as const;
 
 export const OWNER_SIDEBAR_LINKS = {

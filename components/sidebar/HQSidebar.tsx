@@ -27,6 +27,7 @@ export function HQSidebar() {
     billing,
     inventory,
     helpBoard,
+    import: importLink,
   } = HQ_SIDEBAR_LINKS;
   const { notifications, settings } = COMMON_SIDEBAR_LINKS;
 
@@ -116,6 +117,15 @@ export function HQSidebar() {
               onClick={() => persistPreferredAppRole("hq")}
             >
               応援掲示板
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={importLink}
+              className={linkClass(importLink)}
+              onClick={() => persistPreferredAppRole("hq")}
+            >
+              CSVインポート
             </Link>
           </li>
           <li className="pt-2 mt-2 border-t border-white/10">
