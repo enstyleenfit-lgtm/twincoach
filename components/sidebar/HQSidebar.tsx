@@ -31,11 +31,7 @@ export function HQSidebar() {
 
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-    return `${sidebarNavLinkBase} ${
-      active
-        ? `${sidebarNavLinkActive} hover:bg-slate-200 hover:text-slate-900`
-        : `${sidebarNavLinkInactive} hover:bg-slate-200`
-    }`;
+    return `${sidebarNavLinkBase} ${active ? sidebarNavLinkActive : sidebarNavLinkInactive}`;
   };
 
   return (
@@ -43,7 +39,7 @@ export function HQSidebar() {
       <div className={sidebarHeader}>
         <h1 className={sidebarTitle}>TwinCoach HQ</h1>
         <RoleSwitchControl />
-        <span className="mt-2 inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+        <span className="mt-2 inline-flex items-center rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-xs font-medium text-white/70">
           全店舗管理
         </span>
       </div>

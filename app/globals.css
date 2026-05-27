@@ -8,8 +8,8 @@
   --card-foreground: #0f172a;
   --muted: #64748b;
   --border: #e2e8f0;
-  --sidebar: #ffffff;
-  --sidebar-border: #e2e8f0;
+  --sidebar: #071E4A;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
 }
 
 @theme inline {

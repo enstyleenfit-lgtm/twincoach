@@ -41,11 +41,7 @@ export function StoreSidebar() {
 
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-    return `${sidebarNavLinkBase} ${
-      active
-        ? `${sidebarNavLinkActive} hover:bg-slate-200 hover:text-slate-900`
-        : `${sidebarNavLinkInactive} hover:bg-slate-200`
-    }`;
+    return `${sidebarNavLinkBase} ${active ? sidebarNavLinkActive : sidebarNavLinkInactive}`;
   };
 
   return (
@@ -59,10 +55,10 @@ export function StoreSidebar() {
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-haspopup="listbox"
-            className="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm transition-colors hover:bg-slate-50"
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-white/15"
           >
             <span className="truncate">{selectedStore.name}</span>
-            <span className="shrink-0 text-slate-500" aria-hidden>▼</span>
+            <span className="shrink-0 text-white/60" aria-hidden>▼</span>
           </button>
           {open && (
             <div
