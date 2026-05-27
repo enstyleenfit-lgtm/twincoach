@@ -775,7 +775,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       <button
         type="button"
         onClick={handleSave}
-        className="w-full rounded-2xl bg-blue-600 hover:bg-blue-500 text-white py-4 text-sm font-bold"
+        className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 text-white py-4 text-sm font-bold"
       >
         保存
       </button>

@@ -15,7 +15,7 @@ export function RoleSwitchControl() {
 
   return (
     <div className="mb-4">
-      <span className="inline-block rounded-md border border-slate-300 bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
+      <span className="inline-block rounded-md border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-semibold text-white/70">
         {label}
       </span>
     </div>
