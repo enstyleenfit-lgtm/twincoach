@@ -36,31 +36,33 @@ export default async function HQLTVPage() {
   const sortedStores = [...storeSummaries].sort((a, b) => calcStoreLTV(b) - calcStoreLTV(a));
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">LTV管理</h1>
-      <p className="text-slate-500 text-sm mb-8">全店舗のLTVと退会リスクによる損失を可視化</p>
+    <div className="px-6 py-8 max-w-7xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">LTV管理</h1>
+        <p className="text-slate-500 text-sm mt-1">全店舗のLTVと退会リスクによる損失を可視化</p>
+      </div>
 
       {/* KPIカード */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 mb-8">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-slate-500 text-xs mb-2">全店舗推定LTV</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-medium text-slate-500 mb-3">全店舗推定LTV</p>
           <p className="text-2xl font-bold text-slate-900">¥{totalLTV.toLocaleString()}</p>
-          <p className="text-slate-400 text-xs mt-1">全会員LTV合計</p>
+          <p className="text-slate-400 text-xs mt-1.5">全会員LTV合計</p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-slate-500 text-xs mb-2">平均LTV（会員1名）</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-medium text-slate-500 mb-3">平均LTV（会員1名）</p>
           <p className="text-2xl font-bold text-slate-900">¥{avgMemberLTV.toLocaleString()}</p>
-          <p className="text-slate-400 text-xs mt-1">{totalMembers}名平均</p>
+          <p className="text-slate-400 text-xs mt-1.5">{totalMembers}名平均</p>
         </div>
-        <div className="rounded-xl border border-red-500/30 bg-white p-5 shadow-sm">
-          <p className="text-slate-500 text-xs mb-2">LTV損失リスク（年間）</p>
+        <div className="rounded-xl border border-red-100 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-medium text-slate-500 mb-3">LTV損失リスク（年間）</p>
           <p className="text-2xl font-bold text-red-600">¥{totalLTVRisk.toLocaleString()}</p>
-          <p className="text-slate-400 text-xs mt-1">高リスク会員売上 × 12</p>
+          <p className="text-slate-400 text-xs mt-1.5">高リスク会員売上 × 12</p>
         </div>
-        <div className="rounded-xl border border-red-500/30 bg-white p-5 shadow-sm">
-          <p className="text-slate-500 text-xs mb-2">30日損失予測</p>
+        <div className="rounded-xl border border-red-100 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+          <p className="text-xs font-medium text-slate-500 mb-3">30日損失予測</p>
           <p className="text-2xl font-bold text-red-600">¥{totalLoss30Days.toLocaleString()}</p>
-          <p className="text-slate-400 text-xs mt-1">来月の期待損失合計</p>
+          <p className="text-slate-400 text-xs mt-1.5">来月の期待損失合計</p>
         </div>
       </div>
 
@@ -110,12 +112,14 @@ export default async function HQLTVPage() {
 
       {/* 本部が打つべき施策 */}
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6">
-        <h2 className="text-base font-semibold text-slate-900 mb-4">本部が打つべき施策</h2>
-        <ul className="space-y-3">
-          {ACTIONS.map((action) => (
+        <h2 className="text-sm font-semibold text-slate-900 mb-4">本部が打つべき施策</h2>
+        <ul className="space-y-2.5">
+          {ACTIONS.map((action, i) => (
             <li key={action} className="flex items-start gap-3">
-              <span className="mt-1 shrink-0 w-4 h-4 rounded-full bg-slate-200 border border-slate-300 block" />
-              <span className="text-sm text-slate-700">{action}</span>
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-500 text-white text-[11px] font-bold mt-0.5">
+                {i + 1}
+              </span>
+              <span className="text-sm text-slate-700 leading-relaxed pt-0.5">{action}</span>
             </li>
           ))}
         </ul>

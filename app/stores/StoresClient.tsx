@@ -40,7 +40,7 @@ export default function StoresClient({ initialMembers }: Props) {
   const rankedStores = [...stores].sort(rankers[activeTab].sort);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="px-6 py-8 max-w-7xl mx-auto">
       <div className="mb-6">
         <Link
           href={dashboardHref(seg)}
@@ -49,7 +49,7 @@ export default function StoresClient({ initialMembers }: Props) {
           ← ダッシュボードに戻る
         </Link>
       </div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">店舗一覧</h1>
+      <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-6">店舗一覧</h1>
 
       {isLoading ? (
         <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8 text-center">
@@ -67,10 +67,10 @@ export default function StoresClient({ initialMembers }: Props) {
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors duration-200 ${
+                className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors duration-150 ${
                   activeTab === tab
-                    ? "bg-emerald-100/80 text-slate-900 border-emerald-400/70 shadow-sm shadow-emerald-900/5 ring-1 ring-emerald-300/40"
-                    : "text-slate-700 bg-white border-slate-200 hover:bg-slate-200 hover:text-slate-900 hover:border-slate-300"
+                    ? "bg-blue-500 text-white border-blue-500 shadow-sm"
+                    : "text-slate-600 bg-white border-slate-200 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
                 {rankers[tab].label}
