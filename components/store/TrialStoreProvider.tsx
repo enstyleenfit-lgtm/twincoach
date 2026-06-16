@@ -31,28 +31,45 @@ export function TrialStoreProvider({ children }: { children: ReactNode }) {
   const [selectedId, setSelectedIdState] = useState<string>(TRIAL_STORE_DEFAULT_ID);
 
   useEffect(() => {
+    let raw: string | null = null;
     try {
-      const raw = window.localStorage.getItem(TRIAL_SELECTED_STORE_STORAGE_KEY);
-      if (raw && TRIAL_STORES.some((s) => s.id === raw)) {
-        setSelectedIdState(raw);
-        document.cookie = `tc_store_id=${raw}; path=/; max-age=86400`;
-        router.refresh();
-      }
+      raw = window.localStorage.getItem(TRIAL_SELECTED_STORE_STORAGE_KEY);
     } catch {
       // noop
     }
+    if (!raw || !TRIAL_STORES.some((s) => s.id === raw)) return;
+    const storeId = raw;
+    void fetch("/api/current-store", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storeId }),
+    }).then((res) => {
+      if (!res.ok) return;
+      setSelectedIdState(storeId);
+      router.refresh();
+    }).catch(() => {
+      // noop
+    });
   }, [router]);
 
   const setSelectedId = useCallback((id: string) => {
     if (!TRIAL_STORES.some((s) => s.id === id)) return;
-    setSelectedIdState(id);
-    try {
-      window.localStorage.setItem(TRIAL_SELECTED_STORE_STORAGE_KEY, id);
-      document.cookie = `tc_store_id=${id}; path=/; max-age=86400`;
-    } catch {
+    void fetch("/api/current-store", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storeId: id }),
+    }).then((res) => {
+      if (!res.ok) return;
+      setSelectedIdState(id);
+      try {
+        window.localStorage.setItem(TRIAL_SELECTED_STORE_STORAGE_KEY, id);
+      } catch {
+        // noop
+      }
+      router.refresh();
+    }).catch(() => {
       // noop
-    }
-    router.refresh();
+    });
   }, [router]);
 
   const selectedStore = useMemo(() => {

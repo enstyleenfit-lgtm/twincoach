@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { memberRepository } from "@/lib/repositories";
+import { getStoreScopeId } from "@/lib/authz/serverScope";
+import { getTrialStoreNameForData } from "@/lib/trialStore";
 
 export default async function EditMemberPage({
   params,
@@ -11,6 +13,11 @@ export default async function EditMemberPage({
   const member = await memberRepository.getMemberById(id);
 
   if (!member) {
+    notFound();
+  }
+
+  const scopeStoreId = await getStoreScopeId();
+  if (scopeStoreId && member.storeName !== getTrialStoreNameForData(scopeStoreId)) {
     notFound();
   }
 

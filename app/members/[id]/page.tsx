@@ -1,5 +1,8 @@
+import { notFound } from "next/navigation";
 import { MemberListBackLink } from "@/components/members/MemberListBackLink";
 import { memberRepository, visitRepository, interventionRepository } from "@/lib/repositories";
+import { getStoreScopeId } from "@/lib/authz/serverScope";
+import { getTrialStoreNameForData } from "@/lib/trialStore";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
 import { getMemberSegment, getSegmentInfo, getSegmentColor } from "@/lib/memberSegmentation";
@@ -55,6 +58,12 @@ export default async function MemberDetailPage({
 }) {
   const { id } = await params;
   const member = await memberRepository.getById(id);
+
+  const scopeStoreId = await getStoreScopeId();
+  if (scopeStoreId && member && member.storeName !== getTrialStoreNameForData(scopeStoreId)) {
+    notFound();
+  }
+
   const visitHistory = await visitRepository.getByMemberId(id);
   const interventionHistory = await interventionRepository.getByMemberId(id);
   const counselingHistory = getCounselingRecordsByMemberId(id);

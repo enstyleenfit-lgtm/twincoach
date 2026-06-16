@@ -1,6 +1,9 @@
+import { notFound } from "next/navigation";
 import { ContextualMemberLink } from "@/components/navigation/ContextualMemberLink";
 import { StoresListBackLink } from "@/components/navigation/StoresListBackLink";
 import { memberRepository, taskRepository } from "@/lib/repositories";
+import { getStoreScopeId } from "@/lib/authz/serverScope";
+import { getTrialStoreNameForData } from "@/lib/trialStore";
 import { calculateRiskScore, getRiskReasons } from "@/lib/riskScore";
 import { getRevenueAtRisk } from "@/lib/revenueRisk";
 import { getInterventionSuggestion } from "@/lib/interventionSuggestion";
@@ -56,6 +59,14 @@ function getPriorityBadgeColor(priority: "low" | "medium" | "high"): string {
 export default async function StoreDetailPage({ params }: StoreDetailPageProps) {
   const { storeName } = await params;
   const decodedStoreIdOrName = decodeURIComponent(storeName);
+
+  const scopeStoreId = await getStoreScopeId();
+  if (scopeStoreId) {
+    const allowedStoreName = getTrialStoreNameForData(scopeStoreId);
+    if (decodedStoreIdOrName !== allowedStoreName && decodedStoreIdOrName !== scopeStoreId) {
+      notFound();
+    }
+  }
 
   // 店舗スコープの会員・タスクのみ取得（全会員取得は行わない）
   const storeMembers = await memberRepository.getAllForStore(decodedStoreIdOrName);
