@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TwinCoach PoC相談資料 — 2026.06.27</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #111111;
+      --grey-90: #1a1a1a;
+      --grey-70: #404040;
+      --grey-50: #737373;
+      --grey-30: #b3b3b3;
+      --grey-10: #e8e8e8;
+      --grey-05: #f4f4f4;
+      --white: #ffffff;
+      --accent: #111111;
+      --page-w: 900px;
+    }
+
+    html { font-size: 16px; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+      background: var(--grey-05);
+      color: var(--black);
+      line-height: 1.7;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Header ── */
+    .doc-header {
+      max-width: var(--page-w);
+      margin: 0 auto 48px;
+      padding-bottom: 24px;
+      border-bottom: 2px solid var(--black);
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .doc-header-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--black);
+    }
+    .doc-header-meta {
+      font-size: 0.8rem;
+      color: var(--grey-50);
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    /* ── Page card ── */
+    .page {
+      max-width: var(--page-w);
+      margin: 0 auto 40px;
+      background: var(--white);
+      border: 1px solid var(--grey-10);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .page-header {
+      padding: 28px 40px 24px;
+      border-bottom: 1px solid var(--grey-10);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .page-num {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--grey-30);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .page-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--black);
+      line-height: 1.4;
+    }
+
+    .page-body {
+      padding: 32px 40px 36px;
+    }
+
+    /* ── Hero block (P1) ── */
+    .hero {
+      background: var(--black);
+      color: var(--white);
+      padding: 40px 40px 36px;
+      margin-bottom: 32px;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: var(--grey-30);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .hero-sub {
+      font-size: 0.9rem;
+      color: var(--grey-30);
+      line-height: 1.6;
+    }
+
+    /* ── Lead text ── */
+    .lead {
+      font-size: 0.95rem;
+      color: var(--grey-70);
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+
+    /* ── Section heading ── */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--grey-50);
+      margin-bottom: 12px;
+      margin-top: 28px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    /* ── List ── */
+    .check-list {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+    .check-list li {
+      font-size: 0.92rem;
+      color: var(--grey-70);
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .check-list li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: var(--grey-30);
+      font-size: 0.85rem;
+    }
+
+    .dot-list {
+      list-style: none;
+      display: grid;
+      gap: 6px;
+    }
+    .dot-list li {
+      font-size: 0.92rem;
+      color: var(--grey-70);
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .dot-list li::before {
+      content: "·";
+      position: absolute;
+      left: 0;
+      color: var(--grey-50);
+      font-weight: 700;
+    }
+
+    /* ── Numbered list ── */
+    .num-list {
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+    .num-list li {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: baseline;
+    }
+    .num-list li .n {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--grey-30);
+      text-align: right;
+    }
+    .num-list li .text {
+      font-size: 0.92rem;
+      color: var(--black);
+      font-weight: 600;
+    }
+    .num-list li .sub {
+      font-size: 0.82rem;
+      color: var(--grey-50);
+      line-height: 1.5;
+      grid-column: 2;
+      margin-top: -6px;
+    }
+
+    /* ── Table ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .data-table th {
+      text-align: left;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--grey-50);
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--grey-10);
+      background: var(--grey-05);
+    }
+    .data-table td {
+      padding: 12px 12px;
+      border-bottom: 1px solid var(--grey-10);
+      color: var(--grey-70);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .data-table td:first-child {
+      font-weight: 600;
+      color: var(--black);
+      white-space: nowrap;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    /* ── Role cards ── */
+    .role-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .role-grid { grid-template-columns: 1fr; }
+    }
+    .role-card {
+      border: 1px solid var(--grey-10);
+      border-radius: 4px;
+      padding: 20px 22px;
+    }
+    .role-card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--black);
+      margin-bottom: 8px;
+    }
+    .role-card-desc {
+      font-size: 0.82rem;
+      color: var(--grey-50);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .role-card-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag {
+      font-size: 0.72rem;
+      background: var(--grey-05);
+      border: 1px solid var(--grey-10);
+      color: var(--grey-70);
+      padding: 3px 8px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    /* ── Quote block ── */
+    .quote {
+      margin-top: 28px;
+      padding: 18px 22px;
+      border-left: 3px solid var(--black);
+      background: var(--grey-05);
+      font-size: 0.9rem;
+      color: var(--grey-70);
+      line-height: 1.75;
+    }
+
+    /* ── Two-col layout ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Action items ── */
+    .action-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 640px) {
+      .action-grid { grid-template-columns: 1fr; }
+    }
+    .action-item {
+      border: 1px solid var(--grey-10);
+      padding: 14px 16px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      color: var(--black);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .action-item .action-sub {
+      font-size: 0.78rem;
+      color: var(--grey-50);
+      font-weight: 400;
+      margin-top: 3px;
+    }
+
+    /* ── Closing ── */
+    .closing {
+      max-width: var(--page-w);
+      margin: 0 auto;
+      padding: 32px 40px;
+      background: var(--black);
+      color: var(--white);
+      border-radius: 4px;
+      text-align: center;
+    }
+    .closing p {
+      font-size: 0.9rem;
+      color: var(--grey-30);
+      line-height: 1.85;
+    }
+    .closing p + p { margin-top: 12px; }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--grey-10);
+      margin: 24px 0;
+    }
+
+    /* ── Highlight note ── */
+    .note {
+      font-size: 0.82rem;
+      color: var(--grey-50);
+      padding: 14px 18px;
+      background: var(--grey-05);
+      border-radius: 3px;
+      margin-top: 20px;
+      line-height: 1.7;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .page { border: none; margin: 0; page-break-after: always; }
+      .closing { page-break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="doc-header">
+  <div class="doc-header-title">TwinCoach — PoC相談資料</div>
+  <div class="doc-header-meta">
+    2026年6月27日<br>
+    対象：井上さん・濱口さん
+  </div>
+</div>
+
+<!-- P1 -->
+<div class="page">
+  <div class="hero">
+    <div class="hero-eyebrow">TwinCoach PoC相談 — 2026.06.27</div>
+    <div class="hero-title">小さく検証するための<br>条件を相談させてください</div>
+    <div class="hero-sub">本導入の判断ではなく、まず小さく検証するための相談</div>
+  </div>
+  <div class="page-body">
+    <p class="lead">
+      本日は、TwinCoachをいきなり導入するかどうかを決める場ではありません。<br>
+      まずは、ELEMENTの現場・SV・本部・オーナー目線で、TwinCoachが実際の課題に対して価値がありそうかを確認し、PoCとして小さく検証する条件を相談させていただきたいです。
+    </p>
+
+    <div class="section-label">今日相談したいこと</div>
+    <ul class="check-list">
+      <li>PoC対象店舗</li>
+      <li>PoC開始日</li>
+      <li>検証期間</li>
+      <li>CSV/データ提供方法</li>
+      <li>現場・本部の確認者</li>
+      <li>上層部への相談方法</li>
+      <li>結果報告MTGの設定</li>
+    </ul>
+
+    <div class="quote">
+      今日は「導入してください」ではなく、「小さく試すなら、どう進めるのが現実的か」を相談する時間です。
+    </div>
+  </div>
+</div>
+
+<!-- P2 -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-num">P 2</span>
+    <span class="page-title">TwinCoachは、既存ツールを置き換えるものではありません</span>
+  </div>
+  <div class="page-body">
+    <p class="lead">
+      TwinCoachは、hacomonoやkintoneをすぐに置き換えるツールではありません。<br>
+      既存の会員情報・予約情報・記録情報をもとに、退会予防、LTV改善、現場の次アクションにつなげるための補助レイヤーです。
+    </p>
+
+    <div class="section-label">位置づけ</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ツール</th>
+          <th>役割</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>hacomono</td>
+          <td>会員・予約・契約の基幹情報</td>
+        </tr>
+        <tr>
+          <td>kintone</td>
+          <td>既存の業務管理・記録</td>
+        </tr>
+        <tr>
+          <td>TwinCoach</td>
+          <td>情報を見える化し、次の行動へ変換するレイヤー</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-label" style="margin-top:28px;">目指す状態</div>
+    <p style="font-size:0.92rem; color:var(--grey-70); line-height:1.8;">
+      情報を「保存する」だけではなく、本部・SV・オーナー・店舗が、次に何を見るべきか、誰に対応すべきかを判断できる状態にする。
+    </p>
+
+    <div class="quote">
+      TwinCoachは、既存運用を止めずに、現場行動と経営判断を支援するためのツールです。
+    </div>
+  </div>
+</div>
+
+<!-- P3 -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-num">P 3</span>
+    <span class="page-title">情報はあるが、行動に変わりにくい</span>
+  </div>
+  <div class="page-body">
+    <p class="lead">
+      ELEMENTには、会員情報・予約情報・セッション情報など、すでに多くの情報があります。<br>
+      ただし、現場運用の中では、その情報が退会予防やLTV改善の具体的な行動に変わりきっていない可能性があります。
+    </p>
+
+    <div class="two-col">
+      <div>
+        <div class="section-label">課題仮説</div>
+        <ul class="check-list">
+          <li>会員情報や記録が分散している</li>
+          <li>現場ごとに記録品質がばらつく</li>
+          <li>退会リスク会員を早期に把握しづらい</li>
+          <li>本部やSVが店舗ごとの課題を比較しにくい</li>
+          <li>オーナーが管轄店舗の状態を一目で見にくい</li>
+          <li>現場スタッフが「今日誰に何をするか」を判断しづらい</li>
+          <li>情報確認や共有に時間がかかり、スタッフ負担が増える</li>
+        </ul>
+      </div>
+      <div>
+        <div class="section-label">TwinCoachで目指すこと</div>
+        <ul class="check-list">
+          <li>危ない会員を早く見つける</li>
+          <li>対応すべきタスクを明確にする</li>
+          <li>本部・SV・オーナーが店舗状態を見やすくする</li>
+          <li>現場の入力と行動をつなげる</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="quote">
+      情報を増やすのではなく、今ある情報を「行動に変える」ことが目的です。
+    </div>
+  </div>
+</div>
+
+<!-- P4 -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-num">P 4</span>
+    <span class="page-title">本部・SV・オーナー・店舗で見る価値を分ける</span>
+  </div>
+  <div class="page-body">
+    <div class="role-grid">
+      <div class="role-card">
+        <div class="role-card-title">本部</div>
+        <div class="role-card-desc">全店舗の状態を俯瞰し、退会リスク、売上、LTV、店舗ごとの課題を確認する。</div>
+        <div class="role-card-items">
+          <span class="tag">店舗別の状態</span>
+          <span class="tag">LTV推移</span>
+          <span class="tag">退会リスク</span>
+          <span class="tag">売上・未払い</span>
+          <span class="tag">PoC結果</span>
+        </div>
+      </div>
+      <div class="role-card">
+        <div class="role-card-title">SV</div>
+        <div class="role-card-desc">どの店舗を優先的に支援すべきか、どの課題に介入すべきかを判断する。</div>
+        <div class="role-card-items">
+          <span class="tag">店舗別の課題</span>
+          <span class="tag">高リスク会員の傾向</span>
+          <span class="tag">現場入力状況</span>
+          <span class="tag">改善が必要な店舗</span>
+        </div>
+      </div>
+      <div class="role-card">
+        <div class="role-card-title">オーナー</div>
+        <div class="role-card-desc">自分が管理する店舗の状況をまとめて確認する。</div>
+        <div class="role-card-items">
+          <span class="tag">管轄店舗の売上</span>
+          <span class="tag">会員数</span>
+          <span class="tag">継続率</span>
+          <span class="tag">未払い</span>
+          <span class="tag">要対応会員</span>
+          <span class="tag">トレーナー状況</span>
+        </div>
+      </div>
+      <div class="role-card">
+        <div class="role-card-title">店舗</div>
+        <div class="role-card-desc">日々のセッション入力、会員確認、介入タスク対応を行う。</div>
+        <div class="role-card-items">
+          <span class="tag">今日の予約</span>
+          <span class="tag">会員詳細</span>
+          <span class="tag">セッション入力</span>
+          <span class="tag">要対応タスク</span>
+          <span class="tag">在庫アラート</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="quote">
+      本部は全体を見る。オーナーは管轄店舗を見る。店舗は今日やることを見る。<br>
+      TwinCoachは、役割ごとに必要な情報を分けて届けます。
+    </div>
+  </div>
+</div>
+
+<!-- P5 -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-num">P 5</span>
+    <span class="page-title">PoCでは、使う価値が分かる画面に絞って確認します</span>
+  </div>
+  <div class="page-body">
+    <p class="lead">
+      PoCでは、全機能を広く見せるのではなく、退会予防・LTV改善・現場行動に関係する画面を中心に確認します。
+    </p>
+
+    <div class="two-col">
+      <div>
+        <div class="section-label">見せる画面</div>
+        <ol class="num-list">
+          <li>
+            <span class="n">01</span>
+            <span class="text">HQダッシュボード</span>
+            <span class="sub">全店舗の運営状況を俯瞰する画面</span>
+          </li>
+          <li>
+            <span class="n">02</span>
+            <span class="text">LTV管理</span>
+            <span class="sub">会員価値や継続状況を確認する画面</span>
+          </li>
+          <li>
+            <span class="n">03</span>
+            <span class="text">CSVインポート</span>
+            <span class="sub">PoCで使うデータを取り込む入口</span>
+          </li>
+          <li>
+            <span class="n">04</span>
+            <span class="text">Ownerダッシュボード</span>
+            <span class="sub">オーナーが管轄店舗を見る画面</span>
+          </li>
+          <li>
+            <span class="n">05</span>
+            <span class="text">店舗セッション入力</span>
+            <span class="sub">現場スタッフが日々入力する画面</span>
+          </li>
+          <li>
+            <span class="n">06</span>
+            <span class="text">会員詳細</span>
+            <span class="sub">会員ごとの状態、履歴、リスクを見る画面</span>
+          </li>
+          <li>
+            <span class="n">07</span>
+            <span class="text">介入タスク</span>
+            <span class="sub">対応すべき会員やアクションを確認する画面</span>
+          </li>
+        </ol>
+      </div>
+      <div>
+        <div class="section-label">PoCで確認したいこと</div>
+        <ul class="check-list">
+          <li>現場が使えるか</li>
+          <li>入力負担が重すぎないか</li>
+          <li>本部/SV/オーナーの判断材料になるか</li>
+          <li>退会リスク把握に使えるか</li>
+          <li>CSV運用で検証できるか</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="quote">
+      PoCでは、完成度よりも、「実際の業務に価値があるか」を確認します。
+    </div>
+  </div>
+</div>
+
+<!-- P6 -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-num">P 6</span>
+    <span class="page-title">今日決めたいこと</span>
+  </div>
+  <div class="page-body">
+    <p class="lead">
+      本日決めたいのは、本導入ではなく、PoCを行うための条件です。
+    </p>
+
+    <div class="section-label">決めたい項目</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>項目</th>
+          <th>内容</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>PoC対象店舗</td><td>どの店舗で小さく試すか</td></tr>
+        <tr><td>PoC開始日</td><td>いつから検証を開始できるか</td></tr>
+        <tr><td>検証期間</td><td>2週間か、4週間か</td></tr>
+        <tr><td>CSVデータ提供者</td><td>誰がデータを出せるか</td></tr>
+        <tr><td>CSV項目</td><td>最低限どの項目を使えるか</td></tr>
+        <tr><td>現場確認者</td><td>店舗側で誰が触るか</td></tr>
+        <tr><td>本部確認者</td><td>本部/ツール担当として誰が見るか</td></tr>
+        <tr><td>上層部相談者</td><td>林さんや上層部へ誰が共有するか</td></tr>
+        <tr><td>結果報告MTG</td><td>PoC結果をいつ確認するか</td></tr>
+        <tr><td>次回MTG</td><td>PoC準備または上層部共有前の確認日</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      その場で決めきれない項目は、「誰が、いつまでに、何を確認するか」だけ決めたいです。
+    </div>
+
+    <div class="quote">
+      今日のゴールは、PoC実施に向けた条件を整理することです。
+    </div>
+  </div>
+</div>
+
+<!-- P7 -->
+<div class="page">
+  <div class="page-header">
+    <span class="page-num">P 7</span>
+    <span class="page-title">上層部相談に向けて、必要な材料を確認したいです</span>
+  </div>
+  <div class="page-body">
+    <p class="lead">
+      PoCを進めるには、上層部に共有するための材料が必要になると思います。<br>
+      そのため、本日は井上さん・濱口さん目線で、上層部に相談するなら何が必要かを確認させてください。
+    </p>
+
+    <div class="two-col">
+      <div>
+        <div class="section-label">確認したいこと</div>
+        <ul class="check-list">
+          <li>林さんに共有するなら、どの資料が必要か</li>
+          <li>懸念されそうな点は何か</li>
+          <li>セキュリティ/権限面で追加説明が必要か</li>
+          <li>費用感はどの粒度で出すべきか</li>
+          <li>PoC対象店舗はどこが現実的か</li>
+          <li>PoC後の結果報告は誰に向けて行うべきか</li>
+        </ul>
+      </div>
+      <div>
+        <div class="section-label">次回アクション候補</div>
+        <ul class="check-list">
+          <li>PoC対象店舗の確定</li>
+          <li>CSVデータ項目の確認</li>
+          <li>上層部共有用資料の作成</li>
+          <li>PoC開始日の仮決め</li>
+          <li>PoC結果報告MTGの設定</li>
+          <li>次回MTGの日程調整</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Closing -->
+<div class="closing">
+  <p>本日は、導入判断ではなく、小さく検証するための条件を相談させていただきたいです。</p>
+  <p>現場に負担を増やすのではなく、本部・SV・オーナー・店舗それぞれにとって価値がある形で、<br>まずはPoCとして試せるかを一緒に確認できればと思っています。</p>
+</div>
+
+</body>
+</html>
