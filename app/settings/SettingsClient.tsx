@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useResolvedAppRole } from "@/components/sidebar/useResolvedAppRole";
+import { LogoutButton } from "@/components/LogoutButton";
 
 const ROLE_LABEL: Record<string, string> = {
   hq: "本部",
@@ -345,6 +346,12 @@ export default function SettingsClient() {
             </SectionCard>
 
           </div>
+        </div>
+
+        {/* ログアウト */}
+        <div className="mt-6 pt-5 border-t border-slate-200">
+          <p className="text-xs text-slate-400 mb-3">アカウント操作</p>
+          <LogoutButton className="w-full rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-100 transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50" />
         </div>
       </div>
     </div>

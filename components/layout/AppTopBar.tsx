@@ -109,7 +109,7 @@ export function AppTopBar({ role }: Props) {
               ) : null}
             </div>
           )}
-          <LogoutButton />
+          <LogoutButton className="shrink-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 hover:text-red-600 transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50" />
         </div>
       </div>
     </div>

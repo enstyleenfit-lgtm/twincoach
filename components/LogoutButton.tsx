@@ -6,7 +6,7 @@ import { useState } from "react";
 import { PREFERRED_APP_ROLE_STORAGE_KEY } from "@/components/sidebar/useResolvedAppRole";
 import { DEMO_ROLE_COOKIE_NAME } from "@/lib/authz/demoSession";
 
-export function LogoutButton() {
+export function LogoutButton({ className }: { className?: string }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +51,7 @@ export function LogoutButton() {
       type="button"
       onClick={handleLogout}
       disabled={loading}
-      className="w-full rounded-lg border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/80 transition-colors duration-200 hover:bg-white/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+      className={className ?? "w-full rounded-lg border border-white/15 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white/80 transition-colors duration-200 hover:bg-white/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"}
     >
       {loading ? "ログアウト中..." : "ログアウト"}
     </button>
