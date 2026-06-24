@@ -1,265 +1,320 @@
 "use client";
 
 import { useState } from "react";
-import { useResolvedAppRole } from "@/components/sidebar/useResolvedAppRole";
+import Link from "next/link";
 
-type NotificationCategory =
-  | "アップデート"
-  | "リマインド"
-  | "新機能予定"
-  | "操作マニュアル"
-  | "セキュリティ"
-  | "PoC確認";
-
-type NotificationPriority = "high" | "normal" | "done";
-
-type AppRole = "hq" | "owner" | "store" | "trainer";
+type NotificationKind = "要対応" | "本部連絡" | "タスク" | "システム" | "店舗運営";
+type NotificationPriority = "urgent" | "high" | "normal";
 
 type NotificationItem = {
   id: string;
+  kind: NotificationKind;
+  priority: NotificationPriority;
   title: string;
   body: string;
-  category: NotificationCategory;
-  priority: NotificationPriority;
   date: string;
+  time: string;
   isRead: boolean;
-  targetRoles?: AppRole[];
+  actionLabel?: string;
+  actionHref?: string;
 };
 
-const MOCK_NOTIFICATIONS: NotificationItem[] = [
+const NOTIFICATIONS: NotificationItem[] = [
   {
     id: "1",
-    title: "セッション入力UIを改善しました",
-    body: "会員別のセッション入力画面がカード形式になりました。トレーニング内容の見出しカード化・角丸の統一・保存ボタンの文字色修正を実施しました。",
-    category: "アップデート",
-    priority: "normal",
-    date: "2025/05/27",
+    kind: "要対応",
+    priority: "urgent",
+    title: "来店間隔が空いている会員がいます",
+    body: "田中 さくら さんが前回来店から21日経過しています。退会リスクが高まっています。早めに連絡・次回予約の確認をお願いします。",
+    date: "6/24",
+    time: "9:15",
     isRead: false,
+    actionLabel: "会員を確認する",
+    actionHref: "/members",
   },
   {
     id: "2",
-    title: "介入タスクの表示を2段階アコーディオンに変更しました",
-    body: "未対応・対応中・完了の各ステータスグループをクリックで開閉できるようになりました。タスクをクリックすると詳細が展開されます。",
-    category: "アップデート",
-    priority: "normal",
-    date: "2025/05/26",
+    kind: "本部連絡",
+    priority: "high",
+    title: "今月の退会予防重点項目",
+    body: "6月は入会3ヶ月前後の会員が離脱しやすい時期です。セッション後のフォロー声がけと次回予約確認を徹底してください。",
+    date: "6/23",
+    time: "10:00",
     isRead: false,
+    actionLabel: "詳細を確認",
+    actionHref: "/notifications",
   },
   {
     id: "3",
-    title: "5/30 MTG向けにPoC確認項目を整理してください",
-    body: "次回のPoC確認MTGに向け、以下の項目を確認してください：①会員継続率の計算ロジック　②高リスク判定基準　③セッション入力フローの操作感",
-    category: "PoC確認",
-    priority: "high",
-    date: "2025/05/25",
+    kind: "タスク",
+    priority: "normal",
+    title: "未完了の介入タスクがあります",
+    body: "「次回予約を確認する」「フォローアップ連絡」など3件のタスクが未完了です。本日中の対応をお願いします。",
+    date: "6/24",
+    time: "8:00",
     isRead: false,
-    targetRoles: ["hq", "owner"],
+    actionLabel: "タスク一覧へ",
+    actionHref: "/tasks",
   },
   {
     id: "4",
-    title: "新機能：サイドバーカスタマイズを準備中です",
-    body: "各ロールでよく使う機能をサイドバーに固定したり、不要なメニューを非表示にできる機能を準備しています。設定ページからカスタマイズできる予定です。",
-    category: "新機能予定",
+    kind: "店舗運営",
     priority: "normal",
-    date: "2025/05/24",
-    isRead: true,
+    title: "プロテイン在庫の確認が必要です",
+    body: "ホエイプロテイン（バニラ）の残数が少なくなっています。在庫管理ページで現在の在庫を確認し、必要であれば発注手配をお願いします。",
+    date: "6/23",
+    time: "16:30",
+    isRead: false,
+    actionLabel: "在庫を確認",
+    actionHref: "/store/inventory",
   },
   {
     id: "5",
-    title: "CSV/API連携設定は今後追加予定です",
-    body: "hacomono・kintoneとのAPI連携、CSVインポート機能を順次対応予定です。実装前にセキュリティ要件の確認が必要です。準備が整い次第お知らせします。",
-    category: "新機能予定",
+    kind: "システム",
     priority: "normal",
-    date: "2025/05/22",
+    title: "CSV取り込みが完了しました",
+    body: "会員データ（2026/06/20分）のCSV取り込みが正常に完了しました。会員一覧で最新データをご確認ください。",
+    date: "6/20",
+    time: "12:05",
     isRead: true,
+    actionLabel: "会員一覧を確認",
+    actionHref: "/members",
   },
   {
     id: "6",
-    title: "権限設計とデータスコープを確認してください",
-    body: "店舗ロールでは自店舗データのみが表示されること、他店舗データが取得されないことを改めて確認しています。操作中に不審な表示があれば報告してください。",
-    category: "セキュリティ",
-    priority: "high",
-    date: "2025/05/20",
+    kind: "本部連絡",
+    priority: "normal",
+    title: "6月の注力施策：体験セッションの成約率向上",
+    body: "今月は体験セッション後の成約トークスクリプトを見直しています。次の体験セッションから活用してください。",
+    date: "6/18",
+    time: "10:00",
     isRead: true,
-    targetRoles: ["hq", "owner"],
   },
   {
     id: "7",
-    title: "本部ダッシュボードのレイアウトを改善しました",
-    body: "HQダッシュボードのKPIカードを最上部に移動し、本部向け改善提案AIを2カラムレイアウト内に配置しました。",
-    category: "アップデート",
+    kind: "システム",
     priority: "normal",
-    date: "2025/05/20",
+    title: "セッション入力UIを更新しました",
+    body: "セッション入力画面のUIを改善しました。種目選択がカード形式になり、保存ボタンが常に画面下部に表示されるようになりました。",
+    date: "6/15",
+    time: "9:00",
     isRead: true,
-    targetRoles: ["hq"],
   },
   {
     id: "8",
-    title: "操作マニュアルを整備予定です",
-    body: "本部/オーナー/店舗それぞれ向けの操作マニュアルおよび動画を整備予定です。準備が整い次第、設定ページから確認できるようになります。",
-    category: "操作マニュアル",
-    priority: "normal",
-    date: "2025/05/18",
+    kind: "要対応",
+    priority: "high",
+    title: "退会リスク会員が5名います",
+    body: "今月の来店数が0〜1回の会員が5名確認されています。早めに次回予約の促進を行ってください。",
+    date: "6/10",
+    time: "9:00",
     isRead: true,
+    actionLabel: "会員を確認する",
+    actionHref: "/members",
   },
 ];
 
-const CATEGORY_FILTERS = [
-  "すべて",
-  "アップデート",
-  "リマインド",
-  "新機能予定",
-  "PoC確認",
-  "セキュリティ",
-  "操作マニュアル",
-] as const;
+const FILTERS = ["すべて", "未読", "要対応", "本部連絡", "システム", "店舗運営", "タスク"] as const;
+type FilterType = (typeof FILTERS)[number];
 
-function getPriorityBadge(priority: NotificationPriority) {
-  if (priority === "high")
-    return { label: "重要", className: "bg-red-50 text-red-700 border-red-200" };
-  if (priority === "done")
-    return { label: "完了", className: "bg-emerald-50 text-emerald-700 border-emerald-200" };
-  return { label: "通常", className: "bg-blue-50 text-blue-700 border-blue-200" };
+function kindStyle(kind: NotificationKind): string {
+  const map: Record<NotificationKind, string> = {
+    要対応: "bg-red-50 border-red-200 text-red-700",
+    本部連絡: "bg-blue-50 border-blue-200 text-blue-700",
+    タスク: "bg-amber-50 border-amber-200 text-amber-700",
+    システム: "bg-slate-100 border-slate-200 text-slate-600",
+    店舗運営: "bg-emerald-50 border-emerald-200 text-emerald-700",
+  };
+  return map[kind];
 }
 
-function getCategoryClass(category: NotificationCategory): string {
-  const map: Record<NotificationCategory, string> = {
-    アップデート: "bg-slate-100 text-slate-700 border-slate-200",
-    リマインド: "bg-amber-50 text-amber-700 border-amber-200",
-    新機能予定: "bg-violet-50 text-violet-700 border-violet-200",
-    操作マニュアル: "bg-sky-50 text-sky-700 border-sky-200",
-    セキュリティ: "bg-red-50 text-red-700 border-red-200",
-    PoC確認: "bg-orange-50 text-orange-700 border-orange-200",
-  };
-  return map[category];
+function priorityAccent(priority: NotificationPriority): string {
+  if (priority === "urgent") return "border-l-4 border-l-red-400";
+  if (priority === "high") return "border-l-4 border-l-orange-400";
+  return "";
 }
 
 export default function NotificationsClient() {
-  const role = useResolvedAppRole();
-  const [filter, setFilter] = useState<(typeof CATEGORY_FILTERS)[number]>("すべて");
+  const [filter, setFilter] = useState<FilterType>("すべて");
   const [readIds, setReadIds] = useState<Set<string>>(
-    () => new Set(MOCK_NOTIFICATIONS.filter((n) => n.isRead).map((n) => n.id))
+    () => new Set(NOTIFICATIONS.filter((n) => n.isRead).map((n) => n.id))
   );
 
-  const filtered = MOCK_NOTIFICATIONS.filter((n) => {
-    if (filter !== "すべて" && n.category !== filter) return false;
-    return true;
+  const markRead = (id: string) =>
+    setReadIds((prev) => new Set([...prev, id]));
+
+  const markAllRead = () =>
+    setReadIds(new Set(NOTIFICATIONS.map((n) => n.id)));
+
+  const filtered = NOTIFICATIONS.filter((n) => {
+    if (filter === "未読") return !readIds.has(n.id);
+    if (filter === "すべて") return true;
+    return n.kind === filter;
   });
 
-  const unreadCount = MOCK_NOTIFICATIONS.filter((n) => !readIds.has(n.id)).length;
-
-  const markAllRead = () => {
-    setReadIds(new Set(MOCK_NOTIFICATIONS.map((n) => n.id)));
-  };
-
-  const markRead = (id: string) => {
-    setReadIds((prev) => new Set([...prev, id]));
-  };
+  const unreadCount = NOTIFICATIONS.filter((n) => !readIds.has(n.id)).length;
+  const urgentCount = NOTIFICATIONS.filter((n) => !readIds.has(n.id) && n.kind === "要対応").length;
+  const hqCount = NOTIFICATIONS.filter((n) => !readIds.has(n.id) && n.kind === "本部連絡").length;
+  const sysCount = NOTIFICATIONS.filter((n) => !readIds.has(n.id) && (n.kind === "システム" || n.kind === "店舗運営")).length;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
-      <div className="flex items-start justify-between gap-4 mb-1">
-        <h1 className="text-2xl font-bold text-slate-900">お知らせ</h1>
+    <div className="w-full min-w-0 max-w-full bg-slate-50 min-h-full">
+      {/* ページタイトル */}
+      <div className="px-4 pt-5 pb-3 sm:px-6 lg:px-8 lg:pt-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-slate-900">お知らせ</h1>
+          <p className="text-sm text-slate-500 mt-0.5">店舗運営に必要な通知を確認</p>
+        </div>
         {unreadCount > 0 && (
           <button
             type="button"
             onClick={markAllRead}
-            className="shrink-0 mt-1 text-xs font-medium text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
+            className="shrink-0 mt-1 text-xs font-semibold text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
           >
-            すべて既読にする
+            すべて既読
           </button>
         )}
       </div>
-      <p className="text-slate-500 text-sm mb-6">
-        TwinCoachからのアップデート・重要連絡・運用リマインド
-      </p>
 
-      {/* フィルタータブ */}
-      <div className="flex gap-2 flex-wrap mb-6">
-        {CATEGORY_FILTERS.map((f) => (
-          <button
-            key={f}
-            type="button"
-            onClick={() => setFilter(f)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
-              filter === f
-                ? "bg-slate-900 text-white border-slate-900"
-                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 lg:pb-12">
 
-      {/* 通知カード一覧 */}
-      <div className="space-y-3">
-        {filtered.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-8 text-center">
-            <p className="text-slate-500 text-sm">該当するお知らせはありません</p>
-          </div>
-        ) : (
-          filtered.map((n) => {
-            const isRead = readIds.has(n.id);
-            const pBadge = getPriorityBadge(n.priority);
-            const cClass = getCategoryClass(n.category);
-            return (
-              <button
-                key={n.id}
-                type="button"
-                onClick={() => markRead(n.id)}
-                className={`w-full text-left rounded-xl border bg-white shadow-sm p-4 sm:p-5 transition-colors hover:bg-slate-50 ${
-                  isRead ? "border-slate-200 opacity-80" : "border-slate-300"
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  {/* 未読ドット */}
-                  <div className="mt-2 shrink-0 w-2">
-                    {!isRead && (
-                      <span className="block w-2 h-2 rounded-full bg-blue-500" />
-                    )}
-                  </div>
+        {/* サマリーカード */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          {[
+            { label: "未読", count: unreadCount, color: "text-slate-900", bg: "bg-white", border: "border-slate-100" },
+            { label: "要対応", count: urgentCount, color: "text-red-600", bg: "bg-red-50", border: "border-red-100" },
+            { label: "本部連絡", count: hqCount, color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-100" },
+            { label: "システム通知", count: sysCount, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-100" },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className={`${s.bg} ${s.border} border rounded-2xl shadow-sm px-4 py-3`}
+            >
+              <div className={`text-2xl font-bold ${s.color}`}>{s.count}</div>
+              <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
+            </div>
+          ))}
+        </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-1.5 mb-2">
-                      <span
-                        className={`inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-semibold ${cClass}`}
-                      >
-                        {n.category}
-                      </span>
-                      <span
-                        className={`inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-semibold ${pBadge.className}`}
-                      >
-                        {pBadge.label}
-                      </span>
-                      <span className="ml-auto text-[11px] text-slate-400 shrink-0">
-                        {n.date}
-                      </span>
+        {/* フィルタータブ */}
+        <div className="flex gap-2 flex-wrap mb-4">
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors border ${
+                filter === f
+                  ? "bg-slate-900 text-white border-slate-900"
+                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {f}
+              {f === "未読" && unreadCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* 通知カード一覧 */}
+        <div className="space-y-2.5">
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 text-center">
+              <p className="text-slate-400 text-sm">該当するお知らせはありません</p>
+            </div>
+          ) : (
+            filtered.map((n) => {
+              const isRead = readIds.has(n.id);
+              return (
+                <div
+                  key={n.id}
+                  onClick={() => markRead(n.id)}
+                  className={`rounded-2xl border shadow-sm overflow-hidden cursor-pointer transition-colors ${
+                    isRead
+                      ? "bg-white border-slate-100"
+                      : "bg-blue-50/50 border-blue-200/70"
+                  } ${priorityAccent(n.priority)}`}
+                >
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-start gap-3">
+                      {/* 未読ドット */}
+                      <div className="mt-1.5 shrink-0 w-2">
+                        {!isRead && (
+                          <span className="block w-2 h-2 rounded-full bg-blue-500" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        {/* バッジ行 */}
+                        <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                          <span
+                            className={`inline-flex items-center rounded-lg border px-2 py-0.5 text-[10px] font-bold ${kindStyle(n.kind)}`}
+                          >
+                            {n.kind}
+                          </span>
+                          {n.priority === "urgent" && (
+                            <span className="inline-flex items-center rounded-lg border border-red-300 bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                              至急
+                            </span>
+                          )}
+                          {n.priority === "high" && (
+                            <span className="inline-flex items-center rounded-lg border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-700">
+                              重要
+                            </span>
+                          )}
+                          <span className="ml-auto text-[11px] text-slate-400 shrink-0">
+                            {n.date} {n.time}
+                          </span>
+                        </div>
+
+                        {/* タイトル */}
+                        <p
+                          className={`text-sm font-bold leading-snug mb-1 ${
+                            isRead ? "text-slate-500" : "text-slate-900"
+                          }`}
+                        >
+                          {n.title}
+                        </p>
+
+                        {/* 本文 */}
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          {n.body}
+                        </p>
+
+                        {/* アクションボタン */}
+                        {n.actionLabel && n.actionHref && (
+                          <div className="mt-3">
+                            <Link
+                              href={n.actionHref}
+                              onClick={(e) => { e.stopPropagation(); markRead(n.id); }}
+                              className={`inline-flex items-center gap-1 rounded-xl border px-4 py-1.5 text-xs font-bold transition-colors ${
+                                n.priority === "urgent"
+                                  ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                                  : n.priority === "high"
+                                    ? "border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100"
+                                    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                              }`}
+                            >
+                              {n.actionLabel} →
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <p
-                      className={`text-sm font-semibold leading-snug mb-1 ${
-                        isRead ? "text-slate-600" : "text-slate-900"
-                      }`}
-                    >
-                      {n.title}
-                    </p>
-                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                      {n.body}
-                    </p>
                   </div>
                 </div>
-              </button>
-            );
-          })
-        )}
-      </div>
+              );
+            })
+          )}
+        </div>
 
-      <p className="text-center text-xs text-slate-400 mt-8">
-        {filtered.length}件表示中
-        {role && (
-          <span className="ml-1">（ロール：{role}）</span>
-        )}
-      </p>
+        <p className="text-center text-[11px] text-slate-400 mt-6">
+          {filtered.length}件表示中
+        </p>
+      </div>
     </div>
   );
 }

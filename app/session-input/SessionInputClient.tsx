@@ -38,17 +38,14 @@ type SavedSession = {
   memberId: string;
   memberName: string;
   storeName: string;
-  sessionDate: string; // YYYY-MM-DD
-  createdAt: string; // ISO
+  sessionDate: string;
+  createdAt: string;
   records: SessionRecord[];
-  /** トレーニングとは別の会話・フォロー用メモ */
   conversationNotes?: string;
-  /** マスタ外の種目・補足（自由記述） */
   supplementalExerciseText?: string;
 };
 
 const SESSION_RECORDS_KEY = "twincoach:trainerSessionRecords:v1";
-/** スマホ：会員プルダウン「その他 / 手入力」 */
 const MANUAL_MEMBER_ID = "__manual_member__";
 
 const EXERCISE_BASE = ["ベンチプレス", "スクワット", "デッドリフト", "その他"] as const;
@@ -105,7 +102,6 @@ type ExerciseDraft = {
   formRating: SessionRecord["formRating"];
   formIssues: string[];
   note: string;
-  /** ピラティス・自重などで重量0を許可 */
   allowsZeroWeight?: boolean;
   workoutKind?: "tr" | "pl";
 };
@@ -203,7 +199,6 @@ function buildDraftFromPrefill(params: {
       sets: prefill.sets,
       rest: prefill.rest,
       formRating: prefill.formRating,
-      // 過去の「頻出癖」が空であっても、癖ONができるようにフォールバック
       formIssues:
         prefill.formIssues && prefill.formIssues.length > 0
           ? prefill.formIssues
@@ -229,6 +224,9 @@ function buildDraftFromPrefill(params: {
     note: "",
   };
 }
+
+// suppress unused warning — kept for API compatibility with prefill consumers
+void buildDraftFromPrefill;
 
 function getExerciseName(d: ExerciseDraft): string {
   if (d.exerciseBase !== "その他") return d.exerciseBase;
@@ -353,8 +351,8 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({});
   const [historyOpen, setHistoryOpen] = useState(false);
   const [historyFilter, setHistoryFilter] = useState<(typeof HISTORY_FILTERS)[number]>("全履歴");
+  const [pickerOpen, setPickerOpen] = useState(false);
 
-  /** 店舗・会員IDの変更時のみ入力をリセット（手入力名のキー入力ではリセットしない） */
   const memberSessionKey = useMemo(
     () => `${selectedStore.id}|${selectedMemberId}`,
     [selectedStore.id, selectedMemberId]
@@ -442,7 +440,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         }
       }
     }
-
     const entries = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
     const atLeastTwo = entries.filter(([, c]) => c >= 2).map(([issue]) => issue);
     if (atLeastTwo.length > 0) return atLeastTwo;
@@ -492,6 +489,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setSupplementalExerciseText("");
     setConversationNotes("");
     setMemoOpen({});
+    setPickerOpen(false);
   }, [memberSessionKey]);
 
   const setDraftAt = (localId: string, patch: Partial<ExerciseDraft>) => {
@@ -509,7 +507,15 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setStatus(`「${master.name}」を2つ目に設定しました`);
   };
 
-  /** PC: append=false で1つ目、true で2つ目 */
+  const handleMobilePick = (master: ExerciseMaster) => {
+    if (!draft1) {
+      handleMobilePickFirst(master);
+    } else if (!draft2) {
+      handleMobilePickSecond(master);
+    }
+    setPickerOpen(false);
+  };
+
   const handleDesktopExercisePick = (master: ExerciseMaster, append: boolean) => {
     const d = createDraftFromMaster(master, frequentFormIssues);
     if (append) {
@@ -595,7 +601,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const supplementalTrim = supplementalForSave.trim();
 
     if (draftsToSave.length === 0 && !supplementalTrim) {
-      setStatus("種目を選ぶか、その他種目（手入力）を入力してください");
+      setStatus("種目を選ぶか、補足メモを入力してください");
       return;
     }
     for (const d of draftsToSave) {
@@ -651,10 +657,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
     if (typeof window === "undefined" || typeof window.localStorage === "undefined") return;
     const nextSavedSessions = [saved, ...savedSessions].slice(0, 300);
-    window.localStorage.setItem(
-      SESSION_RECORDS_KEY,
-      JSON.stringify(nextSavedSessions)
-    );
+    window.localStorage.setItem(SESSION_RECORDS_KEY, JSON.stringify(nextSavedSessions));
     setSavedSessions(nextSavedSessions);
 
     const mergedNotes = [notesTrimmed, supplementalTrim ? `補足種目: ${supplementalTrim}` : ""]
@@ -673,7 +676,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
     setStatus("保存しました · 次回提案を更新しました");
 
-    // 既存のセッション履歴（MemberSessionsClient）へも反映
     try {
       const imported = loadImportedSessions();
       const session: Session = sessionWithConversationTags({
@@ -690,7 +692,6 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       const merged = [session, ...imported];
       saveImportedSessions(merged);
     } catch {
-      // 表示系は必須ではないため握りつぶす（ログだけ残す）
       // eslint-disable-next-line no-console
       console.error("Failed to sync to session history");
     }
@@ -716,158 +717,105 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setDraft1(copied[0] ?? null);
     setDraft2(copied[1] ?? null);
     setMemoOpen({});
-    persistSession(copied, {
-      conversationNotes: lastNotes,
-      supplementalExerciseText: lastSup,
-    });
+    persistSession(copied, { conversationNotes: lastNotes, supplementalExerciseText: lastSup });
   };
 
-  const trainerFields = (
-    <>
-      <div className="text-slate-500 text-xs mb-1">トレーナー</div>
-      <select
-        value={trainerSelectValue === SESSION_TRAINER_CUSTOM ? SESSION_TRAINER_CUSTOM : trainerSelectValue}
-        onChange={(e) => {
-          const v = e.target.value;
-          setTrainerSelectValue(v);
-          if (v !== SESSION_TRAINER_CUSTOM) setTrainerCustomInput("");
-        }}
-        className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-      >
-        {presetOptions.map((t) => (
-          <option key={t} value={t}>
-            {t}
-          </option>
-        ))}
-        <option value={SESSION_TRAINER_CUSTOM}>その他（手入力）</option>
-      </select>
-      {trainerSelectValue === SESSION_TRAINER_CUSTOM ? (
-        <div className="mt-2">
-          <label className="block">
-            <span className="text-slate-500 text-xs mb-1 block">ヘルプトレーナーを入力</span>
-            <input
-              type="text"
-              value={trainerCustomInput}
-              onChange={(e) => setTrainerCustomInput(e.target.value)}
-              placeholder="氏名（他店舗ヘルプ・ゲストなど）"
-              autoComplete="name"
-              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
-            />
-          </label>
-        </div>
-      ) : null}
-    </>
-  );
+  const exerciseDraftCard = (d: ExerciseDraft, slot: "first" | "second") => {
+    const exerciseName = getExerciseName(d);
+    const master = findMasterByName(exerciseName);
+    const bodyPartLabel = master?.bodyPart || "";
+    const isPilates = d.workoutKind === "pl";
 
-  const saveBarInner = (
-    <>
-      {lastSessionForSelectedMember &&
-      (lastSessionForSelectedMember.records.length > 0 ||
-        (lastSessionForSelectedMember.supplementalExerciseText?.trim() ?? "")) ? (
-        <button
-          type="button"
-          onClick={handleSaveSameAsLast}
-          className="w-full rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-4 text-sm font-bold text-slate-800 mb-3"
-        >
-          前回と同じで保存
-        </button>
-      ) : null}
-      <button
-        type="button"
-        onClick={handleSave}
-        className="w-full rounded-lg bg-blue-600 hover:bg-blue-500 text-white py-4 text-sm font-bold"
-      >
-        保存
-      </button>
-      {status ? (
-        <div className="mt-2 text-center text-xs text-slate-700">{status}</div>
-      ) : (
-        <div className="mt-2 text-center text-xs text-slate-500">保存はローカルのみ（ローカル完結）</div>
-      )}
-    </>
-  );
-
-  const memberSelect = (
-    <>
-      <div className="text-slate-500 text-xs mb-1">会員</div>
-      <select
-        value={selectedMemberId}
-        onChange={(e) => {
-          const v = e.target.value;
-          setSelectedMemberId(v);
-          if (v !== MANUAL_MEMBER_ID) setManualMemberName("");
-        }}
-        className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
-      >
-        {assignedMembers.length === 0 ? (
-          <option value="" disabled>
-            担当会員がいません
-          </option>
-        ) : (
-          assignedMembers.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))
-        )}
-        <option value={MANUAL_MEMBER_ID}>その他 / 手入力</option>
-      </select>
-      {selectedMemberId === MANUAL_MEMBER_ID ? (
-        <div className="mt-2">
-          <label className="block">
-            <span className="text-slate-500 text-xs mb-1 block">会員名（手入力）</span>
-            <input
-              type="text"
-              value={manualMemberName}
-              onChange={(e) => setManualMemberName(e.target.value)}
-              placeholder="氏名を入力"
-              autoComplete="name"
-              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-500"
-            />
-          </label>
-        </div>
-      ) : null}
-    </>
-  );
-
-  const exerciseDraftCard = (d: ExerciseDraft, slot: "first" | "second") => (
-    <div
-      key={d.localId}
-      className={`bg-white border rounded-xl p-4 ${
-        d.weight > 0 || d.reps > 0 ? "border-emerald-500/40" : "border-slate-200"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="min-w-0">
-          <div className="text-slate-500 text-xs mb-0.5">{slot === "first" ? "選択した種目" : "続きの種目"}</div>
-          <div className="text-slate-900 font-semibold text-base leading-snug break-words">
-            {getExerciseName(d)}
+    return (
+      <div key={d.localId} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-3 border-b border-slate-50">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-slate-900 text-base leading-snug">{exerciseName}</span>
+              {bodyPartLabel && (
+                <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                  {bodyPartLabel}
+                </span>
+              )}
+              {isPilates && !bodyPartLabel && (
+                <span className="inline-flex items-center rounded-full bg-purple-50 border border-purple-100 px-2 py-0.5 text-[11px] font-semibold text-purple-700">
+                  ピラティス
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-slate-400 mt-0.5">{slot === "first" ? "1種目" : "2種目"}</div>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (slot === "first") { setDraft1(null); setDraft2(null); }
+              else { setDraft2(null); }
+            }}
+            className="shrink-0 text-slate-400 hover:text-red-500 text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 transition-colors"
+          >
+            削除
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (slot === "first") {
-              setDraft1(null);
-              setDraft2(null);
-            } else {
-              setDraft2(null);
-            }
-          }}
-          className="shrink-0 text-slate-600 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
-        >
-          選び直す
-        </button>
-      </div>
 
-      <div className="space-y-3">
-        <div>
-          <div className="text-slate-500 text-xs mb-1">種目</div>
-          <div className="lg:hidden rounded-lg border border-slate-200 bg-slate-50/80 px-3 py-3">
-            <p className="text-base font-semibold text-slate-900">{getExerciseName(d)}</p>
-            <p className="text-[11px] text-slate-500 mt-1">上の選択フローから変更できます（スマホ）</p>
+        <div className="p-4 space-y-4">
+          {/* Metrics: weight + reps */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-[11px] font-semibold text-slate-500 mb-1.5">重量（kg）</div>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={d.weight}
+                onChange={(e) => setDraftAt(d.localId, { weight: normalizeNumber(e.target.value, 0) })}
+                className={`w-full rounded-xl border px-3 py-3 text-base font-semibold text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors ${
+                  d.weight > 0 ? "border-emerald-300/70 bg-emerald-50/30" : "border-slate-200"
+                }`}
+              />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-slate-500 mb-1.5">回数</div>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={d.reps}
+                onChange={(e) => setDraftAt(d.localId, { reps: normalizeNumber(e.target.value, 0) })}
+                className={`w-full rounded-xl border px-3 py-3 text-base font-semibold text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400/40 focus:border-blue-300 transition-colors ${
+                  d.reps > 0 ? "border-emerald-300/70 bg-emerald-50/30" : "border-slate-200"
+                }`}
+              />
+            </div>
           </div>
+
+          {/* Metrics: sets + rest */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-[11px] font-semibold text-slate-500 mb-1.5">セット数</div>
+              <input
+                type="number"
+                inputMode="numeric"
+                value={d.sets}
+                onChange={(e) => setDraftAt(d.localId, { sets: normalizeNumber(e.target.value, 1) })}
+                className="w-full rounded-xl border border-slate-200 px-3 py-3 text-base font-semibold text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+              />
+            </div>
+            <div>
+              <div className="text-[11px] font-semibold text-slate-500 mb-1.5">休憩時間</div>
+              <select
+                value={d.rest}
+                onChange={(e) => setDraftAt(d.localId, { rest: normalizeNumber(e.target.value, 90) })}
+                className="w-full rounded-xl border border-slate-200 px-3 py-3 text-base font-semibold text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400/40 transition-colors"
+              >
+                {REST_OPTIONS.map((r) => (
+                  <option key={r} value={r}>{r}秒</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* PC: exercise change dropdown */}
           <div className="hidden lg:block">
+            <div className="text-[11px] font-semibold text-slate-500 mb-1.5">種目（変更）</div>
             <select
               value={d.exerciseBase}
               onChange={(e) => {
@@ -879,18 +827,13 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                   exerciseBase: base,
                   customExercise: base === "その他" ? d.customExercise : "",
                   ...(patch
-                    ? {
-                        weight: patch.weight,
-                        reps: patch.reps,
-                        allowsZeroWeight: patch.allowsZeroWeight,
-                        workoutKind: patch.workoutKind,
-                      }
+                    ? { weight: patch.weight, reps: patch.reps, allowsZeroWeight: patch.allowsZeroWeight, workoutKind: patch.workoutKind }
                     : base === "その他"
                       ? { allowsZeroWeight: undefined, workoutKind: undefined }
                       : {}),
                 });
               }}
-              className="w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900"
+              className="w-full rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-900 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
             >
               <option value="ベンチプレス">ベンチプレス</option>
               <option value="スクワット">スクワット</option>
@@ -904,347 +847,466 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                   const v = e.target.value;
                   const m = findMasterByName(v.trim());
                   if (m) {
-                    setDraftAt(d.localId, {
-                      ...applyMasterToDraftPatch(m),
-                      customExercise: v,
-                    });
+                    setDraftAt(d.localId, { ...applyMasterToDraftPatch(m), customExercise: v });
                   } else {
-                    setDraftAt(d.localId, {
-                      customExercise: v,
-                      allowsZeroWeight: undefined,
-                      workoutKind: undefined,
-                    });
+                    setDraftAt(d.localId, { customExercise: v, allowsZeroWeight: undefined, workoutKind: undefined });
                   }
                 }}
                 placeholder="例）ベンチプレス（フォーム改善）"
-                className="mt-2 w-full min-w-0 rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600"
+                className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-900 bg-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
               />
             )}
           </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-3">
+          {/* Form rating */}
           <div>
-            <div className="text-slate-500 text-xs mb-1">重量（kg）</div>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={d.weight}
-              onChange={(e) => setDraftAt(d.localId, { weight: normalizeNumber(e.target.value, 0) })}
-              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                d.weight > 0 ? "border-emerald-500/50" : "border-slate-200"
-              }`}
-            />
-          </div>
-          <div>
-            <div className="text-slate-500 text-xs mb-1">回数</div>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={d.reps}
-              onChange={(e) => setDraftAt(d.localId, { reps: normalizeNumber(e.target.value, 0) })}
-              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                d.reps > 0 ? "border-emerald-500/50" : "border-slate-200"
-              }`}
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <div className="text-slate-500 text-xs mb-1">セット数</div>
-            <input
-              type="number"
-              inputMode="numeric"
-              value={d.sets}
-              onChange={(e) => setDraftAt(d.localId, { sets: normalizeNumber(e.target.value, 1) })}
-              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                d.sets > 0 && (d.weight > 0 || d.reps > 0) ? "border-emerald-500/50" : "border-slate-200"
-              }`}
-            />
-          </div>
-          <div className="col-span-2">
-            <div className="text-slate-500 text-xs mb-1">休憩時間</div>
-            <select
-              value={d.rest}
-              onChange={(e) => setDraftAt(d.localId, { rest: normalizeNumber(e.target.value, 90) })}
-              className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 ${
-                d.weight > 0 || d.reps > 0 ? "border-emerald-500/50" : "border-slate-200"
-              }`}
-            >
-              {REST_OPTIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}秒
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <div className="text-slate-500 text-xs mb-1">動作評価</div>
-          <div className="grid grid-cols-3 gap-2">
-            {(
-              [
-                { key: "good", label: "良い" },
-                { key: "normal", label: "やや崩れ" },
-                { key: "bad", label: "崩れあり" },
-              ] as const
-            ).map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setDraftAt(d.localId, { formRating: opt.key })}
-                className={`rounded-lg border px-2 py-3 text-sm font-semibold transition-colors ${
-                  d.formRating === opt.key
-                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-800"
-                    : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <div className="text-slate-500 text-xs mb-1">フォームの癖（複数選択）</div>
-          <div className="grid grid-cols-2 gap-2">
-            {FORM_ISSUES.map((issue) => {
-              const checked = d.formIssues.includes(issue);
-              return (
+            <div className="text-[11px] font-semibold text-slate-500 mb-1.5">動作評価</div>
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  { key: "good", label: "良い" },
+                  { key: "normal", label: "やや崩れ" },
+                  { key: "bad", label: "崩れあり" },
+                ] as const
+              ).map((opt) => (
                 <button
-                  key={issue}
+                  key={opt.key}
                   type="button"
-                  onClick={() => {
-                    setDraftAt(d.localId, {
-                      formIssues: checked
-                        ? d.formIssues.filter((x) => x !== issue)
-                        : [...d.formIssues, issue],
-                    });
-                  }}
-                  className={`rounded-lg border px-2 py-2.5 text-sm font-semibold transition-colors ${
-                    checked
-                      ? "border-red-500/40 bg-red-500/10 text-red-700"
-                      : "border-slate-200 bg-slate-50/40 text-slate-800 hover:bg-slate-100"
+                  onClick={() => setDraftAt(d.localId, { formRating: opt.key })}
+                  className={`rounded-xl border py-3 text-sm font-semibold transition-colors ${
+                    d.formRating === opt.key
+                      ? "border-emerald-400/50 bg-emerald-50 text-emerald-700"
+                      : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
                   }`}
                 >
-                  {issue}
+                  {opt.label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div>
-          <div className="flex items-center justify-between gap-3 mb-1">
+          {/* Form issues */}
+          <div>
+            <div className="text-[11px] font-semibold text-slate-500 mb-1.5">フォームの癖</div>
+            <div className="grid grid-cols-2 gap-2">
+              {FORM_ISSUES.map((issue) => {
+                const checked = d.formIssues.includes(issue);
+                return (
+                  <button
+                    key={issue}
+                    type="button"
+                    onClick={() =>
+                      setDraftAt(d.localId, {
+                        formIssues: checked
+                          ? d.formIssues.filter((x) => x !== issue)
+                          : [...d.formIssues, issue],
+                      })
+                    }
+                    className={`rounded-xl border px-2 py-2.5 text-sm font-semibold transition-colors ${
+                      checked
+                        ? "border-red-300/60 bg-red-50 text-red-700"
+                        : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    {issue}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Memo */}
+          <div>
             <button
               type="button"
-              onClick={() =>
-                setMemoOpen((prev) => ({
-                  ...prev,
-                  [d.localId]: !prev[d.localId],
-                }))
-              }
-              className="text-slate-500 text-xs hover:text-slate-700"
+              onClick={() => setMemoOpen((prev) => ({ ...prev, [d.localId]: !prev[d.localId] }))}
+              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-700 transition-colors"
             >
-              メモ（任意） {memoOpen[d.localId] ? "閉じる" : "開く"}
+              <span>メモ（任意）</span>
+              <span className="text-slate-300">{memoOpen[d.localId] ? "▲" : "▼"}</span>
+              {d.note.trim() && <span className="text-emerald-600 font-semibold">· 入力あり</span>}
             </button>
-            {d.note.trim() ? <span className="text-[11px] text-emerald-800">入力あり</span> : null}
-          </div>
-
-          {memoOpen[d.localId] ? (
-            <div>
+            {memoOpen[d.localId] && (
               <input
                 value={d.note}
                 onChange={(e) => setDraftAt(d.localId, { note: e.target.value })}
                 placeholder="例）次回はフォーム意識"
-                className={`w-full min-w-0 rounded-lg bg-slate-50 border px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 ${
-                  d.note.trim() ? "border-emerald-500/40" : "border-slate-200"
-                }`}
+                className="mt-2 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
               />
-            </div>
-          ) : (
-            <div className="text-[11px] text-slate-600">タップでメモ入力</div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    );
+  };
+
+  const hasLastSession =
+    !!lastSessionForSelectedMember &&
+    (lastSessionForSelectedMember.records.length > 0 ||
+      !!(lastSessionForSelectedMember.supplementalExerciseText?.trim()));
+
+  const saveButtons = (
+    <>
+      {hasLastSession && (
+        <button
+          type="button"
+          onClick={handleSaveSameAsLast}
+          className="w-full rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-3.5 text-sm font-bold text-slate-800 mb-3 transition-colors"
+        >
+          前回と同じで保存
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={handleSave}
+        className="w-full rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white py-4 text-sm font-bold transition-colors shadow-sm"
+      >
+        保存
+      </button>
+    </>
+  );
+
+  const canAddMore = !draft1 || !draft2;
+
+  // 補足メモセクション（左カラムPC表示用・右カラムモバイル表示用で共用）
+  const supplementalSection = (
+    <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+        <h2 className="text-sm font-semibold text-slate-800">補足メモ</h2>
+        <p className="text-xs text-slate-400 mt-0.5">マスタにない種目・補助メモ・特別対応など</p>
+      </div>
+      <div className="p-4">
+        <textarea
+          value={supplementalExerciseText}
+          onChange={(e) => setSupplementalExerciseText(e.target.value)}
+          placeholder="マスタにない種目・補助メモ・特別対応など"
+          rows={3}
+          className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+        />
+      </div>
+    </section>
   );
 
   return (
-    <div className="w-full min-w-0 max-w-full overflow-x-hidden py-4 sm:py-6 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] sm:pl-6 sm:pr-6">
-      <div className="w-full max-w-3xl lg:max-w-5xl mx-auto min-w-0">
-        <header className="mb-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-balance">セッション入力</h1>
-          <p className="text-slate-600 text-base mt-1">タップで完了。種目は選択フローから選べます。</p>
-        </header>
+    <div className="w-full min-w-0 max-w-full bg-slate-50 min-h-full">
+      {/* ページタイトル */}
+      <div className="px-4 pt-5 pb-3 sm:px-6 lg:px-8 lg:pt-8">
+        <h1 className="text-xl font-bold text-slate-900">セッション入力</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          今日の記録を入力 · {todayYmd().replace(/-/g, "/")}
+        </p>
+      </div>
 
-        <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
-          {/* スマホ（lg 未満）: 会員 → トレーナー → 前回コピー */}
-          <div className="flex flex-col gap-4 lg:hidden">
-            <div className="min-w-0">{memberSelect}</div>
-            <div className="min-w-0">{trainerFields}</div>
-            <button
-              type="button"
-              onClick={handleCopyLast}
-              className="h-12 w-full shrink-0 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
-            >
-              前回コピー
-            </button>
-          </div>
-          {/* PC（lg 以上）: 会員 | 前回コピー → トレーナー */}
-          <div className="hidden lg:block">
-            <div className="flex flex-row gap-3 items-end mb-3">
-              <div className="min-w-0 flex-1">{memberSelect}</div>
-              <div className="shrink-0 self-end">
-                <button
-                  type="button"
-                  onClick={handleCopyLast}
-                  className="h-12 px-4 rounded-lg border border-slate-200 bg-slate-100/80 text-slate-800 text-base font-semibold hover:bg-slate-100 transition-colors"
+      {/* メインコンテンツ: モバイル1カラム / PC 2カラムグリッド */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-48 lg:pb-40">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+
+          {/* ── 左カラム: 会員・トレーナー・会話内容・補足メモ ── */}
+          <div className="space-y-3">
+
+            {/* 会員 */}
+            <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">会員</h2>
+              </div>
+              <div className="p-4">
+                <select
+                  value={selectedMemberId}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setSelectedMemberId(v);
+                    if (v !== MANUAL_MEMBER_ID) setManualMemberName("");
+                  }}
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
                 >
-                  前回コピー
-                </button>
-              </div>
-            </div>
-            <div>{trainerFields}</div>
-          </div>
-        </div>
+                  {assignedMembers.length === 0 ? (
+                    <option value="" disabled>担当会員がいません</option>
+                  ) : (
+                    assignedMembers.map((m) => (
+                      <option key={m.id} value={m.id}>{m.name}</option>
+                    ))
+                  )}
+                  <option value={MANUAL_MEMBER_ID}>その他 / 手入力</option>
+                </select>
 
-        <div className="mb-4 bg-white border border-slate-200 shadow-sm rounded-xl p-4">
-          <h2 className="text-slate-900 font-semibold text-base mb-2">会話内容</h2>
-          <p className="text-slate-500 text-xs mb-2">
-            雑談・仕事・生活の変化・悩み・次回の話題など（トレーニングの種目メモとは別）
-          </p>
-          <textarea
-            value={conversationNotes}
-            onChange={(e) => setConversationNotes(e.target.value)}
-            placeholder="会話した内容、最近の変化、気になったことを記録"
-            rows={5}
-            className="w-full min-h-[120px] rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 resize-y"
-          />
-        </div>
+                {selectedMemberId === MANUAL_MEMBER_ID && (
+                  <input
+                    type="text"
+                    value={manualMemberName}
+                    onChange={(e) => setManualMemberName(e.target.value)}
+                    placeholder="氏名を入力"
+                    autoComplete="name"
+                    className="mt-2 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                  />
+                )}
 
-        <div className="mb-4">
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 mb-2">
-            <div className="flex items-center justify-between gap-2">
-              <h2 className="text-slate-900 font-semibold text-base">トレーニング内容</h2>
-              <button
-                type="button"
-                onClick={() => setHistoryOpen((v) => !v)}
-                className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors"
-              >
-                {historyOpen ? "閉じる" : "履歴から作成"}
-              </button>
-            </div>
-          </div>
-
-          {/* 履歴パネル */}
-          {historyOpen && (
-            <div className="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-              {/* フィルタータブ */}
-              <div className="flex gap-2 flex-wrap px-4 py-3 border-b border-slate-100">
-                {HISTORY_FILTERS.map((f) => (
-                  <button
-                    key={f}
-                    type="button"
-                    onClick={() => setHistoryFilter(f)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      historyFilter === f
-                        ? "bg-slate-900 text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-              {/* 履歴カード一覧 */}
-              <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
-                {filteredHistory.length === 0 ? (
-                  <p className="text-slate-500 text-sm text-center py-6">該当する履歴がありません</p>
-                ) : (
-                  filteredHistory.map((item, idx) => (
-                    <div key={idx} className="p-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-1">
-                          <span className="text-xs text-slate-400">{item.date}</span>
-                          <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-                            {item.bodyPart}
-                          </span>
-                          {item.category === "ピラティス" && (
-                            <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-600">
-                              ピラティス
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm font-semibold text-slate-900 leading-snug">{item.exerciseName}</p>
-                        {item.weight > 0 ? (
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {item.weight}kg × {item.reps}回 × {item.sets}セット
-                          </p>
-                        ) : (
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {item.reps}回 × {item.sets}セット
-                          </p>
-                        )}
-                        {item.note && (
-                          <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{item.note}</p>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleAddFromHistory(item)}
-                        className="shrink-0 self-start sm:self-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors whitespace-nowrap"
-                      >
-                        この種目を追加
-                      </button>
+                {selectedMember && (
+                  <div className="mt-4 flex items-center gap-3 pt-3 border-t border-slate-50">
+                    <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center shrink-0 shadow-sm">
+                      <span className="text-white text-lg font-bold select-none">
+                        {selectedMember.name.slice(0, 1)}
+                      </span>
                     </div>
-                  ))
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-slate-900 text-base">{selectedMember.name}</span>
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                          在籍中
+                        </span>
+                      </div>
+                      {selectedMember.plan && (
+                        <div className="text-xs text-slate-500 mt-0.5">{selectedMember.plan}</div>
+                      )}
+                      {lastSessionForSelectedMember && (
+                        <div className="text-[11px] text-slate-400 mt-0.5">
+                          前回: {lastSessionForSelectedMember.sessionDate}
+                          {lastSessionForSelectedMember.records[0]?.exercise
+                            ? ` · ${lastSessionForSelectedMember.records[0].exercise}`
+                            : ""}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
-          )}
+            </section>
 
-          <div className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
-            <MobileExercisePicker heading="種目を選ぶ" onPick={handleMobilePickFirst} />
+            {/* 担当トレーナー */}
+            <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">担当トレーナー</h2>
+              </div>
+              <div className="p-4">
+                <select
+                  value={trainerSelectValue === SESSION_TRAINER_CUSTOM ? SESSION_TRAINER_CUSTOM : trainerSelectValue}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setTrainerSelectValue(v);
+                    if (v !== SESSION_TRAINER_CUSTOM) setTrainerCustomInput("");
+                  }}
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                >
+                  {presetOptions.map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                  <option value={SESSION_TRAINER_CUSTOM}>その他（手入力）</option>
+                </select>
+                {trainerSelectValue === SESSION_TRAINER_CUSTOM && (
+                  <input
+                    type="text"
+                    value={trainerCustomInput}
+                    onChange={(e) => setTrainerCustomInput(e.target.value)}
+                    placeholder="氏名（他店舗ヘルプ・ゲストなど）"
+                    autoComplete="name"
+                    className="mt-2 w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                  />
+                )}
+              </div>
+            </section>
+
+            {/* 会話内容 */}
+            <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+                <h2 className="text-sm font-semibold text-slate-800">会話内容</h2>
+                <p className="text-xs text-slate-400 mt-0.5">雑談・仕事・生活の変化・悩み・次回の話題など</p>
+              </div>
+              <div className="p-4">
+                <textarea
+                  value={conversationNotes}
+                  onChange={(e) => setConversationNotes(e.target.value)}
+                  placeholder="会話した内容、最近の変化、気になったことを記録"
+                  rows={5}
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400/40"
+                />
+              </div>
+            </section>
+
+            {/* 補足メモ: PCのみ左カラム下部に表示 */}
+            <div className="hidden lg:block">{supplementalSection}</div>
           </div>
-          <div className="mb-4 hidden lg:block rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <ExerciseSearchField onPick={handleDesktopExercisePick} />
+
+          {/* ── 右カラム: トレーニングメニュー ── */}
+          <div className="space-y-3 mt-3 lg:mt-0">
+
+            {/* トレーニングメニュー */}
+            <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-slate-50">
+                <h2 className="text-sm font-semibold text-slate-800">トレーニングメニュー</h2>
+                <button
+                  type="button"
+                  onClick={() => setHistoryOpen((v) => !v)}
+                  className="shrink-0 text-xs font-semibold px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  {historyOpen ? "閉じる" : "履歴から作成"}
+                </button>
+              </div>
+
+              {/* 履歴パネル */}
+              {historyOpen && (
+                <div className="border-b border-slate-100">
+                  <div className="flex gap-2 flex-wrap px-4 py-3 border-b border-slate-50">
+                    {HISTORY_FILTERS.map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setHistoryFilter(f)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                          historyFilter === f
+                            ? "bg-slate-900 text-white"
+                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        }`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="divide-y divide-slate-50 max-h-72 overflow-y-auto">
+                    {filteredHistory.length === 0 ? (
+                      <p className="text-slate-500 text-sm text-center py-6">該当する履歴がありません</p>
+                    ) : (
+                      filteredHistory.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <span className="text-xs text-slate-400">{item.date}</span>
+                              <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                                {item.bodyPart}
+                              </span>
+                              {item.category === "ピラティス" && (
+                                <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-600">
+                                  ピラティス
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm font-semibold text-slate-900">{item.exerciseName}</p>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                              {item.weight > 0 ? `${item.weight}kg × ` : ""}
+                              {item.reps}回 × {item.sets}セット
+                            </p>
+                            {item.note && (
+                              <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">{item.note}</p>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleAddFromHistory(item)}
+                            className="shrink-0 self-start sm:self-center rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors whitespace-nowrap"
+                          >
+                            追加
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 種目カード */}
+              {(draft1 || draft2) && (
+                <div className="p-4 space-y-3">
+                  {draft1 && exerciseDraftCard(draft1, "first")}
+                  {draft2 && exerciseDraftCard(draft2, "second")}
+                </div>
+              )}
+
+              {/* スマホ: 種目を追加ボタン・ピッカー */}
+              {canAddMore && (
+                <div className="lg:hidden px-4 pb-4">
+                  {pickerOpen ? (
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-4">
+                      <MobileExercisePicker
+                        heading={!draft1 ? "種目を選ぶ" : "2つ目の種目を選ぶ"}
+                        onPick={handleMobilePick}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPickerOpen(false)}
+                        className="mt-3 w-full py-2.5 text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="w-full py-4 rounded-2xl border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/40 transition-all"
+                    >
+                      + 種目を追加
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* PC: 種目検索フィールド */}
+              {canAddMore && (
+                <div className="hidden lg:block px-4 pb-4">
+                  <ExerciseSearchField onPick={handleDesktopExercisePick} />
+                </div>
+              )}
+
+              {/* 前回コピー */}
+              {lastSessionForSelectedMember && (
+                <div className="px-4 pb-4">
+                  <button
+                    type="button"
+                    onClick={handleCopyLast}
+                    className="w-full py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  >
+                    前回コピー
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* 補足メモ: スマホのみ右カラム下部に表示 */}
+            <div className="lg:hidden">{supplementalSection}</div>
           </div>
+
         </div>
+      </div>
 
-        <div className="space-y-3 pb-8">
-          {draft1 ? exerciseDraftCard(draft1, "first") : null}
+      {/* ── スマホ固定保存バー（タブバーの上） ── */}
+      <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-white/96 backdrop-blur-sm border-t border-slate-100 px-4 pt-3 pb-2 shadow-[0_-4px_16px_rgba(15,23,42,0.07)]">
+        {status ? (
+          <div className="text-xs text-center text-slate-700 mb-2 font-medium">{status}</div>
+        ) : (
+          <div className="text-center text-[11px] text-slate-400 mb-1.5">ローカル保存</div>
+        )}
+        {saveButtons}
+      </div>
 
-          {draft1 ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm lg:hidden">
-              <MobileExercisePicker heading="続きの種目を選ぶ" onPick={handleMobilePickSecond} />
-            </div>
-          ) : null}
-
-          {draft2 ? exerciseDraftCard(draft2, "second") : null}
-
-          <div className="bg-white border border-slate-200 rounded-xl p-4">
-            <label className="block">
-              <span className="text-slate-500 text-xs mb-1 block">その他種目（手入力）・補足種目メモ</span>
-              <textarea
-                value={supplementalExerciseText}
-                onChange={(e) => setSupplementalExerciseText(e.target.value)}
-                placeholder="マスタにない種目・補助メモ・特別対応など"
-                rows={4}
-                className="w-full min-h-[100px] rounded-lg bg-slate-50 border border-slate-200 px-3 py-3 text-base text-slate-900 placeholder:text-slate-600 resize-y"
-              />
-            </label>
-          </div>
-
-          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-900/5">
-            <div className="text-slate-500 text-xs font-medium mb-3">保存</div>
-            {saveBarInner}
-          </div>
+      {/* ── PC固定保存バー（サイドバー右・画面最下部） ── */}
+      <div className="hidden lg:flex fixed bottom-0 left-64 right-0 z-30 items-center justify-between gap-4 bg-white/96 backdrop-blur-sm border-t border-slate-200 px-8 py-3 shadow-[0_-4px_16px_rgba(15,23,42,0.07)]">
+        <div className="min-w-0">
+          {status ? (
+            <p className="text-sm font-medium text-slate-700 truncate">{status}</p>
+          ) : (
+            <p className="text-xs text-slate-400">保存はローカルのみ（ローカル完結）</p>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {hasLastSession && (
+            <button
+              type="button"
+              onClick={handleSaveSameAsLast}
+              className="rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-5 py-2.5 text-sm font-bold text-slate-700 transition-colors whitespace-nowrap"
+            >
+              前回と同じで保存
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleSave}
+            className="rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-8 py-2.5 text-sm font-bold transition-colors shadow-sm whitespace-nowrap"
+          >
+            保存
+          </button>
         </div>
       </div>
     </div>
   );
 }
-
