@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { useResolvedAppRole } from "@/components/sidebar/useResolvedAppRole";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -121,6 +122,12 @@ export default function SettingsClient() {
     <div className="w-full min-w-0 max-w-full bg-slate-50 min-h-full">
       {/* ページタイトル */}
       <div className="px-4 pt-5 pb-3 sm:px-6 lg:px-8 lg:pt-8">
+        <Link
+          href="/notifications"
+          className="lg:hidden inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 mb-3 transition-colors"
+        >
+          ← お知らせ
+        </Link>
         <h1 className="text-xl font-bold text-slate-900">設定</h1>
         <p className="text-sm text-slate-500 mt-0.5">店舗の通知・表示・連携設定を管理</p>
       </div>
