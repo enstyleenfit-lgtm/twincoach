@@ -1,8 +1,23 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, type FormEvent } from "react";
 import type { InventoryItem, PurchaseOrder } from "@/lib/inventoryMockData";
 import { isLowStock, CATEGORY_LABEL, ORDER_STATUS_LABEL } from "@/lib/inventoryMockData";
+
+type AddReqStatus = "申請中" | "本部承認待ち" | "承認済み" | "差し戻し";
+type AddReq = { id: string; storeId: string; storeName: string; productName: string; quantity: string; reason: string; submittedAt: string; status: AddReqStatus };
+
+const ADD_REQ_STATUS_STYLE: Record<AddReqStatus, string> = {
+  "申請中":     "bg-blue-50 text-blue-700 ring-blue-600/20",
+  "本部承認待ち": "bg-amber-50 text-amber-700 ring-amber-600/20",
+  "承認済み":   "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  "差し戻し":   "bg-red-50 text-red-700 ring-red-600/20",
+};
+
+const MOCK_OWNER_ADD_REQS: AddReq[] = [
+  { id: "oar-1", storeId: "store-1", storeName: "人形町店", productName: "グルタミン（プレーン）", quantity: "8袋", reason: "補充依頼", submittedAt: "6/22", status: "本部承認待ち" },
+  { id: "oar-2", storeId: "store-2", storeName: "水天宮前店", productName: "クレアチン（パウダー）", quantity: "3袋", reason: "試験導入", submittedAt: "6/19", status: "差し戻し" },
+];
 
 type StoreInventoryData = {
   storeId: string;
@@ -52,6 +67,24 @@ export function OwnerInventoryClient({ stores }: Props) {
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [localOrders, setLocalOrders] = useState<PurchaseOrder[]>(allInitialOrders);
 
+  const [showReqForm, setShowReqForm] = useState(false);
+  const [reqForm, setReqForm] = useState({ storeId: "", productName: "", quantity: "1", reason: "", desiredDate: "", note: "" });
+  const [reqSuccess, setReqSuccess] = useState(false);
+  const [addReqs, setAddReqs] = useState<AddReq[]>(MOCK_OWNER_ADD_REQS);
+
+  const handleReqSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const store = stores.find((s) => s.storeId === reqForm.storeId) ?? stores[0];
+    setAddReqs((prev) => [
+      { id: `oar-${Date.now()}`, storeId: store.storeId, storeName: store.storeName, productName: reqForm.productName, quantity: `${reqForm.quantity}個`, reason: reqForm.reason || "—", submittedAt: new Date().toISOString().slice(5, 10).replace("-", "/"), status: "本部承認待ち" },
+      ...prev,
+    ]);
+    setReqForm({ storeId: "", productName: "", quantity: "1", reason: "", desiredDate: "", note: "" });
+    setShowReqForm(false);
+    setReqSuccess(true);
+    setTimeout(() => setReqSuccess(false), 4000);
+  };
+
   const handleApprove = (orderId: string) => {
     setLocalOrders((prev) =>
       prev.map((o): PurchaseOrder =>
@@ -77,10 +110,105 @@ export function OwnerInventoryClient({ stores }: Props) {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">在庫管理</h1>
-        <p className="mt-1 text-sm text-slate-500">管轄店舗：{stores.length}店舗合算</p>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">在庫管理</h1>
+          <p className="mt-1 text-sm text-slate-500">管轄店舗：{stores.length}店舗合算</p>
+        </div>
+        <button
+          onClick={() => setShowReqForm((v) => !v)}
+          className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+        >
+          {showReqForm ? "閉じる" : "+ 追加申請"}
+        </button>
       </div>
+
+      {reqSuccess && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-emerald-500">
+            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <p className="text-sm font-semibold text-emerald-700">申請を送信しました。本部の承認をお待ちください。</p>
+        </div>
+      )}
+
+      {showReqForm && (
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-sm font-bold text-slate-900">追加申請（本部へ送信）</h3>
+          <form onSubmit={handleReqSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">申請店舗 *</label>
+                <select
+                  required value={reqForm.storeId}
+                  onChange={(e) => setReqForm((f) => ({ ...f, storeId: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                >
+                  <option value="">選択してください</option>
+                  {stores.map((s) => (
+                    <option key={s.storeId} value={s.storeId}>{s.storeName}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">商品名 *</label>
+                <input
+                  type="text" required value={reqForm.productName}
+                  onChange={(e) => setReqForm((f) => ({ ...f, productName: e.target.value }))}
+                  placeholder="例：ホエイプロテイン（バニラ）"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">申請数 *</label>
+                <input
+                  type="number" min="1" required value={reqForm.quantity}
+                  onChange={(e) => setReqForm((f) => ({ ...f, quantity: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">希望納品日</label>
+                <input
+                  type="date" value={reqForm.desiredDate}
+                  onChange={(e) => setReqForm((f) => ({ ...f, desiredDate: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-medium text-slate-600">申請理由</label>
+                <input
+                  type="text" value={reqForm.reason}
+                  onChange={(e) => setReqForm((f) => ({ ...f, reason: e.target.value }))}
+                  placeholder="例：在庫不足、試験導入など"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-600">備考</label>
+              <textarea
+                rows={2} value={reqForm.note}
+                onChange={(e) => setReqForm((f) => ({ ...f, note: e.target.value }))}
+                placeholder="補足事項があれば記入してください"
+                className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => { setShowReqForm(false); setReqForm({ storeId: "", productName: "", quantity: "1", reason: "", desiredDate: "", note: "" }); }}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                キャンセル
+              </button>
+              <button type="submit" className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                本部へ申請する
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* 合算KPI */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -304,6 +432,27 @@ export function OwnerInventoryClient({ stores }: Props) {
           );
         })}
       </div>
+
+      {/* 追加申請一覧 */}
+      {addReqs.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">追加申請一覧（本部へ送信済み）</h2>
+          <div className="space-y-2">
+            {addReqs.map((req) => (
+              <div key={req.id} className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">{req.productName}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{req.storeName} · {req.quantity} · 申請日 {req.submittedAt}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">{req.reason}</p>
+                </div>
+                <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${ADD_REQ_STATUS_STYLE[req.status]}`}>
+                  {req.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

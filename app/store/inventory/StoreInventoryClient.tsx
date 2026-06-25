@@ -1,8 +1,23 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useState, type FormEvent } from "react";
 import type { InventoryItem, PurchaseOrder } from "@/lib/inventoryMockData";
 import { isLowStock, CATEGORY_LABEL, ORDER_STATUS_LABEL } from "@/lib/inventoryMockData";
+
+type AddReqStatus = "申請中" | "本部承認待ち" | "承認済み" | "差し戻し";
+type AddReq = { id: string; productName: string; quantity: string; reason: string; submittedAt: string; status: AddReqStatus };
+
+const ADD_REQ_STATUS_STYLE: Record<AddReqStatus, string> = {
+  "申請中":     "bg-blue-50 text-blue-700 ring-blue-600/20",
+  "本部承認待ち": "bg-amber-50 text-amber-700 ring-amber-600/20",
+  "承認済み":   "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  "差し戻し":   "bg-red-50 text-red-700 ring-red-600/20",
+};
+
+const MOCK_ADD_REQS: AddReq[] = [
+  { id: "ar-1", productName: "ホエイプロテイン（バニラ）", quantity: "10袋", reason: "在庫切れ間近", submittedAt: "6/23", status: "本部承認待ち" },
+  { id: "ar-2", productName: "BCAA（グレープ）", quantity: "5袋", reason: "先月末に在庫切れ", submittedAt: "6/18", status: "承認済み" },
+];
 
 type Props = {
   storeId: string;
@@ -32,6 +47,23 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
   const [stockInput, setStockInput] = useState("");
   const [orderQty, setOrderQty] = useState("");
   const [orderNote, setOrderNote] = useState("");
+
+  const [showReqForm, setShowReqForm] = useState(false);
+  const [reqForm, setReqForm] = useState({ productName: "", quantity: "1", reason: "", desiredDate: "", note: "" });
+  const [reqSuccess, setReqSuccess] = useState(false);
+  const [addReqs, setAddReqs] = useState<AddReq[]>(MOCK_ADD_REQS);
+
+  const handleReqSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setAddReqs((prev) => [
+      { id: `ar-${Date.now()}`, productName: reqForm.productName, quantity: `${reqForm.quantity}個`, reason: reqForm.reason || "—", submittedAt: new Date().toISOString().slice(5, 10).replace("-", "/"), status: "申請中" },
+      ...prev,
+    ]);
+    setReqForm({ productName: "", quantity: "1", reason: "", desiredDate: "", note: "" });
+    setShowReqForm(false);
+    setReqSuccess(true);
+    setTimeout(() => setReqSuccess(false), 4000);
+  };
 
   const lowStockItems = localInventory.filter(isLowStock);
   const pendingOrders = localOrders.filter(
@@ -84,10 +116,92 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">在庫管理</h1>
-        <p className="mt-1 text-sm text-slate-500">{storeName}</p>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">在庫管理</h1>
+          <p className="mt-1 text-sm text-slate-500">{storeName}</p>
+        </div>
+        <button
+          onClick={() => setShowReqForm((v) => !v)}
+          className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+        >
+          {showReqForm ? "閉じる" : "+ 追加申請"}
+        </button>
       </div>
+
+      {reqSuccess && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-emerald-500">
+            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <p className="text-sm font-semibold text-emerald-700">申請を作成しました。本部の承認をお待ちください。</p>
+        </div>
+      )}
+
+      {showReqForm && (
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-sm font-bold text-slate-900">追加申請</h3>
+          <form onSubmit={handleReqSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">商品名 *</label>
+                <input
+                  type="text" required value={reqForm.productName}
+                  onChange={(e) => setReqForm((f) => ({ ...f, productName: e.target.value }))}
+                  placeholder="例：ホエイプロテイン（バニラ）"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">申請数 *</label>
+                <input
+                  type="number" min="1" required value={reqForm.quantity}
+                  onChange={(e) => setReqForm((f) => ({ ...f, quantity: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">申請理由</label>
+                <input
+                  type="text" value={reqForm.reason}
+                  onChange={(e) => setReqForm((f) => ({ ...f, reason: e.target.value }))}
+                  placeholder="例：在庫不足、定期補充など"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">希望納品日</label>
+                <input
+                  type="date" value={reqForm.desiredDate}
+                  onChange={(e) => setReqForm((f) => ({ ...f, desiredDate: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-600">備考</label>
+              <textarea
+                rows={2} value={reqForm.note}
+                onChange={(e) => setReqForm((f) => ({ ...f, note: e.target.value }))}
+                placeholder="補足事項があれば記入してください"
+                className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => { setShowReqForm(false); setReqForm({ productName: "", quantity: "1", reason: "", desiredDate: "", note: "" }); }}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                キャンセル
+              </button>
+              <button type="submit" className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                申請する
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* KPI cards */}
       <div className="mb-6 grid grid-cols-2 gap-4">
@@ -276,7 +390,7 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
 
       {/* Pending orders */}
       {pendingOrders.length > 0 && (
-        <div>
+        <div className="mb-8">
           <h2 className="mb-3 text-sm font-semibold text-slate-700">発注対応中</h2>
           <div className="space-y-2">
             {pendingOrders.map((o) => (
@@ -289,6 +403,27 @@ export function StoreInventoryClient({ storeId, storeName, inventory, orders }: 
                   {o.note && <p className="mt-1 text-xs text-slate-400">{o.note}</p>}
                 </div>
                 <OrderStatusBadge status={o.status} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 追加申請一覧 */}
+      {addReqs.length > 0 && (
+        <div>
+          <h2 className="mb-3 text-sm font-semibold text-slate-700">追加申請一覧</h2>
+          <div className="space-y-2">
+            {addReqs.map((req) => (
+              <div key={req.id} className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                <div>
+                  <p className="text-sm font-medium text-slate-900">{req.productName}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">{req.quantity} · 申請日 {req.submittedAt}</p>
+                  <p className="mt-0.5 text-xs text-slate-400">{req.reason}</p>
+                </div>
+                <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${ADD_REQ_STATUS_STYLE[req.status]}`}>
+                  {req.status}
+                </span>
               </div>
             ))}
           </div>

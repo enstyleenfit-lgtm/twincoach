@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { HelpRequest } from "@/lib/helpBoardMockData";
+import { useState, type FormEvent } from "react";
+import type { HelpRequest, HelpType, ShiftSlot } from "@/lib/helpBoardMockData";
 import { getApplicationsForRequest } from "@/lib/helpBoardMockData";
 
 type Props = {
@@ -47,37 +47,163 @@ function AppStatusBadge({ status }: { status: string }) {
   );
 }
 
+const EMPTY_FORM = { storeName: "", date: "", shiftSlot: "午前" as ShiftSlot, requiredCount: "1", helpType: "欠員補充" as HelpType, description: "" };
+
 export function HQHelpBoardClient({ allRequests }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterStore, setFilterStore] = useState<string | null>(null);
   const [confirmedByHQ, setConfirmedByHQ] = useState<Set<string>>(new Set());
+  const [localRequests, setLocalRequests] = useState<HelpRequest[]>(allRequests);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [formSuccess, setFormSuccess] = useState(false);
 
-  const storeNames = [...new Set(allRequests.map((r) => r.storeName))].sort();
+  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const newReq: HelpRequest = {
+      requestId: `req-hq-${Date.now()}`,
+      storeId: formData.storeName.replace(/\s+/g, "-").toLowerCase(),
+      storeName: formData.storeName,
+      date: formData.date,
+      shiftSlot: formData.shiftSlot,
+      helpType: formData.helpType,
+      requiredCount: parseInt(formData.requiredCount, 10),
+      description: formData.description,
+      status: "募集中",
+      postedAt: new Date().toISOString().slice(0, 10),
+      postedBy: "本部",
+      source: "manual",
+    };
+    setLocalRequests((prev) => [newReq, ...prev]);
+    setFormData(EMPTY_FORM);
+    setShowForm(false);
+    setFormSuccess(true);
+    setTimeout(() => setFormSuccess(false), 4000);
+  };
+
+  const storeNames = [...new Set(localRequests.map((r) => r.storeName))].sort();
   const filteredRequests = filterStore
-    ? allRequests.filter((r) => r.storeName === filterStore)
-    : allRequests;
+    ? localRequests.filter((r) => r.storeName === filterStore)
+    : localRequests;
 
-  const openCount = allRequests.filter((r) => r.status === "募集中").length;
-  const confirmedCount = allRequests.filter((r) => r.status === "確定済み").length;
-  const withAppsCount = allRequests.filter(
+  const openCount = localRequests.filter((r) => r.status === "募集中").length;
+  const confirmedCount = localRequests.filter((r) => r.status === "確定済み").length;
+  const withAppsCount = localRequests.filter(
     (r) => getApplicationsForRequest(r.requestId).length > 0
   ).length;
-  const totalApps = allRequests.reduce(
+  const totalApps = localRequests.reduce(
     (s, r) => s + getApplicationsForRequest(r.requestId).length,
     0
   );
 
   const selectedRequest = selectedId
-    ? allRequests.find((r) => r.requestId === selectedId) ?? null
+    ? localRequests.find((r) => r.requestId === selectedId) ?? null
     : null;
   const detailApps = selectedId ? getApplicationsForRequest(selectedId) : [];
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">応援掲示板</h1>
-        <p className="mt-1 text-sm text-slate-500">全店舗の募集・応募状況</p>
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">応援掲示板</h1>
+          <p className="mt-1 text-sm text-slate-500">全店舗の募集・応募状況</p>
+        </div>
+        <button
+          onClick={() => setShowForm((v) => !v)}
+          className="shrink-0 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-100"
+        >
+          {showForm ? "閉じる" : "+ 募集を追加"}
+        </button>
       </div>
+
+      {formSuccess && (
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-3.5">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 text-emerald-500">
+            <path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <p className="text-sm font-semibold text-emerald-700">募集を作成しました。</p>
+        </div>
+      )}
+
+      {showForm && (
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h3 className="mb-4 text-sm font-bold text-slate-900">募集を追加</h3>
+          <form onSubmit={handleFormSubmit} className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">募集店舗 *</label>
+                <input
+                  type="text" required value={formData.storeName}
+                  onChange={(e) => setFormData((f) => ({ ...f, storeName: e.target.value }))}
+                  placeholder="例：人形町店"
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">日付 *</label>
+                <input
+                  type="date" required value={formData.date}
+                  onChange={(e) => setFormData((f) => ({ ...f, date: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">時間帯 *</label>
+                <select
+                  value={formData.shiftSlot}
+                  onChange={(e) => setFormData((f) => ({ ...f, shiftSlot: e.target.value as ShiftSlot }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                >
+                  <option value="午前">午前</option>
+                  <option value="午後">午後</option>
+                  <option value="終日">終日</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">必要人数 *</label>
+                <input
+                  type="number" min="1" required value={formData.requiredCount}
+                  onChange={(e) => setFormData((f) => ({ ...f, requiredCount: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-xs font-medium text-slate-600">募集種別 *</label>
+                <select
+                  value={formData.helpType}
+                  onChange={(e) => setFormData((f) => ({ ...f, helpType: e.target.value as HelpType }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-400 focus:outline-none"
+                >
+                  <option value="欠員補充">欠員補充</option>
+                  <option value="代行出勤">代行出勤</option>
+                  <option value="短時間サポート">短時間サポート</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-600">補足メモ</label>
+              <textarea
+                rows={2} value={formData.description}
+                onChange={(e) => setFormData((f) => ({ ...f, description: e.target.value }))}
+                placeholder="応援内容の詳細、注意事項など"
+                className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => { setShowForm(false); setFormData(EMPTY_FORM); }}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                キャンセル
+              </button>
+              <button type="submit" className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700">
+                募集を作成
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* KPI cards */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
