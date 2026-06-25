@@ -22,7 +22,17 @@ function isStoreScopePath(pathname: string) {
   );
 }
 
+function isCommonPath(pathname: string) {
+  return (
+    pathname === "/notifications" ||
+    pathname.startsWith("/notifications/") ||
+    pathname === "/settings" ||
+    pathname.startsWith("/settings/")
+  );
+}
+
 function isPathAllowedForDemoRole(pathname: string, role: "hq" | "owner" | "store") {
+  if (isCommonPath(pathname)) return true;
   if (role === "hq") {
     return (pathname === "/hq" || pathname.startsWith("/hq/")) || isStoreScopePath(pathname);
   }
