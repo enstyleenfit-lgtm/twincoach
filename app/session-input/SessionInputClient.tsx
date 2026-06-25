@@ -60,6 +60,19 @@ const FORM_ISSUES = [
 
 const REST_OPTIONS = [30, 60, 90, 120] as const;
 
+const CONDITION_BODY = ["良い", "普通", "疲れ気味", "痛みあり"] as const;
+const CONDITION_MOTIVATION = ["高い", "普通", "低い"] as const;
+const CONDITION_DIET = ["順調", "普通", "乱れあり"] as const;
+const CONDITION_NEXT_CARE = ["なし", "フォーム確認", "食事確認", "来店促進"] as const;
+
+const CONVERSATION_TEMPLATES = [
+  "食事順調", "睡眠不足", "体重変化あり", "仕事が忙しい", "モチベーション低下", "次回予約確認",
+] as const;
+
+const NEXT_ACTION_OPTIONS = [
+  "次回予約確認", "食事内容を確認", "フォーム再確認", "自宅トレ提案", "来店間隔フォロー", "SV/店長に共有",
+] as const;
+
 function todayYmd(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -353,6 +366,14 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
   const [historyFilter, setHistoryFilter] = useState<(typeof HISTORY_FILTERS)[number]>("全履歴");
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  const [conditionCheck, setConditionCheck] = useState({
+    body: "",
+    motivation: "",
+    diet: "",
+    nextCare: "",
+  });
+  const [nextActions, setNextActions] = useState<string[]>([]);
+
   const memberSessionKey = useMemo(
     () => `${selectedStore.id}|${selectedMemberId}`,
     [selectedStore.id, selectedMemberId]
@@ -490,11 +511,21 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     setConversationNotes("");
     setMemoOpen({});
     setPickerOpen(false);
+    setConditionCheck({ body: "", motivation: "", diet: "", nextCare: "" });
+    setNextActions([]);
   }, [memberSessionKey]);
 
   const setDraftAt = (localId: string, patch: Partial<ExerciseDraft>) => {
     setDraft1((d) => (d && d.localId === localId ? { ...d, ...patch } : d));
     setDraft2((d) => (d && d.localId === localId ? { ...d, ...patch } : d));
+  };
+
+  const findLastRecordForExercise = (exerciseName: string): SessionRecord | null => {
+    for (const s of recentSessionsForMember) {
+      const r = s.records.find((rec) => rec.exercise === exerciseName);
+      if (r) return r;
+    }
+    return null;
   };
 
   const handleMobilePickFirst = (master: ExerciseMaster) => {
@@ -674,7 +705,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const primaryNextAction =
       nextSuggestion.actions[0]?.title ?? "次回予約をその場で確定";
 
-    setStatus("保存しました · 次回提案を更新しました");
+    setStatus("✓ 記録を保存しました");
 
     try {
       const imported = loadImportedSessions();
@@ -725,6 +756,12 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     const master = findMasterByName(exerciseName);
     const bodyPartLabel = master?.bodyPart || "";
     const isPilates = d.workoutKind === "pl";
+    const lastRecord = findLastRecordForExercise(exerciseName);
+    const lastWeightLabel = lastRecord
+      ? lastRecord.weight > 0
+        ? `前回: ${lastRecord.weight}kg × ${lastRecord.reps}回 × ${lastRecord.sets}セット`
+        : `前回: ${lastRecord.reps}回 × ${lastRecord.sets}セット`
+      : null;
 
     return (
       <div key={d.localId} className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
@@ -744,7 +781,10 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                 </span>
               )}
             </div>
-            <div className="text-[11px] text-slate-400 mt-0.5">{slot === "first" ? "1種目" : "2種目"}</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              {slot === "first" ? "1種目" : "2種目"}
+              {lastWeightLabel && <span className="ml-2 text-slate-400">{lastWeightLabel}</span>}
+            </div>
           </div>
           <button
             type="button"
@@ -759,6 +799,25 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         </div>
 
         <div className="p-4 space-y-4">
+          {/* 前回と同じボタン */}
+          {lastRecord && (
+            <button
+              type="button"
+              onClick={() =>
+                setDraftAt(d.localId, {
+                  weight: lastRecord.weight,
+                  reps: lastRecord.reps,
+                  sets: lastRecord.sets,
+                })
+              }
+              className="w-full py-2.5 rounded-xl border border-blue-200 bg-blue-50 text-xs font-bold text-blue-700 hover:bg-blue-100 transition-colors"
+            >
+              前回と同じ（
+              {lastRecord.weight > 0 ? `${lastRecord.weight}kg × ` : ""}
+              {lastRecord.reps}回 × {lastRecord.sets}セット）
+            </button>
+          )}
+
           {/* Metrics: weight + reps */}
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -772,6 +831,22 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                   d.weight > 0 ? "border-emerald-300/70 bg-emerald-50/30" : "border-slate-200"
                 }`}
               />
+              <div className="flex gap-1.5 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setDraftAt(d.localId, { weight: Math.max(0, d.weight - 5) })}
+                  className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  −5kg
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDraftAt(d.localId, { weight: d.weight + 5 })}
+                  className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  +5kg
+                </button>
+              </div>
             </div>
             <div>
               <div className="text-[11px] font-semibold text-slate-500 mb-1.5">回数</div>
@@ -784,6 +859,22 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                   d.reps > 0 ? "border-emerald-300/70 bg-emerald-50/30" : "border-slate-200"
                 }`}
               />
+              <div className="flex gap-1.5 mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setDraftAt(d.localId, { reps: Math.max(0, d.reps - 1) })}
+                  className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  −1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDraftAt(d.localId, { reps: d.reps + 1 })}
+                  className="flex-1 py-2 text-xs font-bold rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  +1
+                </button>
+              </div>
             </div>
           </div>
 
@@ -961,14 +1052,13 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
         onClick={handleSave}
         className="w-full rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white py-4 text-sm font-bold transition-colors shadow-sm"
       >
-        保存
+        記録を保存
       </button>
     </>
   );
 
   const canAddMore = !draft1 || !draft2;
 
-  // 補足メモセクション（左カラムPC表示用・右カラムモバイル表示用で共用）
   const supplementalSection = (
     <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
       <div className="px-4 pt-4 pb-3 border-b border-slate-50">
@@ -987,6 +1077,190 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
     </section>
   );
 
+  const nextActionSection = (
+    <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+        <h2 className="text-sm font-semibold text-slate-800">次回アクション</h2>
+        <p className="text-xs text-slate-400 mt-0.5">選択した内容がタスクとして登録されます</p>
+      </div>
+      <div className="p-4">
+        <div className="grid grid-cols-2 gap-2">
+          {NEXT_ACTION_OPTIONS.map((action) => {
+            const selected = nextActions.includes(action);
+            return (
+              <button
+                key={action}
+                type="button"
+                onClick={() =>
+                  setNextActions((prev) =>
+                    selected ? prev.filter((a) => a !== action) : [...prev, action]
+                  )
+                }
+                className={`rounded-xl border px-3 py-2.5 text-xs font-semibold text-left transition-colors ${
+                  selected
+                    ? "border-blue-400/50 bg-blue-50 text-blue-700"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {selected && <span className="mr-1">✓</span>}
+                {action}
+              </button>
+            );
+          })}
+        </div>
+        {nextActions.length > 0 && (
+          <p className="text-xs text-blue-600 mt-3 font-medium">
+            {nextActions.length}件のアクションが登録されます
+          </p>
+        )}
+      </div>
+    </section>
+  );
+
+  const exerciseCount = [draft1, draft2].filter(Boolean).length;
+  const hasSummaryContent = exerciseCount > 0 || conditionCheck.body || nextActions.length > 0;
+
+  const summarySection = hasSummaryContent ? (
+    <section className="bg-slate-900 rounded-2xl overflow-hidden shadow-sm">
+      <div className="px-4 pt-3.5 pb-3 border-b border-slate-700">
+        <h2 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">今日の記録まとめ</h2>
+      </div>
+      <div className="px-4 py-3 space-y-1.5">
+        {conditionCheck.body && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 w-20 shrink-0">体調</span>
+            <span className="text-white font-semibold">{conditionCheck.body}</span>
+          </div>
+        )}
+        {conditionCheck.motivation && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 w-20 shrink-0">モチベ</span>
+            <span className="text-white font-semibold">{conditionCheck.motivation}</span>
+          </div>
+        )}
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-400 w-20 shrink-0">実施種目</span>
+          <span className="text-white font-semibold">
+            {exerciseCount > 0 ? `${exerciseCount}種目` : "未選択"}
+          </span>
+        </div>
+        {nextActions.length > 0 && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 w-20 shrink-0">次回アクション</span>
+            <span className="text-white font-semibold">
+              {nextActions[0]}{nextActions.length > 1 ? ` 他${nextActions.length - 1}件` : ""}
+            </span>
+          </div>
+        )}
+        {frequentFormIssues.length > 0 && (
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-slate-400 w-20 shrink-0">リスクメモ</span>
+            <span className="text-amber-400 font-semibold">{frequentFormIssues[0]}</span>
+          </div>
+        )}
+      </div>
+    </section>
+  ) : null;
+
+  const conditionSection = (
+    <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="px-4 pt-4 pb-3 border-b border-slate-50">
+        <h2 className="text-sm font-semibold text-slate-800">今日の状態</h2>
+        <p className="text-xs text-slate-400 mt-0.5">ワンタップで選択してください</p>
+      </div>
+      <div className="p-4 space-y-3">
+        {/* 体調 */}
+        <div>
+          <div className="text-[11px] font-semibold text-slate-500 mb-1.5">体調</div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {CONDITION_BODY.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() =>
+                  setConditionCheck((c) => ({ ...c, body: c.body === opt ? "" : opt }))
+                }
+                className={`rounded-xl border py-2.5 text-xs font-semibold transition-colors ${
+                  conditionCheck.body === opt
+                    ? "border-emerald-400/60 bg-emerald-50 text-emerald-700"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* モチベーション */}
+        <div>
+          <div className="text-[11px] font-semibold text-slate-500 mb-1.5">モチベーション</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {CONDITION_MOTIVATION.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() =>
+                  setConditionCheck((c) => ({ ...c, motivation: c.motivation === opt ? "" : opt }))
+                }
+                className={`rounded-xl border py-2.5 text-xs font-semibold transition-colors ${
+                  conditionCheck.motivation === opt
+                    ? "border-blue-400/60 bg-blue-50 text-blue-700"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* 食事管理 */}
+        <div>
+          <div className="text-[11px] font-semibold text-slate-500 mb-1.5">食事管理</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {CONDITION_DIET.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() =>
+                  setConditionCheck((c) => ({ ...c, diet: c.diet === opt ? "" : opt }))
+                }
+                className={`rounded-xl border py-2.5 text-xs font-semibold transition-colors ${
+                  conditionCheck.diet === opt
+                    ? "border-purple-400/60 bg-purple-50 text-purple-700"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+        {/* 次回注意 */}
+        <div>
+          <div className="text-[11px] font-semibold text-slate-500 mb-1.5">次回注意</div>
+          <div className="grid grid-cols-4 gap-1.5">
+            {CONDITION_NEXT_CARE.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() =>
+                  setConditionCheck((c) => ({ ...c, nextCare: c.nextCare === opt ? "" : opt }))
+                }
+                className={`rounded-xl border py-2.5 text-xs font-semibold transition-colors ${
+                  conditionCheck.nextCare === opt
+                    ? "border-orange-400/60 bg-orange-50 text-orange-700"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
   return (
     <div className="w-full min-w-0 max-w-full bg-slate-50 min-h-full">
       {/* ページタイトル */}
@@ -1001,7 +1275,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-48 lg:pb-40">
         <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
 
-          {/* ── 左カラム: 会員・トレーナー・会話内容・補足メモ ── */}
+          {/* ── 左カラム ── */}
           <div className="space-y-3">
 
             {/* 会員 */}
@@ -1071,6 +1345,9 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
               </div>
             </section>
 
+            {/* 今日の状態チェック */}
+            {conditionSection}
+
             {/* 担当トレーナー */}
             <section className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-4 pt-4 pb-3 border-b border-slate-50">
@@ -1111,6 +1388,21 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
                 <p className="text-xs text-slate-400 mt-0.5">雑談・仕事・生活の変化・悩み・次回の話題など</p>
               </div>
               <div className="p-4">
+                {/* テンプレートボタン */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {CONVERSATION_TEMPLATES.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() =>
+                        setConversationNotes((prev) => (prev ? `${prev}\n${t}` : t))
+                      }
+                      className="px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 text-xs font-medium text-slate-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
                 <textarea
                   value={conversationNotes}
                   onChange={(e) => setConversationNotes(e.target.value)}
@@ -1123,6 +1415,9 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
 
             {/* 補足メモ: PCのみ左カラム下部に表示 */}
             <div className="hidden lg:block">{supplementalSection}</div>
+
+            {/* 次回アクション: PCのみ左カラム */}
+            <div className="hidden lg:block">{nextActionSection}</div>
           </div>
 
           {/* ── 右カラム: トレーニングメニュー ── */}
@@ -1262,8 +1557,14 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
               )}
             </section>
 
-            {/* 補足メモ: スマホのみ右カラム下部に表示 */}
+            {/* 補足メモ: スマホのみ */}
             <div className="lg:hidden">{supplementalSection}</div>
+
+            {/* 次回アクション: スマホのみ */}
+            <div className="lg:hidden">{nextActionSection}</div>
+
+            {/* 保存前サマリー */}
+            {summarySection}
           </div>
 
         </div>
@@ -1272,7 +1573,9 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       {/* ── スマホ固定保存バー（タブバーの上） ── */}
       <div className="lg:hidden fixed bottom-16 left-0 right-0 z-30 bg-white/96 backdrop-blur-sm border-t border-slate-100 px-4 pt-3 pb-2 shadow-[0_-4px_16px_rgba(15,23,42,0.07)]">
         {status ? (
-          <div className="text-xs text-center text-slate-700 mb-2 font-medium">{status}</div>
+          <div className={`text-xs text-center mb-2 font-medium ${status.startsWith("✓") ? "text-emerald-600" : "text-slate-700"}`}>
+            {status}
+          </div>
         ) : (
           <div className="text-center text-[11px] text-slate-400 mb-1.5">ローカル保存</div>
         )}
@@ -1283,7 +1586,9 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
       <div className="hidden lg:flex fixed bottom-0 left-64 right-0 z-30 items-center justify-between gap-4 bg-white/96 backdrop-blur-sm border-t border-slate-200 px-8 py-3 shadow-[0_-4px_16px_rgba(15,23,42,0.07)]">
         <div className="min-w-0">
           {status ? (
-            <p className="text-sm font-medium text-slate-700 truncate">{status}</p>
+            <p className={`text-sm font-medium truncate ${status.startsWith("✓") ? "text-emerald-600" : "text-slate-700"}`}>
+              {status}
+            </p>
           ) : (
             <p className="text-xs text-slate-400">保存はローカルのみ（ローカル完結）</p>
           )}
@@ -1303,7 +1608,7 @@ export default function SessionInputClient({ initialMembers }: SessionInputProps
             onClick={handleSave}
             className="rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-8 py-2.5 text-sm font-bold transition-colors shadow-sm whitespace-nowrap"
           >
-            保存
+            記録を保存
           </button>
         </div>
       </div>
