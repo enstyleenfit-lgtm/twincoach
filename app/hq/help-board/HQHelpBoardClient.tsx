@@ -49,6 +49,13 @@ function AppStatusBadge({ status }: { status: string }) {
 
 export function HQHelpBoardClient({ allRequests }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [filterStore, setFilterStore] = useState<string | null>(null);
+  const [confirmedByHQ, setConfirmedByHQ] = useState<Set<string>>(new Set());
+
+  const storeNames = [...new Set(allRequests.map((r) => r.storeName))].sort();
+  const filteredRequests = filterStore
+    ? allRequests.filter((r) => r.storeName === filterStore)
+    : allRequests;
 
   const openCount = allRequests.filter((r) => r.status === "募集中").length;
   const confirmedCount = allRequests.filter((r) => r.status === "確定済み").length;
@@ -102,9 +109,31 @@ export function HQHelpBoardClient({ allRequests }: Props) {
         </div>
       </div>
 
+      {/* 店舗別フィルター */}
+      <div className="mb-6 flex flex-wrap gap-2 items-center">
+        <span className="text-xs font-semibold text-slate-500 mr-1">店舗別：</span>
+        <button
+          onClick={() => setFilterStore(null)}
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${filterStore === null ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
+        >
+          全店舗
+        </button>
+        {storeNames.map((name) => (
+          <button
+            key={name}
+            onClick={() => setFilterStore(filterStore === name ? null : name)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${filterStore === name ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
+          >
+            {name}
+          </button>
+        ))}
+      </div>
+
       {/* Request table */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">全店舗 募集一覧</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">
+          {filterStore ? `${filterStore} の募集一覧` : "全店舗 募集一覧"}
+        </h2>
         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -119,7 +148,7 @@ export function HQHelpBoardClient({ allRequests }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {allRequests.map((req) => {
+                {filteredRequests.map((req) => {
                   const apps = getApplicationsForRequest(req.requestId);
                   const isSelected = selectedId === req.requestId;
                   return (
@@ -174,7 +203,22 @@ export function HQHelpBoardClient({ allRequests }: Props) {
               </div>
               <RequestStatusBadge status={selectedRequest.status} />
             </div>
-            <p className="mb-5 text-sm text-slate-700 leading-relaxed">{selectedRequest.description}</p>
+            <p className="mb-4 text-sm text-slate-700 leading-relaxed">{selectedRequest.description}</p>
+
+            <div className="mb-5 flex flex-wrap gap-2">
+              {confirmedByHQ.has(selectedRequest.requestId) ? (
+                <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+                  ✓ 本部確認済み
+                </span>
+              ) : (
+                <button
+                  onClick={() => setConfirmedByHQ((prev) => new Set([...prev, selectedRequest.requestId]))}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
+                >
+                  本部確認済みにする
+                </button>
+              )}
+            </div>
 
             <h4 className="mb-3 text-xs font-semibold text-slate-600">応募店舗一覧</h4>
             {detailApps.length === 0 ? (

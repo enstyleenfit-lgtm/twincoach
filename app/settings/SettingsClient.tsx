@@ -119,6 +119,20 @@ export default function SettingsClient() {
   const toggleSession = (key: keyof typeof session) =>
     setSession((prev) => ({ ...prev, [key]: !prev[key] }));
 
+  const [customize, setCustomize] = useState({
+    salesCard: true,
+    unpaidCard: false,
+    riskCard: true,
+    sessionInputNav: true,
+    taskNav: true,
+    inventoryNav: true,
+    helpBoardNav: true,
+    inventoryTab: false,
+    helpBoardTab: true,
+  });
+  const toggleCustomize = (key: keyof typeof customize) =>
+    setCustomize((prev) => ({ ...prev, [key]: !prev[key] }));
+
   return (
     <div className="w-full min-w-0 max-w-full bg-slate-50 min-h-full">
       {/* ページタイトル */}
@@ -196,6 +210,48 @@ export default function SettingsClient() {
                   enabled={notif.csvImport}
                   onToggle={() => toggleNotif("csvImport")}
                 />
+              </SettingRow>
+            </SectionCard>
+
+            {/* 表示カスタマイズ */}
+            <SectionCard title="表示カスタマイズ">
+              <div className="mb-4 rounded-xl bg-blue-50 border border-blue-100 px-3 py-2.5">
+                <p className="text-[11px] text-blue-700 leading-relaxed">
+                  使う機能・表示するカードをON/OFFできます。将来的に店舗ごとの個別設定が可能になります。
+                </p>
+              </div>
+
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">ダッシュボード</p>
+              <SettingRow label="売上カード" description="月次・週次売上を表示">
+                <Toggle enabled={customize.salesCard} onToggle={() => toggleCustomize("salesCard")} />
+              </SettingRow>
+              <SettingRow label="未収金カード" description="未払い・未収会費の件数">
+                <Toggle enabled={customize.unpaidCard} onToggle={() => toggleCustomize("unpaidCard")} />
+              </SettingRow>
+              <SettingRow label="退会リスクカード" description="来店間隔アラートを表示">
+                <Toggle enabled={customize.riskCard} onToggle={() => toggleCustomize("riskCard")} />
+              </SettingRow>
+
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 mt-4">ナビゲーション</p>
+              <SettingRow label="セッション入力">
+                <Toggle enabled={customize.sessionInputNav} onToggle={() => toggleCustomize("sessionInputNav")} />
+              </SettingRow>
+              <SettingRow label="タスク管理">
+                <Toggle enabled={customize.taskNav} onToggle={() => toggleCustomize("taskNav")} />
+              </SettingRow>
+              <SettingRow label="在庫管理">
+                <Toggle enabled={customize.inventoryNav} onToggle={() => toggleCustomize("inventoryNav")} />
+              </SettingRow>
+              <SettingRow label="応援掲示板">
+                <Toggle enabled={customize.helpBoardNav} onToggle={() => toggleCustomize("helpBoardNav")} />
+              </SettingRow>
+
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 mt-4">下部タブ</p>
+              <SettingRow label="在庫管理（タブ）" description="下部ナビに在庫管理を表示">
+                <Toggle enabled={customize.inventoryTab} onToggle={() => toggleCustomize("inventoryTab")} />
+              </SettingRow>
+              <SettingRow label="応援掲示板（タブ）" description="下部ナビに応援掲示板を表示">
+                <Toggle enabled={customize.helpBoardTab} onToggle={() => toggleCustomize("helpBoardTab")} />
               </SettingRow>
             </SectionCard>
 

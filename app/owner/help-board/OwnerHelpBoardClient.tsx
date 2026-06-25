@@ -202,8 +202,10 @@ export function OwnerHelpBoardClient({ stores, otherOpenRequests }: Props) {
   const [formStoreId, setFormStoreId] = useState<string>(stores[0]?.storeId ?? "");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [filterStoreId, setFilterStoreId] = useState<string | null>(null);
 
   const toggle = (id: string) => setExpandedId((prev) => (prev === id ? null : id));
+  const filteredStores = filterStoreId ? stores.filter((s) => s.storeId === filterStoreId) : stores;
 
   const allLocalRequests = Object.values(localStoreRequests).flat();
   const totalOwnRequests = allLocalRequests.length;
@@ -292,15 +294,35 @@ export function OwnerHelpBoardClient({ stores, otherOpenRequests }: Props) {
         </div>
       </div>
 
+      {/* 管轄店舗フィルター */}
+      <div className="mb-6 flex flex-wrap gap-2 items-center">
+        <span className="text-xs font-semibold text-slate-500 mr-1">絞り込み：</span>
+        <button
+          onClick={() => setFilterStoreId(null)}
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${filterStoreId === null ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
+        >
+          全店舗
+        </button>
+        {stores.map((s) => (
+          <button
+            key={s.storeId}
+            onClick={() => setFilterStoreId(filterStoreId === s.storeId ? null : s.storeId)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${filterStoreId === s.storeId ? "bg-slate-900 text-white border-slate-900" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"}`}
+          >
+            {s.storeName}
+          </button>
+        ))}
+      </div>
+
       {/* 自店舗の募集 */}
       <div className="mb-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">自店舗の募集</h2>
+          <h2 className="text-sm font-semibold text-slate-700">管轄店舗の募集</h2>
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
           >
-            {showForm ? "閉じる" : "+ 募集を投稿"}
+            {showForm ? "閉じる" : "+ 募集を作成"}
           </button>
         </div>
 
@@ -398,7 +420,7 @@ export function OwnerHelpBoardClient({ stores, otherOpenRequests }: Props) {
 
         {/* 店舗ごとのセクション */}
         <div className="space-y-4">
-          {stores.map((store) => {
+          {filteredStores.map((store) => {
             const storeRequests = localStoreRequests[store.storeId] ?? [];
             return (
               <div key={store.storeId}>

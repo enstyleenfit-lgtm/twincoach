@@ -111,6 +111,15 @@ export function StoreHelpBoardClient({
     setAppliedIds((prev) => new Set([...prev, requestId]));
   };
 
+  const handleWithdraw = (requestId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setAppliedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(requestId);
+      return next;
+    });
+  };
+
   const newlyAppliedCount = [...appliedIds].filter(
     (id) => !ownApplications.some((a) => a.requestId === id)
   ).length;
@@ -371,17 +380,29 @@ export function StoreHelpBoardClient({
                       <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
                         <p className="text-sm text-slate-700 leading-relaxed">{req.description}</p>
                         {isApplied ? (
-                          <div className="mt-3 flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
-                            <p className="text-sm font-medium text-blue-700">
-                              {existingApp ? "自店舗の応募" : "応募済み"}
-                            </p>
-                            <AppStatusBadge status={existingApp?.status ?? "応募中"} />
+                          <div className="mt-3 space-y-2">
+                            <div className="flex items-center justify-between rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+                              <p className="text-sm font-medium text-blue-700">
+                                {existingApp ? "自店舗の応募" : "応募済み"}
+                              </p>
+                              <AppStatusBadge status={existingApp?.status ?? "応募中"} />
+                            </div>
+                            {!existingApp && (
+                              <div className="flex justify-end">
+                                <button
+                                  onClick={(e) => handleWithdraw(req.requestId, e)}
+                                  className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                                >
+                                  応募を取り消す
+                                </button>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="mt-3 flex justify-end">
                             <button
                               onClick={(e) => handleApply(req.requestId, e)}
-                              className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition-colors"
+                              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 transition-colors"
                             >
                               応募する
                             </button>
